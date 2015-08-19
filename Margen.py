@@ -52,15 +52,10 @@ class Margen:
 
       infile.close()
 
-  # Return a line appropriate to a given nick; if nick not present, return empty string
-  def generate(self, nick):
+  # Return a line generated from a given lookback collection and a given initial pair
+  def generate(self, lookbacks, initial):
 
-    if nick not in self.userlookbacks or nick not in self.starters:
-      return ''
-
-    current = random.choice(self.starters[nick]) # Choose a random starting-point
-    lookbacks = self.userlookbacks[nick]
-
+    current = initial
     line = current[0] + ' ' + current[1]
 
     if not current in lookbacks:
@@ -74,3 +69,22 @@ class Margen:
       i += 1
 
     return line
+
+
+  # Return a line appropriate to a given single nick; if nick is not present, return an empty string
+  def generateSingle(self, nick):
+
+    if nick not in self.userlookbacks or nick not in self.starters:
+      return ''
+
+    lookbacks = self.userlookbacks[nick]
+    initial = random.choice(self.starters[nick]) # Choose a random starting-point
+
+    return self.generate(lookbacks, initial)
+
+
+  # Return a line from some random nick in the set
+  def generateRandom(self):
+
+    nick = random.choice(self.userlookbacks.keys())
+    return nick, self.generateSingle(nick)
