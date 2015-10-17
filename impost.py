@@ -33,10 +33,10 @@ def main(srcdir):
 
       else:
         if request == RANDNICK:
-          nick, imposting = generator.generateRandom()
+          nick = generator.getRandomNick()
         else:
           nick = request
-          imposting = generator.generateSingle(request)
+        imposting = generator.generateSingle(nick)
 
         if imposting:
           print '[' + nick + '] ' + imposting

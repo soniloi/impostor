@@ -102,11 +102,9 @@ class Margen:
     return self.generate(lookbacks, initial)
 
 
-  # Return a line from some random nick in the set, and also the nick that was selected
-  def generateRandom(self):
-
-    nick = random.choice(self.userlookbacks.keys())
-    return nick, self.generateSingle(nick)
+  # Return a random nick of someone in the collection
+  def getRandomNick(self):
+      return random.choice(self.userlookbacks.keys())
 
 
   # Return a line generated from the source of multiple nicks
