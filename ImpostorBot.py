@@ -20,8 +20,8 @@ RANDNICK = 'random' # Word that will trigger a random user to be 'quoted'
 NOPEN = '[' # Character(s) before a nick(s)
 NSEP = ':' # Character(s) between output nicks
 NCLOSE = '] ' # Character(s) after nick(s)
-NICK_SPLIT = ' *' # Character(s) used to split input nicks
-BOTDESC = " is a bot that impersonates people based on their history. Type '!<nick>' to see a line generated for a single user, '!random' for a line generated for a random user, or '!<nick1> <nick2>' to see a line generated from two users merged."
+NICK_SPLIT = ':' # Character(s) used to split input nicks
+BOTDESC = " is a bot that impersonates people based on their history. Type '!<nick>' to see a line generated for a single user, '!random' for a line generated for a random user, or '!<nick1>" + NICK_SPLIT + "<nick2>' to see a line generated from two users merged."
 
 class MessageLogger:
   """
@@ -77,9 +77,11 @@ class ImpostorBot(irc.IRCClient):
       return
 
     elif msg.startswith(TRIGGER):
-      tokens = re.split(NICK_SPLIT, msg.strip())
+      rawtokens = re.split(' *', msg.strip())
+      tokens = re.split(NICK_SPLIT, rawtokens[0][len(TRIGGER):])
+      self.msg(channel, repr(tokens))
 
-      nick = tokens[0][len(TRIGGER):].lower()
+      nick = tokens[0].lower()
 
       if nick == BOTNICK:
         msg = BOTNICK + BOTDESC
