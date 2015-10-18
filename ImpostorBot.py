@@ -17,6 +17,7 @@ import time, sys
 TRIGGER = '!' # Character that must appear at the start of a message in order to trigger the bot
 BOTNICK = 'impostor'
 RANDNICK = 'random' # Word that will trigger a random user to be 'quoted'
+ALLNICK = 'all' # Request for a line generated from all users merged
 NOPEN = '[' # Character(s) before a nick(s)
 NSEP = ':' # Character(s) between output nicks
 NCLOSE = '] ' # Character(s) after nick(s)
@@ -82,13 +83,16 @@ class ImpostorBot(irc.IRCClient):
       self.msg(channel, repr(tokens))
 
       nick = tokens[0].lower()
+      if ALLNICK in tokens:
+        nick = ALLNICK # All subsumes all
 
       if nick == BOTNICK:
         msg = BOTNICK + BOTDESC
         self.msg(channel, msg)
 
-      elif len(tokens) > 1:
+      elif len(tokens) > 1 and nick != ALLNICK:
         secondnick = tokens[1].lower()
+
         nickset = list(set([nick, secondnick]))
 
         nicks, imposting = self.factory.generator.generateMerged(nickset)
