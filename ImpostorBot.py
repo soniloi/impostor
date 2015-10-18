@@ -22,7 +22,7 @@ NOPEN = '[' # Character(s) before a nick(s)
 NSEP = ':' # Character(s) between output nicks
 NCLOSE = '] ' # Character(s) after nick(s)
 NICK_SPLIT = ':' # Character(s) used to split input nicks
-BOTDESC = " is a bot that impersonates people based on their history. Type '!<nick>' to see a line generated for a single user, '!random' for a line generated for a random user, or '!<nick1>" + NICK_SPLIT + "<nick2>' to see a line generated from two users merged."
+BOTDESC = " is a bot that impersonates people based on their history. Type '" + TRIGGER + "<nick>' to see a line generated for a single user, '" + TRIGGER + "all' for a line generated from all users, '" + TRIGGER + "random' for a line generated for a random user, or '" + TRIGGER + "<nick1>" + NICK_SPLIT + "<nick2>' to see a line generated from two users merged."
 
 class MessageLogger:
   """
