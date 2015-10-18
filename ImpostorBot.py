@@ -80,11 +80,14 @@ class ImpostorBot(irc.IRCClient):
     elif msg.startswith(TRIGGER):
       rawtokens = re.split(' *', msg.strip())
       tokens = re.split(NICK_SPLIT, rawtokens[0][len(TRIGGER):])
-      self.msg(channel, repr(tokens))
 
       nick = tokens[0].lower()
+
       if ALLNICK in tokens:
         nick = ALLNICK # All subsumes all
+
+      elif nick == RANDNICK:
+        nick = self.factory.generator.getRandomNick()
 
       if nick == BOTNICK:
         msg = BOTNICK + BOTDESC
@@ -92,6 +95,9 @@ class ImpostorBot(irc.IRCClient):
 
       elif len(tokens) > 1 and nick != ALLNICK:
         secondnick = tokens[1].lower()
+
+        if secondnick == RANDNICK:
+          secondnick = self.factory.generator.getRandomNick()
 
         nickset = list(set([nick, secondnick]))
 
@@ -104,8 +110,6 @@ class ImpostorBot(irc.IRCClient):
           self.msg(channel, msg)
 
       else:
-        if nick == RANDNICK:
-          nick = self.factory.generator.getRandomNick()
         imposting = self.factory.generator.generateSingle(nick)
         if imposting:
           msg = NOPEN + nick + NCLOSE + imposting
