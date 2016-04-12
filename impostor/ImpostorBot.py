@@ -1,6 +1,6 @@
 import re
 from Config import Config
-import Margen
+from impostor import Margen
 
 #
 # IRC bot to be used with per-user Markov generator

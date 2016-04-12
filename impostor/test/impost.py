@@ -3,7 +3,7 @@
 # For testing the back-end without the bot
 
 import sys
-import Margen
+from impostor import Margen
 
 QUITCHAR = '#' # The character to break the loop (ideally, one that isn't a valid nick character)
 QUANTITY = 24 # How many lines to print each time it is called

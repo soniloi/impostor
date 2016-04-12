@@ -31,7 +31,7 @@ class Margen:
 
       lookbackmap = self.userlookbacks[nick]
 
-      infilename = srcdir + source
+      infilename = srcdir + os.sep + source
       infile = open(infilename, 'r')
 
       for line in infile:
