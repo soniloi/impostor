@@ -54,7 +54,8 @@ today is not a good day
 
 From the checkout location, run
 ```
-python ImpostorBot.py <network> <channel> <logfile> <sourcedir>
+export PYTHONPATH=$(pwd):$PYTHONPATH
+python impostor/ImpostorBot.py <network> <channel> <logfile> <sourcedir>
 ```
 
 Where
