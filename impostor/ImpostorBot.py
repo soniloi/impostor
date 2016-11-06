@@ -1,5 +1,5 @@
 import re
-from Config import Config
+import Config
 import Margen
 
 #
@@ -14,15 +14,7 @@ from twisted.python import log
 # system imports
 import time, sys
 
-TRIGGER = '!' # Character that must appear at the start of a message in order to trigger the bot
-BOTNICK = 'impostor'
-RANDNICK = 'random' # Word that will trigger a random user to be 'quoted'
-ALLNICK = 'all' # Request for a line generated from all users merged
-NOPEN = '[' # Character(s) before a nick(s)
-NSEP = ':' # Character(s) between output nicks
-NCLOSE = '] ' # Character(s) after nick(s)
-NICK_SPLIT = ':' # Character(s) used to split input nicks
-BOTDESC = " is a bot that impersonates people based on their history. Type '" + TRIGGER + "<nick>' to see a line generated for a single user, '" + TRIGGER + "random' for a line generated for a random user, or '" + TRIGGER + "<nick1>" + NICK_SPLIT + "<nick2>' to see a line generated from two users merged."
+BOTDESC = " is a bot that impersonates people based on their history. Type '" + Config.TRIGGER + "<nick>' to see a line generated for a single user, '" + Config.TRIGGER + "random' for a line generated for a random user, or '" + Config.TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>' to see a line generated from two users merged."
 
 class MessageLogger:
   """
@@ -44,7 +36,7 @@ class MessageLogger:
 
 class ImpostorBot(irc.IRCClient):
   
-  nickname = BOTNICK
+  nickname = Config.BOT_NICK
   
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
@@ -77,42 +69,42 @@ class ImpostorBot(irc.IRCClient):
     if channel == self.nickname:
       return
 
-    elif msg.startswith(TRIGGER):
+    elif msg.startswith(Config.TRIGGER):
       rawtokens = re.split(' *', msg.strip())
-      tokens = re.split(NICK_SPLIT, rawtokens[0][len(TRIGGER):])
+      tokens = re.split(Config.INPUT_NICKS_SEP, rawtokens[0][len(Config.TRIGGER):])
 
       nick = tokens[0].lower()
 
-      if ALLNICK in tokens:
-        nick = ALLNICK # All subsumes all
+      if Config.ALL_NICK in tokens:
+        nick = Config.ALL_NICK # All subsumes all
 
-      elif nick == RANDNICK:
+      if nick == Config.RANDOM_NICK:
         nick = self.factory.generator.getRandomNick()
 
-      if nick == BOTNICK:
-        msg = BOTNICK + BOTDESC
+      if nick == Config.BOT_NICK:
+        msg = Config.BOT_NICK + BOTDESC
         self.msg(channel, msg)
 
-      elif len(tokens) > 1 and nick != ALLNICK:
+      elif len(tokens) > 1 and nick != Config.ALL_NICK:
         secondnick = tokens[1].lower()
 
-        if secondnick == RANDNICK:
+        if secondnick == Config.RANDOM_NICK:
           secondnick = self.factory.generator.getRandomNick()
 
         nickset = list(set([nick, secondnick]))
 
         nicks, imposting = self.factory.generator.generateMerged(nickset)
         if imposting:
-          msg = NOPEN + nicks[0]
+          msg = Config.OUTPUT_NICKS_OPEN + nicks[0]
           for n in nicks[1:]:
-            msg += NSEP + n
-          msg += NCLOSE + imposting
+            msg += Config.OUTPUT_NICKS_SEP + n
+          msg += Config.OUTPUT_NICKS_CLOSE + imposting
           self.msg(channel, msg)
 
       else:
         imposting = self.factory.generator.generateSingle(nick)
         if imposting:
-          msg = NOPEN + nick + NCLOSE + imposting
+          msg = Config.OUTPUT_NICKS_OPEN + nick + Config.OUTPUT_NICKS_CLOSE + imposting
           self.msg(channel, msg)
 
     # Otherwise check to see if it is a message directed at me

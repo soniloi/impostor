@@ -4,8 +4,7 @@
 
 import os
 import random
-
-MAX_WORDS = 200 # The maximum number of words to generate in a line, just to prevent infinite strings
+import Config
 
 class Margen:
 
@@ -81,7 +80,7 @@ class Margen:
       return line
 
     i = 0
-    while current in lookbacks and i < MAX_WORDS:
+    while current in lookbacks and i < Config.MAX_WORDS:
       next = random.choice(lookbacks[current])
       line += ' ' + next
       current = (current[1], next)
