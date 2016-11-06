@@ -75,17 +75,21 @@ class ImpostorBot(irc.IRCClient):
 
       nick = tokens[0].lower()
 
-      if Config.ALL_NICK in tokens:
+      if Config.ALL_USED and Config.ALL_NICK in tokens:
         nick = Config.ALL_NICK # All subsumes all
 
       if nick == Config.RANDOM_NICK:
         nick = self.factory.generator.getRandomNick()
 
+      notall = True
+      if Config.ALL_USED:
+        notall = nick != Config.ALL_NICK
+
       if nick == Config.BOT_NICK:
         msg = Config.BOT_NICK + BOTDESC
         self.msg(channel, msg)
 
-      elif len(tokens) > 1 and nick != Config.ALL_NICK:
+      elif len(tokens) > 1 and notall:
         secondnick = tokens[1].lower()
 
         if secondnick == Config.RANDOM_NICK:
