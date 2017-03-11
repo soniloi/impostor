@@ -11,45 +11,88 @@ class Margen:
   srcextlen = 4 # Length of the source file extension
   lookbacklen = 2
 
+
   # Initialize generators
-  def __init__(self, srcdir):
+  def __init__(self, source_dir):
 
     self.userlookbacks = {} # Map of each nick to their own markov map
     self.starters = {} # Map of each nick to a list of all tuples they use to start lines
+    self.buildSources(source_dir)
 
-    sources = os.listdir(srcdir)
 
-    for source in sources:
-      nick = source[:-Margen.srcextlen]
+  def buildSources(self, source_dir):
 
-      if not nick in self.userlookbacks:
-        self.userlookbacks[nick] = {}
+    source_filenames = os.listdir(source_dir)
+    for source_filename in source_filenames:
+      self.buildSource(source_dir, source_filename)
 
-      if not nick in self.starters:
-        self.starters[nick] = []
 
-      lookbackmap = self.userlookbacks[nick]
+  def buildSource(self, source_dir, source_filename):
 
-      infilename = srcdir + os.sep + source
-      infile = open(infilename, 'r')
+    nick = source_filename[:-Margen.srcextlen]
 
-      for line in infile:
-        words = line.split()
+    if not nick in self.userlookbacks:
+      self.userlookbacks[nick] = {}
 
-        starter = (words[0], words[1])
-        self.starters[nick].append(starter)
+    if not nick in self.starters:
+      self.starters[nick] = []
 
-        bound = len(words) - Margen.lookbacklen
-        for i in range(0, bound):
-          first = words[i]
-          second = words[i+1]
-          follow = words[i+2]
-          lookback = (first, second)
-          if not lookback in lookbackmap:
-            lookbackmap[lookback] = []
-          lookbackmap[lookback].append(follow)
+    lookbackmap = self.userlookbacks[nick]
 
-      infile.close()
+    source_filepath = source_dir + os.sep + source_filename
+    self.processSourceFile(source_filepath, lookbackmap, nick)
+
+
+  def processSourceFile(self, filepath, lookbackmap, nick):
+
+    infile = open(filepath, 'r')
+
+    for line in infile:
+      words = line.split()
+      self.processLineWords(words, lookbackmap, nick)
+
+    infile.close()
+
+
+  def processLineWords(self, words, lookbackmap, nick):
+
+    starter = (words[0], words[1])
+    self.starters[nick].append(starter)
+
+    bound = len(words) - Margen.lookbacklen
+    for i in range(0, bound):
+
+      first = words[i]
+      second = words[i+1]
+      follow = words[i+2]
+      lookback = (first, second)
+
+      if not lookback in lookbackmap:
+        lookbackmap[lookback] = []
+
+      lookbackmap[lookback].append(follow)
+
+
+  # Filter a list of raw nick tuples; random placeholders will be substituted, while
+  #  non-random ones will be checked to see if they actually exist
+  # Return a list of strings, which may be empty
+  def getRealNicks(self, nick_tuples):
+
+    real_nicks = []
+
+    for nick_tuple in nick_tuples:
+
+      real_nick = nick_tuple[1]
+
+      if nick_tuple[0] == True:
+        real_nick = random.choice(self.userlookbacks.keys())
+
+      elif real_nick not in self.userlookbacks or real_nick not in self.starters:
+        continue
+
+      real_nicks.append(real_nick)
+
+    return real_nicks
 
 
   # Make a shallow (ish) copy of a dictionary of lists
@@ -94,15 +137,7 @@ class Margen:
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
   def generate(self, nick_tuples):
 
-    real_nicks = []
-    for nick_tuple in nick_tuples:
-      real_nick = nick_tuple[1]
-      if nick_tuple[0] == True:
-        real_nick = random.choice(self.userlookbacks.keys())
-      elif real_nick not in self.userlookbacks or real_nick not in self.starters:
-        continue
-      real_nicks.append(real_nick)
-
+    real_nicks = self.getRealNicks(nick_tuples)
     if not real_nicks:
       return ([], "")
 
