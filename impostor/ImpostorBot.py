@@ -60,20 +60,22 @@ class ImpostorBot(irc.IRCClient):
     """This will get called when the bot joins the channel."""
     self.logger.log("[I have joined %s]" % channel)
 
-  def privmsg(self, user, channel, msg):
+  def privmsg(self, user, channel, msg_in_raw):
     """This will get called when the bot receives a message."""
     user = user.split('!', 1)[0]
-    self.logger.log("<%s> %s" % (user, msg))
+    self.logger.log("<%s> %s" % (user, msg_in_raw))
+
+    msg_in = msg_in_raw.strip().lower()
     
     # Ignore anything sent in private message
     if channel == self.nickname:
       return
 
-    elif msg.startswith(Config.TRIGGER):
-      rawtokens = re.split(' *', msg.strip())
+    elif msg_in.startswith(Config.TRIGGER):
+      rawtokens = re.split(' *', msg_in)
       tokens = re.split(Config.INPUT_NICKS_SEP, rawtokens[0][len(Config.TRIGGER):])
 
-      nick = tokens[0].lower()
+      nick = tokens[0]
 
       if Config.ALL_USED and Config.ALL_NICK in tokens:
         nick = Config.ALL_NICK # All subsumes all
@@ -86,11 +88,11 @@ class ImpostorBot(irc.IRCClient):
         notall = nick != Config.ALL_NICK
 
       if nick == Config.BOT_NICK:
-        msg = Config.BOT_NICK + BOTDESC
-        self.msg(channel, msg)
+        msg_out = Config.BOT_NICK + BOTDESC
+        self.msg(channel, msg_out)
 
       elif len(tokens) > 1 and notall:
-        secondnick = tokens[1].lower()
+        secondnick = tokens[1]
 
         if secondnick == Config.RANDOM_NICK:
           secondnick = self.factory.generator.getRandomNick()
@@ -99,26 +101,26 @@ class ImpostorBot(irc.IRCClient):
 
         nicks, imposting = self.factory.generator.generateMerged(nickset)
         if imposting:
-          msg = Config.OUTPUT_NICKS_OPEN + nicks[0]
+          msg_out = Config.OUTPUT_NICKS_OPEN + nicks[0]
           for n in nicks[1:]:
-            msg += Config.OUTPUT_NICKS_SEP + n
-          msg += Config.OUTPUT_NICKS_CLOSE + imposting
-          self.msg(channel, msg)
+            msg_out += Config.OUTPUT_NICKS_SEP + n
+          msg_out += Config.OUTPUT_NICKS_CLOSE + imposting
+          self.msg(channel, msg_out)
 
       else:
         imposting = self.factory.generator.generateSingle(nick)
         if imposting:
-          msg = Config.OUTPUT_NICKS_OPEN + nick + Config.OUTPUT_NICKS_CLOSE + imposting
-          self.msg(channel, msg)
+          msg_out = Config.OUTPUT_NICKS_OPEN + nick + Config.OUTPUT_NICKS_CLOSE + imposting
+          self.msg(channel, msg_out)
 
     # Otherwise check to see if it is a message directed at me
-    if msg.startswith(self.nickname + ":"):
-      self.logger.log("<%s> %s" % (self.nickname, msg))
+    if msg_in.startswith(self.nickname + ":"):
+      self.logger.log("<%s> %s" % (self.nickname, msg_in))
 
-  def action(self, user, channel, msg):
+  def action(self, user, channel, msg_in):
     """This will get called when the bot sees someone do an action."""
     user = user.split('!', 1)[0]
-    self.logger.log("* %s %s" % (user, msg))
+    self.logger.log("* %s %s" % (user, msg_in))
 
   # irc callbacks
 
