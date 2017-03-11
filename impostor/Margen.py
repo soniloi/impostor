@@ -8,11 +8,8 @@ import Config
 
 class Margen:
 
-  srcextlen = 4 # Length of the source file extension
-  lookbacklen = 2
+  SOURCEFILE_EXTLEN = len(Config.SOURCEFILE_EXT) # Length of the source file extension
 
-
-  # Initialize generators
   def __init__(self, source_dir):
 
     self.userlookbacks = {} # Map of each nick to their own markov map
@@ -29,7 +26,7 @@ class Margen:
 
   def buildSource(self, source_dir, source_filename):
 
-    nick = source_filename[:-Margen.srcextlen]
+    nick = source_filename[:-Margen.SOURCEFILE_EXTLEN]
 
     if not nick in self.userlookbacks:
       self.userlookbacks[nick] = {}
@@ -59,7 +56,7 @@ class Margen:
     starter = (words[0], words[1])
     self.starters[nick].append(starter)
 
-    bound = len(words) - Margen.lookbacklen
+    bound = len(words) - Config.LOOKBACK_LEN
     for i in range(0, bound):
 
       first = words[i]
@@ -123,7 +120,7 @@ class Margen:
       return line
 
     i = 0
-    while current in lookbacks and i < Config.MAX_WORDS:
+    while current in lookbacks and i < Config.OUTPUT_WORDS_MAX:
       next = random.choice(lookbacks[current])
       line += ' ' + next
       current = (current[1], next)
