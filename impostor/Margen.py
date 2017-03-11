@@ -71,7 +71,7 @@ class Margen:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generate(self, lookbacks, initial):
+  def generateQuote(self, lookbacks, initial):
 
     current = initial
     line = current[0] + ' ' + current[1]
@@ -89,6 +89,29 @@ class Margen:
     return line
 
 
+  # Return a line generated from the source of a nick or nicks
+  #   if none of those nicks were present, return an empty list and an empty string
+  #   if at least some of the nicks were present, return a list of the nicks found and a quote string
+  def generate(self, nick_tuples):
+
+    real_nicks = []
+    for nick_tuple in nick_tuples:
+      real_nick = nick_tuple[1]
+      if nick_tuple[0] == True:
+        real_nick = random.choice(self.userlookbacks.keys())
+      elif real_nick not in self.userlookbacks or real_nick not in self.starters:
+        continue
+      real_nicks.append(real_nick)
+
+    if not real_nicks:
+      return ([], "")
+
+    if len(real_nicks) == 1:
+      return (real_nicks, self.generateSingle(real_nicks[0]))
+    else:
+      return self.generateMerged(real_nicks)
+
+
   # Return a line appropriate to a given single nick; if nick is not present, return an empty string
   def generateSingle(self, nick):
 
@@ -98,7 +121,7 @@ class Margen:
     lookbacks = self.userlookbacks[nick]
     initial = random.choice(self.starters[nick]) # Choose a random starting-point
 
-    return self.generate(lookbacks, initial)
+    return self.generateQuote(lookbacks, initial)
 
 
   # Return a random nick of someone in the collection
@@ -131,4 +154,4 @@ class Margen:
 
     initial = random.choice(starterset)
 
-    return sourcenicks, self.generate(lookbacks, initial)
+    return sourcenicks, self.generateQuote(lookbacks, initial)
