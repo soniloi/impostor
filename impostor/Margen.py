@@ -21,40 +21,40 @@ class Margen:
 
     source_filenames = os.listdir(source_dir)
     for source_filename in source_filenames:
-      self.buildSource(source_dir, source_filename)
+      if source_filename.endswith(Config.SOURCEFILE_EXT):
+        self.buildSource(source_dir, source_filename)
 
 
   def buildSource(self, source_dir, source_filename):
 
     nick = source_filename[:-Margen.SOURCEFILE_EXTLEN]
-
-    if not nick in self.userlookbacks:
-      self.userlookbacks[nick] = {}
-
-    if not nick in self.starters:
-      self.starters[nick] = []
-
-    lookbackmap = self.userlookbacks[nick]
+    starters = []
+    lookbackmap = {}
 
     source_filepath = source_dir + os.sep + source_filename
-    self.processSourceFile(source_filepath, lookbackmap, nick)
+    self.processSourceFile(source_filepath, nick, starters, lookbackmap)
+
+    # Only add nick to sources if any material actually found in file
+    if lookbackmap:
+      self.starters[nick] = starters
+      self.userlookbacks[nick] = lookbackmap
 
 
-  def processSourceFile(self, filepath, lookbackmap, nick):
+  def processSourceFile(self, filepath, nick, starters, lookbackmap):
 
     infile = open(filepath, 'r')
 
     for line in infile:
       words = line.split()
-      self.processLineWords(words, lookbackmap, nick)
+      self.processLineWords(words, nick, starters, lookbackmap)
 
     infile.close()
 
 
-  def processLineWords(self, words, lookbackmap, nick):
+  def processLineWords(self, words, nick, starters, lookbackmap):
 
     starter = (words[0], words[1])
-    self.starters[nick].append(starter)
+    starters.append(starter)
 
     bound = len(words) - Config.LOOKBACK_LEN
     for i in range(0, bound):
