@@ -109,49 +109,27 @@ class Margen:
     if len(real_nicks) == 1:
       return (real_nicks, self.generateSingle(real_nicks[0]))
     else:
-      return self.generateMerged(real_nicks)
+      return (real_nicks, self.generateMerged(real_nicks))
 
 
-  # Return a line appropriate to a given single nick; if nick is not present, return an empty string
+  # Return a line appropriate to a given single nick that we know to be present
   def generateSingle(self, nick):
-
-    if nick not in self.userlookbacks or nick not in self.starters:
-      return ''
-
     lookbacks = self.userlookbacks[nick]
     initial = random.choice(self.starters[nick]) # Choose a random starting-point
 
     return self.generateQuote(lookbacks, initial)
 
 
-  # Return a random nick of someone in the collection
-  def getRandomNick(self):
-      return random.choice(self.userlookbacks.keys())
-
-
-  # Return a line generated from the source of multiple nicks
-  #   if none of those nicks were present, return an empty string
-  #   if some of those nicks were present, return a string and a list of those nicks that were present
+  # Return a line generated from the source of multiple nicks that we know to be all present
   def generateMerged(self, nicks):
 
-    sourcenicks = []
-    for nick in nicks:
-      if nick in self.userlookbacks and nick in self.starters:
-          sourcenicks.append(nick)
+    lookbacks = self.copyListDict(self.userlookbacks[nicks[0]])
+    starterset = list(self.starters[nicks[0]])
 
-    if len(sourcenicks) == 0:
-      return [], ''
-
-    if len(sourcenicks) == 1:
-      return sourcenicks, self.generateSingle(sourcenicks[0])
-
-    lookbacks = self.copyListDict(self.userlookbacks[sourcenicks[0]])
-    starterset = list(self.starters[sourcenicks[0]])
-
-    for nick in sourcenicks[1:]:
+    for nick in nicks[1:]:
       self.mergeIntoDictionary(lookbacks, self.userlookbacks[nick]) # Create a merged map of pairs to successors
       starterset += self.starters[nick] # Create a merged list of possible starting points
 
     initial = random.choice(starterset)
 
-    return sourcenicks, self.generateQuote(lookbacks, initial)
+    return self.generateQuote(lookbacks, initial)
