@@ -106,30 +106,20 @@ class Margen:
     if not real_nicks:
       return ([], "")
 
-    if len(real_nicks) == 1:
-      return (real_nicks, self.generateSingle(real_nicks[0]))
-    else:
-      return (real_nicks, self.generateMerged(real_nicks))
+    first_nick = real_nicks[0]
+    starting_pairs = self.starters[first_nick]
+    lookbacks = self.userlookbacks[first_nick]
 
+    # If we have more than one nick, we will be constructing a new lookback map
+    #  and starter list, so we will want copies
+    if len(real_nicks) > 1:
+      starting_pairs = list(starting_pairs)
+      lookbacks = self.copyListDict(lookbacks)
 
-  # Return a line appropriate to a given single nick that we know to be present
-  def generateSingle(self, nick):
-    lookbacks = self.userlookbacks[nick]
-    initial = random.choice(self.starters[nick]) # Choose a random starting-point
+    for other_nick in real_nicks[1:]:
+      starting_pairs += self.starters[other_nick]
+      self.mergeIntoDictionary(lookbacks, self.userlookbacks[other_nick])
 
-    return self.generateQuote(lookbacks, initial)
+    initial = random.choice(starting_pairs)
+    return (real_nicks, self.generateQuote(lookbacks, initial))
 
-
-  # Return a line generated from the source of multiple nicks that we know to be all present
-  def generateMerged(self, nicks):
-
-    lookbacks = self.copyListDict(self.userlookbacks[nicks[0]])
-    starterset = list(self.starters[nicks[0]])
-
-    for nick in nicks[1:]:
-      self.mergeIntoDictionary(lookbacks, self.userlookbacks[nick]) # Create a merged map of pairs to successors
-      starterset += self.starters[nick] # Create a merged list of possible starting points
-
-    initial = random.choice(starterset)
-
-    return self.generateQuote(lookbacks, initial)
