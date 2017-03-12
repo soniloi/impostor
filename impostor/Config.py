@@ -1,4 +1,5 @@
-TRIGGER = '!'
+GENERATE_TRIGGER = '!'
+MYSTERY_TRIGGER = '@'
 
 LOOKBACK_LEN = 2 # Number of predecessors to a successor
 SOURCEFILE_EXT = ".src" # Source material file extension

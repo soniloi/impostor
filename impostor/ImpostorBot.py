@@ -14,7 +14,7 @@ from twisted.python import log
 # system imports
 import time, sys
 
-BOTDESC = " is a bot that impersonates people based on their history. Type '" + Config.TRIGGER + "<nick>' to see a line generated for a single user, '" + Config.TRIGGER + "random' for a line generated for a random user, or '" + Config.TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>' to see a line generated from two users merged."
+BOTDESC = " is a bot that impersonates people based on their history. Type '" + Config.GENERATE_TRIGGER + "<nick>' to see a line generated for a single user, '" + Config.GENERATE_TRIGGER + "random' for a line generated for a random user, or '" + Config.GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>' to see a line generated from two users merged."
 
 class MessageLogger:
   """
@@ -73,8 +73,11 @@ class ImpostorBot(irc.IRCClient):
     elif input_message.startswith(self.nickname + ":"):
       self.directedAtMe(user, channel, input_message)
 
-    elif input_message.startswith(Config.TRIGGER):
+    elif input_message.startswith(Config.GENERATE_TRIGGER):
       self.triggerGenerateQuote(user, channel, input_message)
+
+    elif input_message.startswith(Config.MYSTERY_TRIGGER):
+      self.triggerMysteryQuote(user, channel, input_message)
 
   def action(self, user, channel, input_message):
     """This will get called when the bot sees someone do an action."""
@@ -108,7 +111,7 @@ class ImpostorBot(irc.IRCClient):
   def triggerGenerateQuote(self, user, channel, input_message):
 
       raw_tokens = re.split(' *', input_message)
-      raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.TRIGGER):])[:Config.INPUT_NICKS_MAX]
+      raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.GENERATE_TRIGGER):])[:Config.INPUT_NICKS_MAX]
 
       if Config.ALL_USED and Config.ALL_NICK in raw_nicks:
         raw_nicks = [Config.ALL_NICK] # All subsumes all
@@ -137,6 +140,22 @@ class ImpostorBot(irc.IRCClient):
 
         output_message += Config.OUTPUT_NICKS_CLOSE + output_quote
         self.msg(channel, output_message)
+
+  def triggerMysteryQuote(self, user, channel, input_message):
+
+    raw_tokens = re.split(' *', input_message)
+    raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.MYSTERY_TRIGGER):])
+
+    if not raw_commands:
+      return
+
+    command = raw_commands[0]
+
+    if command == "mystery":
+      nick_tuple = (True, "")
+      output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
+      output_message = Config.OUTPUT_NICKS_OPEN + "???" + Config.OUTPUT_NICKS_CLOSE + " " + output_quote
+      self.msg(channel, output_message)
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
