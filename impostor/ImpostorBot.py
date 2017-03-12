@@ -37,6 +37,7 @@ class MessageLogger:
 class ImpostorBot(irc.IRCClient):
   
   nickname = Config.BOT_NICK
+  MYSTERY_NAME_FULL = Config.OUTPUT_NICKS_OPEN + Config.MYSTERY_NAME + Config.OUTPUT_NICKS_CLOSE
 
   def __init__(self):
     self.current_author = None
@@ -155,16 +156,16 @@ class ImpostorBot(irc.IRCClient):
     command = raw_commands[0]
     output_message = ""
 
-    if command == "mystery":
+    if command == Config.MYSTERY_START:
       if self.current_author is None:
         nick_tuple = (True, "")
         output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
-        output_message = Config.OUTPUT_NICKS_OPEN + "???" + Config.OUTPUT_NICKS_CLOSE + " " + output_quote
+        output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_author = output_nicks[0]
       else:
         output_message = "There is already an unsolved mystery"
 
-    elif command == "solve":
+    elif command == Config.MYSTERY_SOLVE:
       if self.current_author:
         output_message = "The mystery author was: " + self.current_author
         self.current_author = None
