@@ -6,6 +6,12 @@ import os
 import random
 import Config
 
+
+class NickType:
+  NONRANDOM = 0
+  RANDOM = 1
+
+
 class Margen:
 
   SOURCEFILE_EXTLEN = len(Config.SOURCEFILE_EXT) # Length of the source file extension
@@ -81,7 +87,7 @@ class Margen:
 
       real_nick = nick_tuple[1]
 
-      if nick_tuple[0] == True:
+      if nick_tuple[0] == NickType.RANDOM:
         real_nick = random.choice(self.userlookbacks.keys())
 
       elif real_nick not in self.userlookbacks or real_nick not in self.starters:

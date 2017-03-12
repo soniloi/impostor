@@ -124,14 +124,14 @@ class ImpostorBot(irc.IRCClient):
       nick_tuples = []
       for raw_nick in raw_nicks:
 
-        is_random = False
+        nick_type = Margen.NickType.NONRANDOM
         nick_name = raw_nick
 
         if raw_nick == Config.RANDOM_NICK:
-          is_random = True
+          nick_type = Margen.NickType.RANDOM
           nick_name = ""
 
-        nick_tuple = (is_random, nick_name)
+        nick_tuple = (nick_type, nick_name)
         nick_tuples.append(nick_tuple)
 
       output_nicks, output_quote = self.generator.generate(nick_tuples)
@@ -159,7 +159,7 @@ class ImpostorBot(irc.IRCClient):
 
     if command == Config.MYSTERY_START:
       if self.current_author is None:
-        nick_tuple = (True, "")
+        nick_tuple = (Margen.NickType.RANDOM, "")
         output_nicks, output_quote = self.generator.generate([nick_tuple])
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_author = output_nicks[0]
