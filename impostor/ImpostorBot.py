@@ -37,7 +37,10 @@ class MessageLogger:
 class ImpostorBot(irc.IRCClient):
   
   nickname = Config.BOT_NICK
-  
+
+  def __init__(self):
+    self.current_author = None
+
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
     self.logger = MessageLogger(open(self.factory.filename, "a"))
@@ -155,7 +158,14 @@ class ImpostorBot(irc.IRCClient):
       nick_tuple = (True, "")
       output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
       output_message = Config.OUTPUT_NICKS_OPEN + "???" + Config.OUTPUT_NICKS_CLOSE + " " + output_quote
+      self.current_author = output_nicks[0]
       self.msg(channel, output_message)
+
+    elif command == "show":
+      if self.current_author:
+        output_message = "The mystery author was: " + self.current_author
+        self.current_author = None
+        self.msg(channel, output_message)
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
