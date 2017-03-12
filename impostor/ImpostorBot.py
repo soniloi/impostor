@@ -153,19 +153,26 @@ class ImpostorBot(irc.IRCClient):
       return
 
     command = raw_commands[0]
+    output_message = ""
 
     if command == "mystery":
-      nick_tuple = (True, "")
-      output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
-      output_message = Config.OUTPUT_NICKS_OPEN + "???" + Config.OUTPUT_NICKS_CLOSE + " " + output_quote
-      self.current_author = output_nicks[0]
-      self.msg(channel, output_message)
+      if self.current_author is None:
+        nick_tuple = (True, "")
+        output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
+        output_message = Config.OUTPUT_NICKS_OPEN + "???" + Config.OUTPUT_NICKS_CLOSE + " " + output_quote
+        self.current_author = output_nicks[0]
+      else:
+        output_message = "There is already an unsolved mystery"
 
-    elif command == "show":
+    elif command == "solve":
       if self.current_author:
         output_message = "The mystery author was: " + self.current_author
         self.current_author = None
-        self.msg(channel, output_message)
+      else:
+        output_message = "There is currently no unsolved mystery"
+
+    if output_message:
+      self.msg(channel, output_message)
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
