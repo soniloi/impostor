@@ -3,43 +3,43 @@
 # For testing the back-end without the bot
 
 import sys
+sys.path.append(".")
 from impostor import Margen
 
 QUITCHAR = '#' # The character to break the loop (ideally, one that isn't a valid nick character)
 QUANTITY = 24 # How many lines to print each time it is called
-RANDNICK = '@random' # String to use to request a random nick
-MERGECHAR = '>' # Character to indicate that this line will request a merged line
+RANDNICK = 'random' # String to use to request a random nick
 
 def get_input():
-  return raw_input('Enter <nick> for single user, \'' + RANDNICK + '\' for a random line, \'' + MERGECHAR + ' <nicks, space-separated>\' for a merged line, or \'' + QUITCHAR + '\' to exit: ')
+  return raw_input('Enter <nick> to generate, including \'' + RANDNICK + '\' for a random user; enter \'' + QUITCHAR + '\' to exit: ')
 
-def main(srcdir):
-  generator = Margen.Margen(srcdir)
+def main(src_dir):
+  generator = Margen.Margen(src_dir)
 
-  request = get_input()
+  request = get_input().strip()
 
   while request != QUITCHAR:
 
+    if not request:
+      continue
+
+    nicks = request.split()[0].split(':')
+    nick_tuples = []
+    for nick in nicks:
+      nick_tuple = (False, nick)
+      if nick == RANDNICK:
+        nick_tuple = (True, '')
+      nick_tuples.append(nick_tuple)
+
     for i in range(0, QUANTITY):
 
-      if request.startswith(MERGECHAR):
-        nicks = request[1:].split()
-        usednicks, imposting = generator.generateMerged(nicks)
-        if imposting:
-          sys.stdout.write('[' + usednicks[0])
-          for nick in usednicks[1:]:
-            sys.stdout.write(':' + nick.strip())
-          print '] ' + imposting
-
-      else:
-        if request == RANDNICK:
-          nick = generator.getRandomNick()
-        else:
-          nick = request
-        imposting = generator.generateSingle(nick)
-
-        if imposting:
-          print '[' + nick + '] ' + imposting
+      output_nicks, output_quote = generator.generate(nick_tuples)
+      if output_quote:
+        output_message = '[' + output_nicks[0]
+        for output_nick in output_nicks[1:]:
+          output_message += ':' + output_nick
+        output_message += '] ' + output_quote
+        print output_message
 
     request = get_input()
 
