@@ -67,38 +67,14 @@ class ImpostorBot(irc.IRCClient):
 
     input_message = input_message_raw.strip().lower()
     
-    # Ignore anything sent in private message
     if channel == self.nickname:
-      return
+      self.pmdToMe(user, channel, input_message)
+
+    elif input_message.startswith(self.nickname + ":"):
+      self.directedAtMe(user, channel, input_message)
 
     elif input_message.startswith(Config.TRIGGER):
-      raw_tokens = re.split(' *', input_message)
-      raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.TRIGGER):])[:Config.INPUT_NICKS_MAX]
-
-      if Config.ALL_USED and Config.ALL_NICK in raw_nicks:
-        raw_nicks = [Config.ALL_NICK] # All subsumes all
-
-      nick_tuples = []
-      for raw_nick in raw_nicks:
-        is_random = False
-        nick_name = raw_nick
-        if raw_nick == Config.RANDOM_NICK:
-          is_random = True
-          nick_name = ""
-        nick_tuple = (is_random, nick_name)
-        nick_tuples.append(nick_tuple)
-
-      output_nicks, output_quote = self.factory.generator.generate(nick_tuples)
-      if output_quote:
-        output_message = Config.OUTPUT_NICKS_OPEN + output_nicks[0]
-        for output_nick in output_nicks[1:]:
-          output_message += Config.OUTPUT_NICKS_SEP + output_nick
-        output_message += Config.OUTPUT_NICKS_CLOSE + output_quote
-        self.msg(channel, output_message)
-
-    # Otherwise check to see if it is a message directed at me
-    if input_message.startswith(self.nickname + ":"):
-      self.logger.log("<%s> %s" % (self.nickname, input_message))
+      self.triggerGenerateQuote(user, channel, input_message)
 
   def action(self, user, channel, input_message):
     """This will get called when the bot sees someone do an action."""
@@ -122,6 +98,46 @@ class ImpostorBot(irc.IRCClient):
     effort to create an unused related name for subsequent registration.
     """
     return nickname + '^'
+
+  def pmdToMe(self, user, channel, input_message):
+    self.logger.log("[PM] <%s> %s" % (user, input_message))
+
+  def directedAtMe(self, user, channel, input_message):
+    self.logger.log("[directed#%s] <%s> %s" % (channel, user, input_message))
+
+  def triggerGenerateQuote(self, user, channel, input_message):
+
+      raw_tokens = re.split(' *', input_message)
+      raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.TRIGGER):])[:Config.INPUT_NICKS_MAX]
+
+      if Config.ALL_USED and Config.ALL_NICK in raw_nicks:
+        raw_nicks = [Config.ALL_NICK] # All subsumes all
+
+      nick_tuples = []
+      for raw_nick in raw_nicks:
+
+        is_random = False
+        nick_name = raw_nick
+
+        if raw_nick == Config.RANDOM_NICK:
+          is_random = True
+          nick_name = ""
+
+        nick_tuple = (is_random, nick_name)
+        nick_tuples.append(nick_tuple)
+
+      output_nicks, output_quote = self.factory.generator.generate(nick_tuples)
+
+      if output_quote:
+
+        output_message = Config.OUTPUT_NICKS_OPEN + output_nicks[0]
+
+        for output_nick in output_nicks[1:]:
+          output_message += Config.OUTPUT_NICKS_SEP + output_nick
+
+        output_message += Config.OUTPUT_NICKS_CLOSE + output_quote
+        self.msg(channel, output_message)
+
 
 class ImpostorBotFactory(protocol.ClientFactory):
 
