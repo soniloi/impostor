@@ -39,7 +39,8 @@ class ImpostorBot(irc.IRCClient):
   nickname = Config.BOT_NICK
   MYSTERY_NAME_FULL = Config.OUTPUT_NICKS_OPEN + Config.MYSTERY_NAME + Config.OUTPUT_NICKS_CLOSE
 
-  def __init__(self):
+  def __init__(self, source_dir):
+    self.generator = Margen.Margen(source_dir)
     self.current_author = None
 
   def connectionMade(self):
@@ -133,7 +134,7 @@ class ImpostorBot(irc.IRCClient):
         nick_tuple = (is_random, nick_name)
         nick_tuples.append(nick_tuple)
 
-      output_nicks, output_quote = self.factory.generator.generate(nick_tuples)
+      output_nicks, output_quote = self.generator.generate(nick_tuples)
 
       if output_quote:
 
@@ -159,7 +160,7 @@ class ImpostorBot(irc.IRCClient):
     if command == Config.MYSTERY_START:
       if self.current_author is None:
         nick_tuple = (True, "")
-        output_nicks, output_quote = self.factory.generator.generate([nick_tuple])
+        output_nicks, output_quote = self.generator.generate([nick_tuple])
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_author = output_nicks[0]
       else:
@@ -178,13 +179,13 @@ class ImpostorBot(irc.IRCClient):
 
 class ImpostorBotFactory(protocol.ClientFactory):
 
-  def __init__(self, channel, filename, srcdir):
+  def __init__(self, channel, filename, source_dir):
     self.channel = channel
     self.filename = filename
-    self.generator = Margen.Margen(srcdir)
+    self.source_dir = source_dir
 
   def buildProtocol(self, addr):
-    p = ImpostorBot()
+    p = ImpostorBot(self.source_dir)
     p.factory = self
     return p
 
