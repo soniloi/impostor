@@ -160,7 +160,7 @@ class ImpostorBot(irc.IRCClient):
     if command == Config.MYSTERY_START:
       if self.current_author is None:
         nick_tuple = (Margen.NickType.RANDOM, "")
-        output_nicks, output_quote = self.generator.generate([nick_tuple])
+        output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_author = output_nicks[0]
       else:

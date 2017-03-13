@@ -76,10 +76,23 @@ class Margen:
       lookbackmap[lookback].append(follow)
 
 
+  # Return a nick at random, as long as it has at least a certain number of starter entries
+  def getRandomNick(self, min_starters=0):
+
+    result = None
+
+    while not result:
+      (nick, starters) = random.choice(self.starters.items())
+      if len(starters) >= min_starters:
+        result = nick
+
+    return result
+
+
   # Filter a list of raw nick tuples; random placeholders will be substituted, while
   #  non-random ones will be checked to see if they actually exist
   # Return a list of strings, which may be empty
-  def getRealNicks(self, nick_tuples):
+  def getRealNicks(self, nick_tuples, random_min_starters=0):
 
     real_nicks = []
 
@@ -88,7 +101,7 @@ class Margen:
       real_nick = nick_tuple[1]
 
       if nick_tuple[0] == NickType.RANDOM:
-        real_nick = random.choice(self.userlookbacks.keys())
+        real_nick = self.getRandomNick(random_min_starters)
 
       elif real_nick not in self.userlookbacks or real_nick not in self.starters:
         continue
@@ -138,9 +151,9 @@ class Margen:
   # Return a line generated from the source of a nick or nicks
   #   if none of those nicks were present, return an empty list and an empty string
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
-  def generate(self, nick_tuples):
+  def generate(self, nick_tuples, random_min_starters=0):
 
-    real_nicks = self.getRealNicks(nick_tuples)
+    real_nicks = self.getRealNicks(nick_tuples, random_min_starters)
     if not real_nicks:
       return ([], "")
 
