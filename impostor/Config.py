@@ -3,7 +3,7 @@ MYSTERY_TRIGGER = '@'
 MYSTERY_NAME = '???'
 MYSTERY_START = 'mystery'
 MYSTERY_SOLVE = 'solve'
-MYSTERY_MIN_STARTERS = 100 # Minimum number of starter tuples a user must have before the mystery generator will generate a quote from them
+MYSTERY_MIN_STARTERS = 1000 # Minimum number of starter tuples a user must have before the mystery generator will generate a quote from them
 
 LOOKBACK_LEN = 2 # Number of predecessors to a successor
 SOURCEFILE_EXT = ".src" # Source material file extension

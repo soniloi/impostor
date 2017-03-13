@@ -14,7 +14,16 @@ from twisted.python import log
 # system imports
 import time, sys
 
-BOTDESC = " is a bot that impersonates people based on their history. Type '" + Config.GENERATE_TRIGGER + "<nick>' to see a line generated for a single user, '" + Config.GENERATE_TRIGGER + "random' for a line generated for a random user, or '" + Config.GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>' to see a line generated from two users merged."
+BOTDESC = Config.BOT_NICK + " is a bot that impersonates people based on their history. Type '" \
+  + Config.GENERATE_TRIGGER + "<nick>' to see a line generated for a single user, '" \
+  + Config.GENERATE_TRIGGER + Config.RANDOM_NICK + "' for a line generated for a random user, or '" \
+  + Config.GENERATE_TRIGGER + "<nick1>" \
+  + Config.INPUT_NICKS_SEP + "<nick2>' to see a line generated from two users merged. "
+if Config.ALL_USED:
+  BOTDESC += "You may also type '" + Config.GENERATE_TRIGGER \
+  + "<all>' to see a line generated from all channel users combined. "
+BOTDESC += "Type '" + Config.MYSTERY_TRIGGER + Config.MYSTERY_START + "' to generate a mystery line, or '" \
+  + Config.MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + "' to see the solution."
 
 class MessageLogger:
   """
@@ -111,6 +120,7 @@ class ImpostorBot(irc.IRCClient):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
 
   def directedAtMe(self, user, channel, input_message):
+    self.msg(channel, BOTDESC)
     self.logger.log("[directed#%s] <%s> %s" % (channel, user, input_message))
 
   def triggerGenerateQuote(self, user, channel, input_message):
