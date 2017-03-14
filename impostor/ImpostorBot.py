@@ -179,45 +179,71 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if command == Config.MYSTERY_START:
-      if self.current_author:
-        output_message = "There is already an unsolved mystery. "
-      else:
-        nick_tuple = (Margen.NickType.RANDOM, "")
-        output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
-        output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
-        self.current_author = output_nicks[0]
+      output_message = self.startMystery()
 
     elif command == Config.MYSTERY_SOLVE:
-      if not self.current_author:
-        output_message = "There is currently no unsolved mystery. "
-      else:
-        output_message = ""
-        winners = []
-        for (guesser, guess) in self.guesses.iteritems():
-          if guess == self.current_author:
-            winners.append(guesser)
-          output_message += guesser + " guessed that it was " + guess + ". "
-        output_message += "The mystery author was: " + self.current_author + ". "
-        if not winners:
-          output_message += "No-one guessed correctly. "
-        else:
-          output_message += "Congratulations, " + winners[0]
-          for additional_winner in winners[1:]:
-            output_message += ", " + additional_winner
-          output_message += "! "
-        self.current_author = None
-        self.guesses = {}
+      output_message = self.solveMystery()
 
     elif command == Config.MYSTERY_GUESS:
-      if not self.current_author:
-        output_message = "There is currently no unsolved mystery. "
-      else:
-        if len(raw_tokens) == 2:
-          guess = raw_tokens[1]
-          self.guesses[user] = guess
+      output_message = self.guessMystery(user, raw_tokens)
 
     if output_message:
       self.msg(channel, output_message)
+
+  # Attempt to start a mystery sequence; return response string
+  def startMystery(self):
+
+    if self.current_author:
+      return "There is already an unsolved mystery. "
+
+    nick_tuple = (Margen.NickType.RANDOM, "")
+    output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
+    self.current_author = output_nicks[0]
+
+    return ImpostorBot.MYSTERY_NAME_FULL + output_quote
+
+  # End a mystery sequence, revealing the author; return respons string
+  def solveMystery(self):
+
+    if not self.current_author:
+      return "There is currently no unsolved mystery. "
+
+    output_message = ""
+    winners = []
+
+    for (guesser, guess) in self.guesses.iteritems():
+      if guess == self.current_author:
+        winners.append(guesser)
+      output_message += guesser + " guessed that it was " + guess + ". "
+
+    output_message += "The mystery author was: " + self.current_author + ". "
+
+    if not winners:
+      output_message += "No-one guessed correctly. "
+
+    else:
+      output_message += "Congratulations, " + winners[0]
+      for additional_winner in winners[1:]:
+        output_message += ", " + additional_winner
+      output_message += "! "
+
+    self.current_author = None
+    self.guesses = {}
+
+    return output_message
+
+  # Process user guess of author; return response string, which may be empty
+  def guessMystery(self, user, tokens):
+
+    if not self.current_author:
+      return "There is currently no unsolved mystery. "
+
+    # FIXME: what if they guess more than two? discard silently?
+    if len(tokens) == 2:
+      guess = tokens[1]
+      self.guesses[user] = guess
+
+    return ""
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
