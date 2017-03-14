@@ -60,6 +60,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
+    self.guesses = {} # Map nicks to guesses
 
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
@@ -192,6 +193,15 @@ class ImpostorBot(irc.IRCClient):
         self.current_author = None
       else:
         output_message = "There is currently no unsolved mystery"
+
+    elif command == Config.MYSTERY_GUESS:
+      if not self.current_author:
+        output_message = "There is currently no unsolved mystery"
+      else:
+        if len(raw_tokens) == 2:
+          guess = raw_tokens[1]
+          self.guesses[user] = guess
+          output_message = user + " guesses that it was " + guess
 
     if output_message:
       self.msg(channel, output_message)

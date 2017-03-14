@@ -2,6 +2,7 @@ GENERATE_TRIGGER = '!'
 MYSTERY_TRIGGER = '@'
 MYSTERY_NAME = '???'
 MYSTERY_START = 'mystery'
+MYSTERY_GUESS = 'guess'
 MYSTERY_SOLVE = 'solve'
 MYSTERY_MIN_STARTERS = 1000 # Minimum number of starter tuples a user must have before the mystery generator will generate a quote from them
 
