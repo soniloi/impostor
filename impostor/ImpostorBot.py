@@ -179,16 +179,18 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if command == Config.MYSTERY_START:
-      if self.current_author is None:
+      if self.current_author:
+        output_message = "There is already an unsolved mystery. "
+      else:
         nick_tuple = (Margen.NickType.RANDOM, "")
         output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_author = output_nicks[0]
-      else:
-        output_message = "There is already an unsolved mystery"
 
     elif command == Config.MYSTERY_SOLVE:
-      if self.current_author:
+      if not self.current_author:
+        output_message = "There is currently no unsolved mystery. "
+      else:
         output_message = ""
         winners = []
         for (guesser, guess) in self.guesses.iteritems():
@@ -197,7 +199,7 @@ class ImpostorBot(irc.IRCClient):
           output_message += guesser + " guessed that it was " + guess + ". "
         output_message += "The mystery author was: " + self.current_author + ". "
         if not winners:
-          output_message += "No-one guessed correctly"
+          output_message += "No-one guessed correctly. "
         else:
           output_message += "Congratulations, " + winners[0]
           for additional_winner in winners[1:]:
@@ -205,17 +207,14 @@ class ImpostorBot(irc.IRCClient):
           output_message += "! "
         self.current_author = None
         self.guesses = {}
-      else:
-        output_message = "There is currently no unsolved mystery"
 
     elif command == Config.MYSTERY_GUESS:
       if not self.current_author:
-        output_message = "There is currently no unsolved mystery"
+        output_message = "There is currently no unsolved mystery. "
       else:
         if len(raw_tokens) == 2:
           guess = raw_tokens[1]
           self.guesses[user] = guess
-          output_message = user + " guesses that it was " + guess
 
     if output_message:
       self.msg(channel, output_message)
