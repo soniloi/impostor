@@ -189,8 +189,22 @@ class ImpostorBot(irc.IRCClient):
 
     elif command == Config.MYSTERY_SOLVE:
       if self.current_author:
-        output_message = "The mystery author was: " + self.current_author
+        output_message = ""
+        winners = []
+        for (guesser, guess) in self.guesses.iteritems():
+          if guess == self.current_author:
+            winners.append(guesser)
+          output_message += guesser + " guessed that it was " + guess + ". "
+        output_message += "The mystery author was: " + self.current_author + ". "
+        if not winners:
+          output_message += "No-one guessed correctly"
+        else:
+          output_message += "Congratulations, " + winners[0]
+          for additional_winner in winners[1:]:
+            output_message += ", " + additional_winner
+          output_message += "! "
         self.current_author = None
+        self.guesses = {}
       else:
         output_message = "There is currently no unsolved mystery"
 
