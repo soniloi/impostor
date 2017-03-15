@@ -76,6 +76,10 @@ class Margen:
       lookbackmap[lookback].append(follow)
 
 
+  def empty(self):
+    return not self.starters
+
+
   # Return a nick at random, as long as it has at least a certain number of starter entries,
   #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
   def getRandomNick(self, excludes, min_starters=0):

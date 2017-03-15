@@ -88,6 +88,8 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
+    if self.generator.empty():
+      print "Warning: generator is empty; is this correct?"
 
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
@@ -223,11 +225,16 @@ class ImpostorBot(irc.IRCClient):
     if self.current_author:
       return "There is already an unsolved mystery. "
 
+    output_message = ""
+
     nick_tuple = (Margen.NickType.RANDOM, "")
     output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
-    self.current_author = output_nicks[0]
 
-    return ImpostorBot.MYSTERY_NAME_FULL + output_quote
+    if output_nicks:
+      self.current_author = output_nicks[0]
+      output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
+
+    return output_message
 
   # End a mystery sequence, revealing the author; return respons string
   def solveMystery(self):
