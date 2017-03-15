@@ -14,13 +14,20 @@ from twisted.python import log
 # system imports
 import time, sys
 
-BOT_NICK = "\x02" + Config.BOT_NICK + "\x0f"
-GENERATE_SINGLE = "\x02\x038" + Config.GENERATE_TRIGGER + "<nick>\x0f"
-GENERATE_RANDOM = "\x02\x038" + Config.GENERATE_TRIGGER + Config.RANDOM_NICK + "\x0f"
-GENERATE_MERGED = "\x02\x038" + Config.GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>\x0f"
-GENERATE_ALL = "\x02\x038" + Config.GENERATE_TRIGGER + Config.ALL_NICK + "\x0f"
-MYSTERY_START = "\x02\x034" + Config.MYSTERY_TRIGGER + Config.MYSTERY_START + "\x0f"
-MYSTERY_SOLVE = "\x02\x034" + Config.MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + "\x0f"
+CLEAR = "\x0f"
+BOLD = "\x02"
+COLOUR = "\x03"
+COLOUR_YELLOW = "8"
+COLOUR_RED = "4"
+
+BOT_NICK = BOLD + Config.BOT_NICK + CLEAR
+GENERATE_SINGLE = BOLD + COLOUR + COLOUR_YELLOW + Config.GENERATE_TRIGGER + "<nick>" + CLEAR
+GENERATE_RANDOM = BOLD + COLOUR + COLOUR_YELLOW + Config.GENERATE_TRIGGER + Config.RANDOM_NICK + CLEAR
+GENERATE_MERGED = BOLD + COLOUR + COLOUR_YELLOW + Config.GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + CLEAR
+GENERATE_ALL = BOLD + COLOUR + COLOUR_YELLOW + Config.GENERATE_TRIGGER + Config.ALL_NICK + CLEAR
+MYSTERY_START = BOLD + COLOUR + COLOUR_RED + Config.MYSTERY_TRIGGER + Config.MYSTERY_START + CLEAR
+MYSTERY_GUESS = BOLD + COLOUR + COLOUR_RED + Config.MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + CLEAR
+MYSTERY_SOLVE = BOLD + COLOUR + COLOUR_RED + Config.MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + CLEAR
 
 BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
   + GENERATE_SINGLE + " to see a line generated for a single user, " \
@@ -31,7 +38,8 @@ if Config.ALL_USED:
   + GENERATE_ALL + " to see a line generated from all channel users combined. "
 
 BOT_DESC_MYSTERY = "Type " \
-  + MYSTERY_START + " to generate a mystery line, or " \
+  + MYSTERY_START + " to generate a mystery line. Then type " \
+  + MYSTERY_GUESS + " to guess the nick of the mystery line's author, or " \
   + MYSTERY_SOLVE + " to see the solution."
 
 class MessageLogger:
@@ -180,11 +188,11 @@ class ImpostorBot(irc.IRCClient):
     if command == Config.MYSTERY_START:
       output_message = self.startMystery()
 
-    elif command == Config.MYSTERY_SOLVE:
-      output_message = self.solveMystery()
-
     elif command == Config.MYSTERY_GUESS:
       output_message = self.guessMystery(user, raw_tokens)
+
+    elif command == Config.MYSTERY_SOLVE:
+      output_message = self.solveMystery()
 
     if output_message:
       self.msg(channel, output_message)
