@@ -85,7 +85,10 @@ class Margen:
       if not nick in excludes and len(starters) > min_starters:
         possibles.append(nick)
 
-    return random.choice(possibles)
+    if possibles:
+      return random.choice(possibles)
+
+    return None
 
 
   # Filter a list of raw nick tuples; random placeholders will be substituted, while
@@ -99,13 +102,13 @@ class Margen:
 
       real_nick = nick_tuple[1]
 
+      # Expand any randoms to real nicks
       if nick_tuple[0] == NickType.RANDOM:
         real_nick = self.getRandomNick(real_nicks, random_min_starters)
 
-      elif real_nick not in self.userlookbacks or real_nick not in self.starters:
-        continue
-
-      real_nicks.append(real_nick)
+      # Catch any Nones or empties
+      if real_nick and real_nick in self.starters:
+        real_nicks.append(real_nick)
 
     return real_nicks
 
