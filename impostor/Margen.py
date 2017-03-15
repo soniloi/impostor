@@ -76,14 +76,15 @@ class Margen:
       lookbackmap[lookback].append(follow)
 
 
-  # Return a nick at random, as long as it has at least a certain number of starter entries
-  def getRandomNick(self, min_starters=0):
+  # Return a nick at random, as long as it has at least a certain number of starter entries,
+  #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
+  def getRandomNick(self, excludes, min_starters=0):
 
     result = None
 
     while not result:
       (nick, starters) = random.choice(self.starters.items())
-      if len(starters) >= min_starters:
+      if nick not in excludes and len(starters) >= min_starters:
         result = nick
 
     return result
@@ -101,7 +102,7 @@ class Margen:
       real_nick = nick_tuple[1]
 
       if nick_tuple[0] == NickType.RANDOM:
-        real_nick = self.getRandomNick(random_min_starters)
+        real_nick = self.getRandomNick(real_nicks, random_min_starters)
 
       elif real_nick not in self.userlookbacks or real_nick not in self.starters:
         continue
