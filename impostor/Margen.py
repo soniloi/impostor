@@ -80,14 +80,12 @@ class Margen:
   #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
   def getRandomNick(self, excludes, min_starters=0):
 
-    result = None
+    possibles = []
+    for (nick, starters) in self.starters.iteritems():
+      if not nick in excludes and len(starters) > min_starters:
+        possibles.append(nick)
 
-    while not result:
-      (nick, starters) = random.choice(self.starters.items())
-      if nick not in excludes and len(starters) >= min_starters:
-        result = nick
-
-    return result
+    return random.choice(possibles)
 
 
   # Filter a list of raw nick tuples; random placeholders will be substituted, while
