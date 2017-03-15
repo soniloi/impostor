@@ -60,7 +60,6 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
-    self.guesses = {} # Map nicks to guesses
 
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
@@ -208,27 +207,8 @@ class ImpostorBot(irc.IRCClient):
     if not self.current_author:
       return "There is currently no unsolved mystery. "
 
-    output_message = ""
-    winners = []
-
-    for (guesser, guess) in self.guesses.iteritems():
-      if guess == self.current_author:
-        winners.append(guesser)
-      output_message += guesser + " guessed that it was " + guess + ". "
-
-    output_message += "The mystery author was: " + self.current_author + ". "
-
-    if not winners:
-      output_message += "No-one guessed correctly. "
-
-    else:
-      output_message += "Congratulations, " + winners[0]
-      for additional_winner in winners[1:]:
-        output_message += ", " + additional_winner
-      output_message += "! "
-
+    output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
     self.current_author = None
-    self.guesses = {}
 
     return output_message
 
@@ -238,12 +218,16 @@ class ImpostorBot(irc.IRCClient):
     if not self.current_author:
       return "There is currently no unsolved mystery. "
 
+    output_message = ""
+
     # FIXME: what if they guess more than two? discard silently?
     if len(tokens) == 2:
       guess = tokens[1]
-      self.guesses[user] = guess
+      if guess == self.current_author:
+        output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
+        self.current_author = None
 
-    return ""
+    return output_message
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
