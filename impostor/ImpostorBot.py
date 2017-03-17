@@ -1,4 +1,6 @@
+import random
 import re
+
 import Config
 import Margen
 
@@ -88,6 +90,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
+    self.current_hints = None
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
 
@@ -213,6 +216,9 @@ class ImpostorBot(irc.IRCClient):
     elif command == Config.MYSTERY_GUESS:
       output_message = self.guessMystery(user, raw_tokens)
 
+    elif command == Config.MYSTERY_HINT:
+      output_message = self.hintMystery()
+
     elif command == Config.MYSTERY_SOLVE:
       output_message = self.solveMystery()
 
@@ -232,8 +238,22 @@ class ImpostorBot(irc.IRCClient):
 
     if output_nicks:
       self.current_author = output_nicks[0]
+      self.current_hints = list(self.current_author)
       output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
 
+    return output_message
+
+  def hintMystery(self):
+
+    if not self.current_author:
+      return "There is currently no unsolved mystery. "
+
+    if not self.current_hints:
+      return "I have no further hints to give. "
+
+    hint_index = random.randint(0, len(self.current_hints) - 1)
+    output_message = "The mystery author's name contains the character [" + self.current_hints[hint_index] + "]"
+    del self.current_hints[hint_index]
     return output_message
 
   # End a mystery sequence, revealing the author; return respons string
@@ -244,6 +264,7 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
     self.current_author = None
+    self.current_hints = None
 
     return output_message
 
@@ -261,6 +282,7 @@ class ImpostorBot(irc.IRCClient):
       if guess == self.current_author:
         output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
         self.current_author = None
+        self.current_hints = None
 
     return output_message
 
