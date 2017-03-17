@@ -251,7 +251,14 @@ class ImpostorBot(irc.IRCClient):
 
     if output_nicks:
       self.current_author = output_nicks[0]
-      self.current_hints = list(self.current_author)
+      #self.current_hints = list(self.current_author)
+      hint_count = Config.MYSTERY_HINTS_MAX
+      len_author = len(self.current_author)
+      if len_author == 1:
+        hint_count = 1
+      elif len_author <= hint_count:
+        hint_count = len_author - 1
+      self.current_hints = random.sample(self.current_author, hint_count)
       output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
 
     return output_message
