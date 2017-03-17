@@ -251,17 +251,20 @@ class ImpostorBot(irc.IRCClient):
 
     if output_nicks:
       self.current_author = output_nicks[0]
-      #self.current_hints = list(self.current_author)
-      hint_count = Config.MYSTERY_HINTS_MAX
-      len_author = len(self.current_author)
-      if len_author == 1:
-        hint_count = 1
-      elif len_author <= hint_count:
-        hint_count = len_author - 1
+      hint_count = ImpostorBot.getHintCount(len(self.current_author))
       self.current_hints = random.sample(self.current_author, hint_count)
       output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
 
     return output_message
+
+  # Return the appropriate number of hints for a nick length
+  @staticmethod
+  def getHintCount(len_nick):
+
+    if len_nick <= Config.MYSTERY_HINTS_MAX:
+      return 1
+
+    return Config.MYSTERY_HINTS_MAX
 
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
@@ -276,8 +279,7 @@ class ImpostorBot(irc.IRCClient):
       guess = tokens[1]
       if guess == self.current_author:
         output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
-        self.current_author = None
-        self.current_hints = None
+        self.endMystery()
 
     return output_message
 
@@ -302,10 +304,13 @@ class ImpostorBot(irc.IRCClient):
       return "There is currently no unsolved mystery. "
 
     output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
-    self.current_author = None
-    self.current_hints = None
+    self.endMystery()
 
     return output_message
+
+  def endMystery(self):
+    self.current_author = None
+    self.current_hints = None
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
