@@ -100,7 +100,7 @@ class Margen:
   # Return a list of strings, which may be empty
   def getRealNicks(self, nick_tuples, random_min_starters=0):
 
-    real_nicks = []
+    real_nicks = set()
 
     for nick_tuple in nick_tuples:
 
@@ -112,9 +112,9 @@ class Margen:
 
       # Catch any Nones or empties
       if real_nick and real_nick in self.starters:
-        real_nicks.append(real_nick)
+        real_nicks.add(real_nick)
 
-    return real_nicks
+    return list(real_nicks)
 
 
   # Make a shallow (ish) copy of a dictionary of lists
