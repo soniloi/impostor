@@ -122,18 +122,22 @@ class ImpostorBot(irc.IRCClient):
     self.logger.log("<%s> %s" % (user, input_message_raw))
 
     input_message = input_message_raw.strip().lower()
+    output_messages = []
     
     if channel == self.nickname:
-      self.pmdToMe(user, channel, input_message)
+      output_messages = self.pmdToMe(user, input_message)
 
     elif input_message.startswith(self.nickname + ":"):
-      self.directedAtMe(user, channel, input_message)
+      output_messages = self.directedAtMe(user, input_message)
 
     elif input_message.startswith(Config.GENERATE_TRIGGER):
-      self.triggerGenerateQuote(user, channel, input_message)
+      output_messages = self.triggerGenerateQuote(user, input_message)
 
     elif input_message.startswith(Config.MYSTERY_TRIGGER):
-      self.triggerMysteryQuote(user, channel, input_message)
+      output_messages = self.triggerMysteryQuote(user, input_message)
+
+    for output_message in output_messages:
+      self.msg(channel, output_message)
 
   def action(self, user, channel, input_message):
     """This will get called when the bot sees someone do an action."""
@@ -158,15 +162,14 @@ class ImpostorBot(irc.IRCClient):
     """
     return nickname + '^'
 
-  def pmdToMe(self, user, channel, input_message):
+  def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
+    return []
 
-  def directedAtMe(self, user, channel, input_message):
-    self.msg(channel, BOT_DESC_BASIC)
-    self.msg(channel, BOT_DESC_MYSTERY)
-    self.logger.log("[directed#%s] <%s> %s" % (channel, user, input_message))
+  def directedAtMe(self, user, input_message):
+    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY]
 
-  def triggerGenerateQuote(self, user, channel, input_message):
+  def triggerGenerateQuote(self, user, input_message):
 
       raw_tokens = re.split(' *', input_message)
       raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.GENERATE_TRIGGER):])[:Config.INPUT_NICKS_MAX]
@@ -181,6 +184,8 @@ class ImpostorBot(irc.IRCClient):
 
       output_nicks, output_quote = self.generator.generate(nick_tuples)
 
+      output_message = ""
+
       if output_quote:
 
         output_message = Config.OUTPUT_NICKS_OPEN + output_nicks[0]
@@ -189,7 +194,10 @@ class ImpostorBot(irc.IRCClient):
           output_message += Config.OUTPUT_NICKS_SEP + output_nick
 
         output_message += Config.OUTPUT_NICKS_CLOSE + output_quote
-        self.msg(channel, output_message)
+
+      if output_message:
+        return [output_message]
+      return []
 
   @staticmethod
   def makeNickTuple(raw_nick):
@@ -203,7 +211,7 @@ class ImpostorBot(irc.IRCClient):
 
     return (nick_type, nick_name)
 
-  def triggerMysteryQuote(self, user, channel, input_message):
+  def triggerMysteryQuote(self, user, input_message):
 
     raw_tokens = re.split(' *', input_message)
     raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.MYSTERY_TRIGGER):])
@@ -227,7 +235,8 @@ class ImpostorBot(irc.IRCClient):
       output_message = self.solveMystery()
 
     if output_message:
-      self.msg(channel, output_message)
+      return [output_message]
+    return []
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
