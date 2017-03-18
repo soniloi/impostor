@@ -222,7 +222,10 @@ class ImpostorBot(irc.IRCClient):
     command = raw_commands[0]
     output_message = ""
 
-    if command == Config.MYSTERY_START:
+    if command == "stats":
+      output_message = self.makeStats(raw_tokens[1:])
+
+    elif command == Config.MYSTERY_START:
       output_message = self.startMystery()
 
     elif command == Config.MYSTERY_GUESS:
@@ -237,6 +240,13 @@ class ImpostorBot(irc.IRCClient):
     if output_message:
       return [output_message]
     return []
+
+  def makeStats(self, args):
+
+    if not args:
+      return "I have material from " + str(self.generator.getUserCount()) + " users."
+
+    return ""
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):

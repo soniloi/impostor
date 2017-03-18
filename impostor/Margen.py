@@ -80,6 +80,10 @@ class Margen:
     return not self.starters
 
 
+  def getUserCount(self):
+    return len(self.starters)
+
+
   # Return a nick at random, as long as it has at least a certain number of starter entries,
   #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
   def getRandomNick(self, excludes, min_starters=0):
