@@ -241,12 +241,20 @@ class ImpostorBot(irc.IRCClient):
       return [output_message]
     return []
 
-  def makeStats(self, args):
+  def makeStats(self, nicks):
 
-    if not args:
+    if not nicks:
       return "I have material from " + str(self.generator.getUserCount()) + " users."
 
-    return ""
+    output_message = ""
+    for nick in nicks:
+      production_count = self.generator.getUserProductionCount(nick)
+      if production_count < 1:
+        output_message = "I know of no such user " + nick + ". "
+      else:
+        output_message += "The user " + nick + " has " + str(production_count) + " productions. "
+
+    return output_message
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):

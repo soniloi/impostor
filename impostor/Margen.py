@@ -84,6 +84,20 @@ class Margen:
     return len(self.starters)
 
 
+  # Return the number of productions a user has, or 0 if the user does not exist
+  def getUserProductionCount(self, nick):
+
+    if not nick in self.userlookbacks:
+      return 0
+
+    production_count = 0
+    for (_, production_list) in self.userlookbacks[nick].iteritems():
+      for _ in production_list:
+        production_count += 1
+
+    return production_count
+
+
   # Return a nick at random, as long as it has at least a certain number of starter entries,
   #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
   def getRandomNick(self, excludes, min_starters=0):
