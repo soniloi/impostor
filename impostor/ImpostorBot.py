@@ -40,16 +40,16 @@ class Colour:
   LIGHT_GREY = "15"
 
 GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
-MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.MYSTERY_TRIGGER
+META_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
 
 BOT_NICK = Style.BOLD + Config.BOT_NICK + Style.CLEAR
 GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
 GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
 GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
 GENERATE_ALL = GENERATE_TRIGGER + Config.ALL_NICK + Style.CLEAR
-MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
-MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
-MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
+MYSTERY_START = META_TRIGGER + Config.MYSTERY_START + Style.CLEAR
+MYSTERY_GUESS = META_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
+MYSTERY_SOLVE = META_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
 
 BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
   + GENERATE_SINGLE + " to see a line generated for a single user, " \
@@ -133,7 +133,7 @@ class ImpostorBot(irc.IRCClient):
     elif input_message.startswith(Config.GENERATE_TRIGGER):
       output_messages = self.triggerGenerateQuote(user, input_message)
 
-    elif input_message.startswith(Config.MYSTERY_TRIGGER):
+    elif input_message.startswith(Config.META_TRIGGER):
       output_messages = self.triggerMysteryQuote(user, input_message)
 
     for output_message in output_messages:
@@ -214,7 +214,7 @@ class ImpostorBot(irc.IRCClient):
   def triggerMysteryQuote(self, user, input_message):
 
     raw_tokens = re.split(' *', input_message)
-    raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.MYSTERY_TRIGGER):])
+    raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.META_TRIGGER):])
 
     if not raw_commands:
       return
@@ -222,7 +222,7 @@ class ImpostorBot(irc.IRCClient):
     command = raw_commands[0]
     output_message = ""
 
-    if command == "stats":
+    if command == Config.META_STATS:
       output_message = self.makeStats(raw_tokens[1:])
 
     elif command == Config.MYSTERY_START:
