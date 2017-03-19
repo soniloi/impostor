@@ -90,6 +90,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
+    self.current_mystery = None
     self.current_hints = None
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
@@ -259,8 +260,8 @@ class ImpostorBot(irc.IRCClient):
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
 
-    if self.current_author:
-      return "There is already an unsolved mystery. "
+    if self.current_mystery:
+      return self.current_mystery
 
     output_message = ""
 
@@ -272,6 +273,7 @@ class ImpostorBot(irc.IRCClient):
       hint_count = ImpostorBot.getHintCount(len(self.current_author))
       self.current_hints = random.sample(self.current_author, hint_count)
       output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
+      self.current_mystery = output_message
 
     return output_message
 
@@ -287,7 +289,7 @@ class ImpostorBot(irc.IRCClient):
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
 
-    if not self.current_author:
+    if not self.current_mystery:
       return "There is currently no unsolved mystery. "
 
     output_message = ""
@@ -304,7 +306,7 @@ class ImpostorBot(irc.IRCClient):
   # Give hint about mystery by printing a random character from the user's nick
   def hintMystery(self):
 
-    if not self.current_author:
+    if not self.current_mystery:
       return "There is currently no unsolved mystery. "
 
     if not self.current_hints:
@@ -318,7 +320,7 @@ class ImpostorBot(irc.IRCClient):
   # End a mystery sequence, revealing the author; return respons string
   def solveMystery(self):
 
-    if not self.current_author:
+    if not self.current_mystery:
       return "There is currently no unsolved mystery. "
 
     output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
@@ -328,6 +330,7 @@ class ImpostorBot(irc.IRCClient):
 
   def endMystery(self):
     self.current_author = None
+    self.current_mystery = None
     self.current_hints = None
 
 
