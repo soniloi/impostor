@@ -40,16 +40,22 @@ class Colour:
   LIGHT_GREY = "15"
 
 GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
-META_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
+STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
+MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
 
 BOT_NICK = Style.BOLD + Config.BOT_NICK + Style.CLEAR
 GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
 GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
 GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
 GENERATE_ALL = GENERATE_TRIGGER + Config.ALL_NICK + Style.CLEAR
-MYSTERY_START = META_TRIGGER + Config.MYSTERY_START + Style.CLEAR
-MYSTERY_GUESS = META_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
-MYSTERY_SOLVE = META_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
+
+META_STATS = STATS_TRIGGER + Config.META_STATS + Style.CLEAR
+META_STATS_USER = STATS_TRIGGER + Config.META_STATS + " <nick>" + Style.CLEAR
+
+MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
+MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
+MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
+MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
 
 BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
   + GENERATE_SINGLE + " to see a line generated for a single user, " \
@@ -59,9 +65,14 @@ if Config.ALL_USED:
   BOT_DESC_BASIC += "You may also type '" \
   + GENERATE_ALL + " to see a line generated from all channel users combined. "
 
+BOT_DESC_STATS = "Type " \
+  + META_STATS + " for basic channel statistics, or " \
+  + META_STATS_USER + " for statistics on a specific user. "
+
 BOT_DESC_MYSTERY = "Type " \
   + MYSTERY_START + " to generate a mystery line. Then type " \
-  + MYSTERY_GUESS + " to guess the nick of the mystery line's author, or " \
+  + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
+  + MYSTERY_HINT + " for a hint, or " \
   + MYSTERY_SOLVE + " to see the solution."
 
 class MessageLogger:
@@ -168,7 +179,7 @@ class ImpostorBot(irc.IRCClient):
     return []
 
   def directedAtMe(self, user, input_message):
-    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY]
+    return [BOT_DESC_BASIC, BOT_DESC_STATS, BOT_DESC_MYSTERY]
 
   def triggerGenerateQuote(self, user, input_message):
 
