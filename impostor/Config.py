@@ -1,6 +1,10 @@
 GENERATE_TRIGGER = '!'
 META_TRIGGER = '@'
+
+META_HELP = ['?', 'help', 'impostor']
+
 META_STATS = 'stats'
+
 MYSTERY_NAME = '???'
 MYSTERY_START = 'mystery'
 MYSTERY_GUESS = 'guess'

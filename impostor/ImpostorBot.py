@@ -174,12 +174,15 @@ class ImpostorBot(irc.IRCClient):
     """
     return nickname + '^'
 
+  def makeHelp(self):
+    return [BOT_DESC_BASIC, BOT_DESC_STATS, BOT_DESC_MYSTERY]
+
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
     return []
 
   def directedAtMe(self, user, input_message):
-    return [BOT_DESC_BASIC, BOT_DESC_STATS, BOT_DESC_MYSTERY]
+    return self.makeHelp()
 
   def triggerGenerateQuote(self, user, input_message):
 
@@ -232,26 +235,27 @@ class ImpostorBot(irc.IRCClient):
       return
 
     command = raw_commands[0]
-    output_message = ""
+    output_messages = []
 
-    if command == Config.META_STATS:
-      output_message = self.makeStats(raw_tokens[1:])
+    if command in Config.META_HELP:
+      output_messages = self.makeHelp()
+
+    elif command == Config.META_STATS:
+      output_messages = self.makeStats(raw_tokens[1:])
 
     elif command == Config.MYSTERY_START:
-      output_message = self.startMystery()
+      output_messages = self.startMystery()
 
     elif command == Config.MYSTERY_GUESS:
-      output_message = self.guessMystery(user, raw_tokens)
+      output_messages = self.guessMystery(user, raw_tokens)
 
     elif command == Config.MYSTERY_HINT:
-      output_message = self.hintMystery()
+      output_messages = self.hintMystery()
 
     elif command == Config.MYSTERY_SOLVE:
-      output_message = self.solveMystery()
+      output_messages = self.solveMystery()
 
-    if output_message:
-      return [output_message]
-    return []
+    return output_messages
 
   def makeStats(self, nicks):
 
@@ -266,13 +270,13 @@ class ImpostorBot(irc.IRCClient):
       else:
         output_message += "The user " + nick + " has " + str(production_count) + " productions. "
 
-    return output_message
+    return [output_message]
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
 
     if self.current_mystery:
-      return self.current_mystery
+      return [self.current_mystery]
 
     output_message = ""
 
@@ -286,7 +290,7 @@ class ImpostorBot(irc.IRCClient):
       output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
       self.current_mystery = output_message
 
-    return output_message
+    return [output_message]
 
   # Return the appropriate number of hints for a nick length
   @staticmethod
@@ -301,7 +305,7 @@ class ImpostorBot(irc.IRCClient):
   def guessMystery(self, user, tokens):
 
     if not self.current_mystery:
-      return "There is currently no unsolved mystery. "
+      return ["There is currently no unsolved mystery. "]
 
     output_message = ""
 
@@ -312,32 +316,32 @@ class ImpostorBot(irc.IRCClient):
         output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
         self.endMystery()
 
-    return output_message
+    return [output_message]
 
   # Give hint about mystery by printing a random character from the user's nick
   def hintMystery(self):
 
     if not self.current_mystery:
-      return "There is currently no unsolved mystery. "
+      return ["There is currently no unsolved mystery. "]
 
     if not self.current_hints:
-      return "I have no further hints to give. "
+      return ["I have no further hints to give. "]
 
     hint_index = random.randint(0, len(self.current_hints) - 1)
     hint = self.current_hints[hint_index]
     del self.current_hints[hint_index]
-    return "The mystery author's name contains the character [" + hint + "]"
+    return ["The mystery author's name contains the character [" + hint + "]"]
 
   # End a mystery sequence, revealing the author; return respons string
   def solveMystery(self):
 
     if not self.current_mystery:
-      return "There is currently no unsolved mystery. "
+      return ["There is currently no unsolved mystery. "]
 
     output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
     self.endMystery()
 
-    return output_message
+    return [output_message]
 
   def endMystery(self):
     self.current_author = None
