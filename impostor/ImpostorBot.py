@@ -278,17 +278,18 @@ class ImpostorBot(irc.IRCClient):
     if self.current_mystery:
       return [self.current_mystery]
 
-    output_message = ""
+    output_message = self.current_mystery
 
-    nick_tuple = (Margen.NickType.RANDOM, "")
-    output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
+    if not output_message:
+      nick_tuple = (Margen.NickType.RANDOM, "")
+      output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
 
-    if output_nicks:
-      self.current_author = output_nicks[0]
-      hint_count = ImpostorBot.getHintCount(len(self.current_author))
-      self.current_hints = random.sample(self.current_author, hint_count)
-      output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
-      self.current_mystery = output_message
+      if output_nicks:
+        self.current_author = output_nicks[0]
+        hint_count = ImpostorBot.getHintCount(len(self.current_author))
+        self.current_hints = random.sample(self.current_author, hint_count)
+        output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
+        self.current_mystery = output_message
 
     return [output_message]
 
@@ -304,42 +305,47 @@ class ImpostorBot(irc.IRCClient):
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
 
-    if not self.current_mystery:
-      return ["There is currently no unsolved mystery. "]
-
     output_message = ""
 
-    # FIXME: what if they guess more than two? discard silently?
-    if len(tokens) == 2:
-      guess = tokens[1]
-      if guess == self.current_author:
-        output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
-        self.endMystery()
+    if not self.current_mystery:
+      output_message = "There is currently no unsolved mystery. "
+
+    else:
+      # FIXME: what if they guess more than two? discard silently?
+      if len(tokens) == 2:
+        guess = tokens[1]
+        if guess == self.current_author:
+          output_message = "The mystery author was: " + self.current_author + ". Congratulations, " + user + "! "
+          self.endMystery()
 
     return [output_message]
 
-  # Give hint about mystery by printing a random character from the user's nick
+  # Give hint about mystery by printing a random character from the author's nick
   def hintMystery(self):
 
-    if not self.current_mystery:
-      return ["There is currently no unsolved mystery. "]
+    output_message = "There is currently no unsolved mystery. "
 
-    if not self.current_hints:
-      return ["I have no further hints to give. "]
+    if self.current_mystery:
 
-    hint_index = random.randint(0, len(self.current_hints) - 1)
-    hint = self.current_hints[hint_index]
-    del self.current_hints[hint_index]
-    return ["The mystery author's name contains the character [" + hint + "]"]
+      if not self.current_hints:
+        output_message = "I have no further hints to give. "
 
-  # End a mystery sequence, revealing the author; return respons string
+      else:
+        hint_index = random.randint(0, len(self.current_hints) - 1)
+        hint = self.current_hints[hint_index]
+        del self.current_hints[hint_index]
+        output_message = "The mystery author's name contains the character [" + hint + "]"
+
+    return [output_message]
+
+  # End a mystery sequence, revealing the author; return response string
   def solveMystery(self):
 
-    if not self.current_mystery:
-      return ["There is currently no unsolved mystery. "]
+    output_message = "There is currently no unsolved mystery. "
 
-    output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
-    self.endMystery()
+    if self.current_mystery:
+      output_message = "The mystery author was: " + self.current_author + ". No-one guessed correctly. "
+      self.endMystery()
 
     return [output_message]
 
