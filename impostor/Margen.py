@@ -135,8 +135,7 @@ class Margen:
 
     production_count = 0
     for (_, production_list) in self.userlookbacks[nick].iteritems():
-      for _ in production_list:
-        production_count += 1
+      production_count += len(production_list)
 
     return production_count
 
