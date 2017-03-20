@@ -25,19 +25,20 @@ the dog was eating sausages by the sea-shore
 
 # Pre-requisites
 
-You will need source material for each user. These must all be located in the same directory, using the following format:
+There must be a single input directory, containing the items listed below. The location of this directory does not matter; the directory name will be passed at run-time.
 
-* Plain text files, each with the extension ```.src```.
+## Source material files
+
+These are plain text files, each with the extension ```.src```. The filename minus the extension is the username. The following format must apply.
 * Each line of input is to be on its own line in the file.
 * Each line is to have at least two words.
+* If there is a source file that is an amalgamation of all source files, call it ```all.src```
 
-Lastly, there should be one source file named ```all.src```. This should be an amalgamation of all users in the data-set. Hopefully, there will be no-one with the username ```all```!
-
-The location of this directory does not matter; the directory name will be passed at run-time (see below). How the source material is generated is up to you. Typically, it will involve parsing IRC log files, stripping out very short lines, and maybe some normalization.
+How the source material is generated is up to you. Typically, it will involve parsing IRC log files, stripping out very short lines, and maybe some normalization.
 
 Note that the more input (both number of lines and number of words per line) we have for a user, the better the output will be. The generator works best when there are many possible successors to each pair of words; the more possible successors, the more varied the generated lines.
 
-## Example
+### Sample source material file
 
 Say we have a user with username ```mollusc```. In our sources directory there must be a file named ```mollusc.src```. Its contents could be something like this:
 
@@ -46,6 +47,21 @@ I am not a fish
 my occupation is making pearls
 om nom nom tasty algae
 today is not a good day
+```
+
+## Metadata
+
+An optional file called meta.info may be added to the input directory. If present, this would contain metadata about source generation. The following attributes are supported.
+* Date: Unix timestamp of when the source material was generated.
+* Primary: The primary channel used to generate source material.
+* Additional: Other channels from which source material is taken (one may wish, for example, to exclude users found in the additional channels but not in the primary).
+
+### Sample metadata file
+
+```
+date=1489964352
+primary=#underthesea
+additional=#mollusc_test #beach #iloveraisins
 ```
 
 # Running
@@ -75,34 +91,48 @@ The instructions below indicate what to type in IRC to prompt the bot. First, yo
 
 ### Reserved characters and usernames
 
-The trigger for the ```impostor``` bot is the character '!'. The bot will ignore any line that does not start with this symbol.
+There are two triggers for the ```impostor``` bot, ```!``` and ```@```. One can also direct a comment at the bot by starting a line with ```impostor:```, but all this does is display a help message. The bot ignores all other lines.
 
-Other than ```all```, the words that may not appear as usernames are:
+The only reserved username (other than ```all```, if present) is ```random```. If there is a user called ```random```, then it will not be possible to generate lines for them. Everything else is possible though; one can even call ```impostor``` on itself.
 
-* ```impostor```: calling this returns usage information in-channel.
-* ```random```: calling this returns a random-user comment.
+### Generating quotes
 
-Note that, if the source material contains reserved usernames, then they will be overridden by the above functions. Again, hopefully, there will be no-one with these usernames.
+The trigger to generate quotes is ```!```.
 
-### Single-user comment
+#### Single-user comment
 
 A single-user comment is one generated from the source material of only one user. To generate a single-user comment for a user named ```mollusc```, type the following in the ```impostor``` channel:
 ```
 !mollusc
 ```
 
-### Multi-user comment
+#### Multi-user comment
 
-A multi-user comment is one generated from the source material of multiple users; it is currently limited to to users. To generate such a comment for users ```mollusc``` and ```daffodil```, type:
+A multi-user comment is one generated from the source material of multiple users; it is currently limited to two users. To generate such a comment for users ```mollusc``` and ```daffodil```, type:
 ```
 !mollusc:daffodil
 ```
 
 The ordering does not matter; reversing it to ```!daffodil:mollusc``` will produce exactly the same results.
 
-### Random-user comment
+#### Random-user comment
 
-A random-user comment is one generated from a random single user in the set. To generate such a comment, type:
+A random-user comment is one generated from a random user in the set. To generate such a comment, type:
 ```
 !random
 ```
+
+```random``` may be substituted anywhere a normal nick is expected. In other words, the following are all valid.
+```
+!mollusc:random
+!random:mollusc
+!random:random
+```
+
+#### Notes
+
+If the bot is called on a username that does not exist, then it does not do anything.
+
+If it is called for a combination of a user that exists and one that does not, then it will only return a quote for one that exists.
+
+If ```random``` is called as part of a combination (including a ```random:random``` combination), it will not return two of the same.
