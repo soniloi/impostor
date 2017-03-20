@@ -40,6 +40,8 @@ class Colour:
   GREY = "14"
   LIGHT_GREY = "15"
 
+REPOSITORY = 'https://github.com/soniloi/impostor'
+
 GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
 STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
 MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
@@ -66,15 +68,16 @@ if Config.ALL_USED:
   BOT_DESC_BASIC += "You may also type '" \
   + GENERATE_ALL + " to see a line generated from all channel users combined. "
 
-BOT_DESC_STATS = "Type " \
-  + META_STATS + " for basic channel statistics, or " \
-  + META_STATS_USER + " for statistics on a specific user. "
-
 BOT_DESC_MYSTERY = "Type " \
   + MYSTERY_START + " to generate a mystery line. Then type " \
   + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
   + MYSTERY_HINT + " for a hint, or " \
   + MYSTERY_SOLVE + " to see the solution."
+
+BOT_DESC_ADDITIONAL = "Type " \
+  + META_STATS + " for basic channel statistics, or " \
+  + META_STATS_USER + " for statistics on a specific user. See " \
+  + REPOSITORY + " for (slightly) more information. "
 
 class MessageLogger:
   """
@@ -176,7 +179,7 @@ class ImpostorBot(irc.IRCClient):
     return nickname + '^'
 
   def makeHelp(self):
-    return [BOT_DESC_BASIC, BOT_DESC_STATS, BOT_DESC_MYSTERY]
+    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY, BOT_DESC_ADDITIONAL]
 
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
