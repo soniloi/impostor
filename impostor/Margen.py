@@ -100,18 +100,19 @@ class Margen:
     meta_file.close()
 
 
-  def getSourceGeneratedDate(self):
-    dates = self.meta.get(Config.META_DATE)
-    if not dates:
+  @staticmethod
+  def getFirstOrNone(lis):
+    if not lis:
       return None
-    return dates[0]
+    return lis[0]
+
+
+  def getSourceGeneratedDate(self):
+    return Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
 
 
   def getPrimarySourceChannel(self):
-    primaries = self.meta.get(Config.META_PRIMARY)
-    if not primaries:
-      return None
-    return primaries[0]
+    return Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
 
 
   def getAdditionalSourceChannels(self):

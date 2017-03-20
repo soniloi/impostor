@@ -263,40 +263,54 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if not nicks:
-      count = str(self.generator.getUserCount())
+      output_message = self.makeChannelStats()
 
-      date = "[Unknown]"
-      date_raw = self.generator.getSourceGeneratedDate()
-      if date_raw:
-        date = datetime.datetime.fromtimestamp(
-        int(date_raw)
-        ).strftime("%Y-%m-%d at %H.%M.%S")
+    else:
+      output_message = self.makeUserStats(nicks)
 
-      primary = "[Unknown]"
-      primary_raw = self.generator.getPrimarySourceChannel()
-      if primary_raw:
-        primary = primary_raw
+    return [output_message]
 
-      additionals = "[Unknown or None]"
-      additionals_raw = self.generator.getAdditionalSourceChannels()
-      if additionals_raw:
-        additionals = ", ".join(additionals_raw[:-1]) + ", and " + additionals_raw[-1]
+  def makeChannelStats(self):
 
-      output_message = "I have material from " + count \
-        + " users. My source material was generated on " + date \
-        + ". Its primary source channel was " + primary \
-        + ", and additional material was drawn from " + additionals + ". "
+    count = str(self.generator.getUserCount())
 
-      return [output_message]
+    date = "[Unknown]"
+    date_raw = self.generator.getSourceGeneratedDate()
+    if date_raw:
+      date = datetime.datetime.fromtimestamp(
+      int(date_raw)
+      ).strftime("%Y-%m-%d at %H.%M.%S")
+
+    primary = "[Unknown]"
+    primary_raw = self.generator.getPrimarySourceChannel()
+    if primary_raw:
+      primary = primary_raw
+
+    additionals = "[Unknown or None]"
+    additionals_raw = self.generator.getAdditionalSourceChannels()
+    if additionals_raw:
+      additionals = ", ".join(additionals_raw[:-1]) + ", and " + additionals_raw[-1]
+
+    return "I have material from " + count \
+      + " users. My source material was generated on " + date \
+      + ". Its primary source channel was " + primary \
+      + ", and additional material was drawn from " + additionals + ". "
+
+  def makeUserStats(self, nicks):
+
+    output_message = ""
 
     for nick in nicks:
+
       production_count = self.generator.getUserProductionCount(nick)
+
       if production_count < 1:
-        output_message = "I know of no such user " + nick + ". "
+        output_message += "I know of no such user " + nick + ". "
+
       else:
         output_message += "The user " + nick + " has " + str(production_count) + " productions. "
 
-    return [output_message]
+    return output_message
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
