@@ -136,3 +136,50 @@ If the bot is called on a username that does not exist, then it does not do anyt
 If it is called for a combination of a user that exists and one that does not, then it will only return a quote for one that exists.
 
 If ```random``` is called as part of a combination (including a ```random:random``` combination), it will not return two of the same.
+
+### Additional features
+
+Other features are triggered using the ```@``` trigger.
+
+#### Help
+
+To see a help message, type:
+```
+@help
+```
+
+#### Statistics
+
+To see some channel statistics (and other, non-statistical, information), type:
+```
+@stats
+```
+
+To see some statistics pertaining to a specific user, type:
+```
+@stats <nick>
+```
+
+#### Mystery game
+
+This is a simple game where players guess the identity (or "author") of a Markov-generated quote. It is controlled using the following commands.
+
+To start a game, type:
+```
+@mystery
+```
+```impostor``` will print a generated quote from some random user. Users with fewer than a certain number of source productions are excluded. This is in order to avoid huge numbers of quotes from little-known, unguessable users. 
+
+Players then attempt to guess the identity of the author, by typing:
+```
+@guess <nick>
+```
+Players can guess as many times as they like. It is also possible to request hints:
+```
+@hint
+```
+This will print a character from the author's name at random. Up to three hints may be requested. If the nick consists of three characters or fewer, only one hint will be given. To see the solution, type:
+```
+@solve
+```
+The game ends when either someone guesses correctly, or ```@solve``` is called. There are no prizes.
