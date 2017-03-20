@@ -101,11 +101,17 @@ class Margen:
 
 
   def getSourceGeneratedDate(self):
-    return self.meta.get(Config.META_DATE)[0]
+    dates = self.meta.get(Config.META_DATE)
+    if not dates:
+      return None
+    return dates[0]
 
 
   def getPrimarySourceChannel(self):
-    return self.meta.get(Config.META_PRIMARY)[0]
+    primaries = self.meta.get(Config.META_PRIMARY)
+    if not primaries:
+      return None
+    return primaries[0]
 
 
   def getAdditionalSourceChannels(self):

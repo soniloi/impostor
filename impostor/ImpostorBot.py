@@ -264,16 +264,28 @@ class ImpostorBot(irc.IRCClient):
 
     if not nicks:
       count = str(self.generator.getUserCount())
-      date = datetime.datetime.fromtimestamp(
-        int(self.generator.getSourceGeneratedDate())
-        ).strftime("on %Y-%m-%d at %H.%M.%S")
-      primary = self.generator.getPrimarySourceChannel()
-      additionals = self.generator.getAdditionalSourceChannels()
+
+      date = "[Unknown]"
+      date_raw = self.generator.getSourceGeneratedDate()
+      if date_raw:
+        date = datetime.datetime.fromtimestamp(
+        int(date_raw)
+        ).strftime("%Y-%m-%d at %H.%M.%S")
+
+      primary = "[Unknown]"
+      primary_raw = self.generator.getPrimarySourceChannel()
+      if primary_raw:
+        primary = primary_raw
+
+      additionals = "[Unknown or None]"
+      additionals_raw = self.generator.getAdditionalSourceChannels()
+      if additionals_raw:
+        additionals = ", ".join(additionals_raw[:-1]) + ", and " + additionals_raw[-1]
+
       output_message = "I have material from " + count \
-        + " users. My source material was generated " + date \
+        + " users. My source material was generated on " + date \
         + ". Its primary source channel was " + primary \
-        + ", and additional material was drawn from " + ", ".join(additionals[:-1]) \
-        + ", and " + additionals[-1] + ". "
+        + ", and additional material was drawn from " + additionals + ". "
 
       return [output_message]
 
