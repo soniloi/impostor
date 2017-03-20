@@ -21,6 +21,7 @@ class Margen:
     self.userlookbacks = {} # Map of each nick to their own markov map
     self.starters = {} # Map of each nick to a list of all tuples they use to start lines
     self.buildSources(source_dir)
+    self.buildMeta(source_dir)
 
 
   def buildSources(self, source_dir):
@@ -74,6 +75,41 @@ class Margen:
         lookbackmap[lookback] = []
 
       lookbackmap[lookback].append(follow)
+
+
+  def buildMeta(self, source_dir):
+
+    self.meta = {}
+
+    meta_filename = source_dir + Config.META_FILE_NAME
+    if not os.path.isfile(meta_filename):
+      return
+
+    meta_file = open(meta_filename, 'r')
+
+    for meta_line in meta_file:
+
+      meta_words = meta_line.strip().split("=")
+      if len(meta_words) != 2:
+        continue
+
+      meta_key = meta_words[0]
+      meta_values = meta_words[1].split()
+      self.meta[meta_key] = meta_values
+
+    meta_file.close()
+
+
+  def getSourceGeneratedDate(self):
+    return self.meta.get(Config.META_DATE)[0]
+
+
+  def getPrimarySourceChannel(self):
+    return self.meta.get(Config.META_PRIMARY)[0]
+
+
+  def getAdditionalSourceChannels(self):
+    return self.meta.get(Config.META_ADDITIONAL)
 
 
   def empty(self):

@@ -1,3 +1,4 @@
+import datetime
 import random
 import re
 
@@ -259,10 +260,23 @@ class ImpostorBot(irc.IRCClient):
 
   def makeStats(self, nicks):
 
-    if not nicks:
-      return "I have material from " + str(self.generator.getUserCount()) + " users."
-
     output_message = ""
+
+    if not nicks:
+      count = str(self.generator.getUserCount())
+      date = datetime.datetime.fromtimestamp(
+        int(self.generator.getSourceGeneratedDate())
+        ).strftime("on %Y-%m-%d at %H.%M.%S")
+      primary = self.generator.getPrimarySourceChannel()
+      additionals = self.generator.getAdditionalSourceChannels()
+      output_message = "I have material from " + count \
+        + " users. My source material was generated " + date \
+        + ". Its primary source channel was " + primary \
+        + ", and additional material was drawn from " + ", ".join(additionals[:-1]) \
+        + ", and " + additionals[-1] + ". "
+
+      return [output_message]
+
     for nick in nicks:
       production_count = self.generator.getUserProductionCount(nick)
       if production_count < 1:

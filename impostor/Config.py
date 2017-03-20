@@ -16,6 +16,11 @@ MYSTERY_HINTS_MAX = 3
 LOOKBACK_LEN = 2 # Number of predecessors to a successor
 SOURCEFILE_EXT = ".src" # Source material file extension
 
+META_FILE_NAME = "meta.info" # Meta info file inside sources directory
+META_DATE = "date"
+META_PRIMARY = "primary"
+META_ADDITIONAL = "additional"
+
 BOT_NICK = 'impostor' # Default name of the bot in channel
 RANDOM_NICK = 'random' # Word that will trigger a random user to be 'quoted'
 ALL_USED = False # Indicates whether there is a nick that will be a composite of all in channel
