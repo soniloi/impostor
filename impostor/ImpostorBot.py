@@ -329,8 +329,19 @@ class ImpostorBot(irc.IRCClient):
 
       if output_nicks:
         self.current_author = output_nicks[0]
-        hint_count = ImpostorBot.getHintCount(len(self.current_author))
-        self.current_hints = random.sample(self.current_author, hint_count)
+        hint_character_count = ImpostorBot.getHintCount(len(self.current_author))
+
+        self.current_hints = []
+
+        hint_characters = random.sample(self.current_author, hint_character_count)
+        for hint_character in hint_characters:
+          hint = (False, hint_character)
+          self.current_hints.append(hint)
+
+        nick_tuple = self.makeNickTuple(self.current_author)
+        (_, additional_quote) = self.generator.generate([nick_tuple])
+        additional_quote_hint = (True, additional_quote)
+        self.current_hints.append(additional_quote_hint)
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_mystery = output_message
 
@@ -375,9 +386,12 @@ class ImpostorBot(irc.IRCClient):
 
       else:
         hint_index = random.randint(0, len(self.current_hints) - 1)
-        hint = self.current_hints[hint_index]
+        (is_additional_quote, hint) = self.current_hints[hint_index]
         del self.current_hints[hint_index]
-        output_message = "The mystery author's name contains the character [" + hint + "]"
+        if not is_additional_quote:
+          output_message = "The mystery author's name contains the character [" + hint + "]"
+        else:
+          output_message = "The mystery author also says: [" + hint + "]"
 
     return [output_message]
 
