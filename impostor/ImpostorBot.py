@@ -76,7 +76,7 @@ BOT_DESC_MYSTERY = "Type " \
   + MYSTERY_START + " to generate a mystery line. Then type " \
   + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
   + MYSTERY_HINT + " for a hint, or " \
-  + MYSTERY_SOLVE + " to see the solution."
+  + MYSTERY_SOLVE + " to see the solution. "
 
 BOT_DESC_ADDITIONAL = "Type " \
   + META_STATS + " for basic channel statistics, or " \
@@ -183,7 +183,7 @@ class ImpostorBot(irc.IRCClient):
     return nickname + '^'
 
   def makeHelp(self):
-    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY, BOT_DESC_ADDITIONAL]
+    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY + BOT_DESC_ADDITIONAL]
 
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
@@ -362,8 +362,9 @@ class ImpostorBot(irc.IRCClient):
     # Create another quote by the mystery author as an additional hint
     nick_tuple = self.makeNickTuple(self.current_author)
     (_, additional_quote) = self.generator.generate([nick_tuple])
-    additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
-    self.current_hints.append(additional_quote_hint)
+    if additional_quote:
+      additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
+      self.current_hints.append(additional_quote_hint)
 
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
