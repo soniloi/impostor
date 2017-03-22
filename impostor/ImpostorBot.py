@@ -40,6 +40,10 @@ class Colour:
   GREY = "14"
   LIGHT_GREY = "15"
 
+class HintType:
+  NICK_CHARACTER = 0
+  ADDITIONAL_QUOTE = 1
+
 REPOSITORY = 'https://github.com/soniloi/impostor'
 
 GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
@@ -329,19 +333,7 @@ class ImpostorBot(irc.IRCClient):
 
       if output_nicks:
         self.current_author = output_nicks[0]
-        hint_character_count = ImpostorBot.getHintCount(len(self.current_author))
-
-        self.current_hints = []
-
-        hint_characters = random.sample(self.current_author, hint_character_count)
-        for hint_character in hint_characters:
-          hint = (False, hint_character)
-          self.current_hints.append(hint)
-
-        nick_tuple = self.makeNickTuple(self.current_author)
-        (_, additional_quote) = self.generator.generate([nick_tuple])
-        additional_quote_hint = (True, additional_quote)
-        self.current_hints.append(additional_quote_hint)
+        self.setHints()
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
         self.current_mystery = output_message
 
@@ -355,6 +347,23 @@ class ImpostorBot(irc.IRCClient):
       return 1
 
     return Config.MYSTERY_HINTS_MAX
+
+  def setHints(self):
+
+    self.current_hints = []
+
+    # Set nick character hints
+    hint_character_count = ImpostorBot.getHintCount(len(self.current_author))
+    hint_characters = random.sample(self.current_author, hint_character_count)
+    for hint_character in hint_characters:
+      hint = (HintType.NICK_CHARACTER, hint_character)
+      self.current_hints.append(hint)
+
+    # Create another quote by the mystery author as an additional hint
+    nick_tuple = self.makeNickTuple(self.current_author)
+    (_, additional_quote) = self.generator.generate([nick_tuple])
+    additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
+    self.current_hints.append(additional_quote_hint)
 
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
@@ -386,11 +395,11 @@ class ImpostorBot(irc.IRCClient):
 
       else:
         hint_index = random.randint(0, len(self.current_hints) - 1)
-        (is_additional_quote, hint) = self.current_hints[hint_index]
+        (hint_type, hint) = self.current_hints[hint_index]
         del self.current_hints[hint_index]
-        if not is_additional_quote:
+        if hint_type == HintType.NICK_CHARACTER:
           output_message = "The mystery author's name contains the character [" + hint + "]"
-        else:
+        elif hint_type == HintType.ADDITIONAL_QUOTE:
           output_message = "The mystery author also says: [" + hint + "]"
 
     return [output_message]
