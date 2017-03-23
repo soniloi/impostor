@@ -18,6 +18,7 @@ class User:
 
     self.starters = starters # List of all starting tuples from this user
     self.lookbacks = lookbacks # Map of this user's tuples to follows
+    self.quotes_requested = 0 # Number of times this user has been requested for a quote
 
 
   def countProductions(self):
@@ -143,13 +144,22 @@ class Margen:
     return len(self.users)
 
 
-  # Return the number of productions a user has, or 0 if the user does not exist
+  # Return the number of productions a user has, or -1 if the user does not exist
   def getUserProductionCount(self, nick):
 
     if not nick in self.users:
-      return 0
+      return -1
 
     return self.users[nick].countProductions()
+
+
+  # Return the number of times a quote has been requested from a user, or -1 if the user does not exist
+  def getUserQuotesRequestedCount(self, nick):
+
+    if not nick in self.users:
+      return -1
+
+    return self.users[nick].quotes_requested
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
@@ -184,6 +194,7 @@ class Margen:
 
       # Catch any Nones or empties
       if real_nick and real_nick in self.users:
+        self.users[real_nick].quotes_requested += 1
         real_nicks.add(real_nick)
 
     return list(real_nicks)

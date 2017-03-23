@@ -310,12 +310,14 @@ class ImpostorBot(irc.IRCClient):
     for nick in nicks:
 
       production_count = self.generator.getUserProductionCount(nick)
+      quotes_requested = self.generator.getUserQuotesRequestedCount(nick)
 
       if production_count < 1:
         output_message += "I know of no such user " + nick + ". "
 
       else:
         output_message += "The user " + nick + " has " + str(production_count) + " productions. "
+        output_message += str(quotes_requested) + " quote(s) have been requested of them. "
 
     return output_message
 
