@@ -20,6 +20,16 @@ class User:
     self.lookbacks = lookbacks # Map of this user's tuples to follows
 
 
+  def countProductions(self):
+
+    production_count = 0
+
+    for (_, production_list) in self.lookbacks.iteritems():
+      production_count += len(production_list)
+
+    return production_count
+
+
 class Margen:
 
   SOURCEFILE_EXTLEN = len(Config.SOURCEFILE_EXT) # Length of the source file extension
@@ -139,11 +149,7 @@ class Margen:
     if not nick in self.users:
       return 0
 
-    production_count = 0
-    for (_, production_list) in self.users[nick].lookbacks.iteritems():
-      production_count += len(production_list)
-
-    return production_count
+    return self.users[nick].countProductions()
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
@@ -230,8 +236,9 @@ class Margen:
       return ([], "")
 
     first_nick = real_nicks[0]
-    starting_pairs = self.users[first_nick].starters
-    lookbacks = self.users[first_nick].lookbacks
+    first_user = self.users[first_nick]
+    starting_pairs = first_user.starters
+    lookbacks = first_user.lookbacks
 
     # If we have more than one nick, we will be constructing a new lookback map
     #  and starter list, so we will want copies
@@ -240,8 +247,9 @@ class Margen:
       lookbacks = self.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      starting_pairs += self.users[other_nick].starters
-      self.mergeIntoDictionary(lookbacks, self.users[other_nick].lookbacks)
+      other_user = self.users[other_nick]
+      starting_pairs += other_user.starters
+      self.mergeIntoDictionary(lookbacks, other_user.lookbacks)
 
     initial = random.choice(starting_pairs)
     return (real_nicks, self.generateQuote(lookbacks, initial))
