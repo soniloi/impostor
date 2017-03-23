@@ -194,7 +194,11 @@ class Margen:
 
       # Catch any Nones or empties
       if real_nick and real_nick in self.users:
-        self.users[real_nick].quotes_requested += 1
+
+        # Only increment this if the user was directly requested
+        if nick_tuple[0] == NickType.NONRANDOM:
+          self.users[real_nick].quotes_requested += 1
+
         real_nicks.add(real_nick)
 
     return list(real_nicks)
