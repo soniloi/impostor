@@ -12,14 +12,21 @@ class NickType:
   RANDOM = 1
 
 
+class User:
+
+  def __init__(self, starters, lookbacks):
+
+    self.starters = starters # List of all starting tuples from this user
+    self.lookbacks = lookbacks # Map of this user's tuples to follows
+
+
 class Margen:
 
   SOURCEFILE_EXTLEN = len(Config.SOURCEFILE_EXT) # Length of the source file extension
 
   def __init__(self, source_dir):
 
-    self.userlookbacks = {} # Map of each nick to their own markov map
-    self.starters = {} # Map of each nick to a list of all tuples they use to start lines
+    self.users = {} # Map of nick to User objects
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
 
@@ -43,8 +50,7 @@ class Margen:
 
     # Only add nick to sources if any material actually found in file
     if lookbackmap:
-      self.starters[nick] = starters
-      self.userlookbacks[nick] = lookbackmap
+      self.users[nick] = User(starters, lookbackmap)
 
 
   def processSourceFile(self, filepath, nick, starters, lookbackmap):
@@ -120,21 +126,21 @@ class Margen:
 
 
   def empty(self):
-    return not self.starters
+    return not self.users
 
 
   def getUserCount(self):
-    return len(self.starters)
+    return len(self.users)
 
 
   # Return the number of productions a user has, or 0 if the user does not exist
   def getUserProductionCount(self, nick):
 
-    if not nick in self.userlookbacks:
+    if not nick in self.users:
       return 0
 
     production_count = 0
-    for (_, production_list) in self.userlookbacks[nick].iteritems():
+    for (_, production_list) in self.users[nick].lookbacks.iteritems():
       production_count += len(production_list)
 
     return production_count
@@ -145,8 +151,8 @@ class Margen:
   def getRandomNick(self, excludes, min_starters=0):
 
     possibles = []
-    for (nick, starters) in self.starters.iteritems():
-      if not nick in excludes and len(starters) > min_starters:
+    for (nick, user) in self.users.iteritems():
+      if not nick in excludes and len(user.starters) > min_starters:
         possibles.append(nick)
 
     if possibles:
@@ -171,7 +177,7 @@ class Margen:
         real_nick = self.getRandomNick(real_nicks, random_min_starters)
 
       # Catch any Nones or empties
-      if real_nick and real_nick in self.starters:
+      if real_nick and real_nick in self.users:
         real_nicks.add(real_nick)
 
     return list(real_nicks)
@@ -224,8 +230,8 @@ class Margen:
       return ([], "")
 
     first_nick = real_nicks[0]
-    starting_pairs = self.starters[first_nick]
-    lookbacks = self.userlookbacks[first_nick]
+    starting_pairs = self.users[first_nick].starters
+    lookbacks = self.users[first_nick].lookbacks
 
     # If we have more than one nick, we will be constructing a new lookback map
     #  and starter list, so we will want copies
@@ -234,8 +240,8 @@ class Margen:
       lookbacks = self.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      starting_pairs += self.starters[other_nick]
-      self.mergeIntoDictionary(lookbacks, self.userlookbacks[other_nick])
+      starting_pairs += self.users[other_nick].starters
+      self.mergeIntoDictionary(lookbacks, self.users[other_nick].lookbacks)
 
     initial = random.choice(starting_pairs)
     return (real_nicks, self.generateQuote(lookbacks, initial))
