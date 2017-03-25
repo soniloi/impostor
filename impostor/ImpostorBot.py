@@ -109,7 +109,8 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_author = None
-    self.current_informations = None
+    self.current_quotes = None
+    self.current_nick_characters = None
     self.future_hints = None
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
@@ -324,19 +325,21 @@ class ImpostorBot(irc.IRCClient):
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
 
-    if self.current_informations:
-      output_message = ""
-      for current_information in self.current_informations:
-        information_type = current_information[0]
-        information = current_information[1]
-        if information_type == HintType.NICK_CHARACTER:
-          output_message += "The mystery author's name contains the character [" + information + "]. "
-        elif information_type == HintType.ADDITIONAL_QUOTE:
-          output_message += "The mystery author says: [" + information + "]. "
+    output_message = ""
+
+    if self.current_quotes:
+
+      for quote in self.current_quotes:
+        output_message += "The mystery author says: [" + quote + "]. "
+
+      if self.current_nick_characters:
+        for character in self.current_nick_characters:
+          output_message += "The mystery author's name contains the character [" + character + "]. "
+
       return [output_message]
 
-    output_message = ""
-    self.current_informations = []
+    self.current_quotes = []
+    self.current_nick_characters = []
 
     if not output_message:
       nick_tuple = (Margen.NickType.RANDOM, "")
@@ -344,9 +347,8 @@ class ImpostorBot(irc.IRCClient):
 
       if output_nicks:
         self.current_author = output_nicks[0]
+        self.current_quotes.append(output_quote)
         self.setHints()
-        initial_information = (HintType.ADDITIONAL_QUOTE, output_quote)
-        self.current_informations.append(initial_information)
         output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
 
     return [output_message]
@@ -383,7 +385,7 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = ""
 
-    if not self.current_informations:
+    if not self.current_quotes:
       output_message = "There is currently no unsolved mystery. "
 
     else:
@@ -401,7 +403,7 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = "There is currently no unsolved mystery. "
 
-    if self.current_informations:
+    if self.current_quotes:
 
       if not self.future_hints:
         output_message = "I have no further hints to give. "
@@ -411,11 +413,11 @@ class ImpostorBot(irc.IRCClient):
         (hint_type, hint) = self.future_hints[hint_index]
         del self.future_hints[hint_index]
         if hint_type == HintType.NICK_CHARACTER:
+          self.current_nick_characters.append(hint)
           output_message = "The mystery author's name contains the character [" + hint + "]"
         elif hint_type == HintType.ADDITIONAL_QUOTE:
+          self.current_quotes.append(hint)
           output_message = "The mystery author also says: [" + hint + "]"
-        new_information = (hint_type, hint)
-        self.current_informations.append(new_information)
 
     return [output_message]
 
@@ -432,7 +434,8 @@ class ImpostorBot(irc.IRCClient):
 
   def endMystery(self):
     self.current_author = None
-    self.current_informations = None
+    self.current_quotes = None
+    self.current_nick_characters = None
     self.future_hints = None
 
 
