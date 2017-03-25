@@ -5,7 +5,6 @@ META_HELP = ['?', 'help', 'impostor']
 
 META_STATS = 'stats'
 
-MYSTERY_NAME = '???'
 MYSTERY_START = 'mystery'
 MYSTERY_GUESS = 'guess'
 MYSTERY_HINT = 'hint'
