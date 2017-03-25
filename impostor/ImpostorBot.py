@@ -329,12 +329,15 @@ class ImpostorBot(irc.IRCClient):
 
     if self.current_quotes:
 
-      for quote in self.current_quotes:
-        output_message += "The mystery author says: [" + quote + "]. "
+      output_message += "The mystery author says: [" + self.current_quotes[0] + "]"
+      for quote in self.current_quotes[1:]:
+        output_message += " and [" + quote + "]"
+      output_message += ". "
 
       if self.current_nick_characters:
-        for character in self.current_nick_characters:
-          output_message += "The mystery author's name contains the character [" + character + "]. "
+        output_message += "Their nick contains the character(s) ["
+        output_message += ",".join(self.current_nick_characters)
+        output_message += "]. "
 
       return [output_message]
 
@@ -349,7 +352,7 @@ class ImpostorBot(irc.IRCClient):
         self.current_author = output_nicks[0]
         self.current_quotes.append(output_quote)
         self.setHints()
-        output_message = ImpostorBot.MYSTERY_NAME_FULL + output_quote
+        output_message += "The mystery author says: [" + output_quote + "]"
 
     return [output_message]
 
