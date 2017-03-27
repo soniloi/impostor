@@ -128,6 +128,8 @@ class Mystery:
 
     return hint_message
 
+  def guess(self, guess):
+    return guess == self.author
 
 class MessageLogger:
   """
@@ -423,11 +425,15 @@ class ImpostorBot(irc.IRCClient):
       output_message = "There is currently no unsolved mystery. "
 
     else:
+
       # FIXME: what if they guess more than two? discard silently?
       if len(tokens) == 2:
+
         guess = tokens[1]
-        if guess == self.current_mystery.author:
-          output_message = "The mystery author was: " + self.current_mystery.author + ". Congratulations, " + user + "! "
+        success = self.current_mystery.guess(guess)
+
+        if success:
+          output_message = "The mystery author was: " + guess + ". Congratulations, " + user + "! "
           self.current_mystery = None
 
     return [output_message]
