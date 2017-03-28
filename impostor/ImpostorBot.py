@@ -391,10 +391,10 @@ class ImpostorBot(irc.IRCClient):
   @staticmethod
   def getHintCount(len_nick):
 
-    if len_nick <= Config.MYSTERY_HINTS_MAX:
+    if len_nick <= (Config.MYSTERY_CHARACTER_HINTS_MAX + 1):
       return 1
 
-    return Config.MYSTERY_HINTS_MAX
+    return Config.MYSTERY_CHARACTER_HINTS_MAX
 
   def makeHints(self, author, first_hint_len):
 
@@ -408,7 +408,7 @@ class ImpostorBot(irc.IRCClient):
       hints.append(hint)
 
     # Create another quote by the mystery author as an additional hint
-    if first_hint_len <= Config.MYSTERY_WORDS_MAX_FOR_SECOND :
+    if first_hint_len <= Config.MYSTERY_WORDS_MAX_FOR_SECOND:
       nick_tuple = ImpostorBot.makeNickTuple(author)
       (_, additional_quote) = self.generator.generate([nick_tuple])
       if additional_quote:
