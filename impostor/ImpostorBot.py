@@ -83,6 +83,10 @@ BOT_DESC_ADDITIONAL = "Type " \
   + META_STATS_USER + " for statistics on a specific user. See " \
   + REPOSITORY + " for (slightly) more information. "
 
+NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
+MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
+MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s. Congratulations, %s! "
+
 
 class Mystery:
 
@@ -429,7 +433,7 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if not self.current_mystery:
-      output_message = "There is currently no unsolved mystery. "
+      output_message = NO_MYSTERY
 
     else:
 
@@ -440,7 +444,7 @@ class ImpostorBot(irc.IRCClient):
         success = self.current_mystery.guess(guess)
 
         if success:
-          output_message = "The mystery author was: " + guess + ". Congratulations, " + user + "! "
+          output_message = MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
     return [output_message]
@@ -448,7 +452,7 @@ class ImpostorBot(irc.IRCClient):
   # Give hint about mystery by printing a random character from the author's nick
   def hintMystery(self):
 
-    output_message = "There is currently no unsolved mystery. "
+    output_message = NO_MYSTERY
 
     if self.current_mystery:
       output_message = self.current_mystery.getHint()
@@ -458,10 +462,10 @@ class ImpostorBot(irc.IRCClient):
   # End a mystery sequence, revealing the author; return response string
   def solveMystery(self):
 
-    output_message = "There is currently no unsolved mystery. "
+    output_message = NO_MYSTERY
 
     if self.current_mystery:
-      output_message = "The mystery author was: " + self.current_mystery.author + ". No-one guessed correctly. "
+      output_message = MYSTERY_SOLVE_NO_WINNER % self.current_mystery.author
       self.current_mystery = None
 
     return [output_message]
