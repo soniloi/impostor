@@ -17,10 +17,12 @@ from twisted.python import log
 # system imports
 import time, sys
 
+
 class Style:
   CLEAR = "\x0f"
   BOLD = "\x02"
   COLOUR = "\x03"
+
 
 class Colour:
   WHITE = "0"
@@ -40,52 +42,10 @@ class Colour:
   GREY = "14"
   LIGHT_GREY = "15"
 
+
 class HintType:
   NICK_CHARACTER = 0
   ADDITIONAL_QUOTE = 1
-
-REPOSITORY = 'https://github.com/soniloi/impostor'
-
-GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
-STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
-MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
-
-BOT_NICK = Style.BOLD + Config.BOT_NICK + Style.CLEAR
-GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
-GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
-GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
-GENERATE_ALL = GENERATE_TRIGGER + Config.ALL_NICK + Style.CLEAR
-
-META_STATS = STATS_TRIGGER + Config.META_STATS + Style.CLEAR
-META_STATS_USER = STATS_TRIGGER + Config.META_STATS + " <nick>" + Style.CLEAR
-
-MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
-MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
-MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
-MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
-
-BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
-  + GENERATE_SINGLE + " to see a line generated for a single user, " \
-  + GENERATE_RANDOM + " for a line generated for a random user, or " \
-  + GENERATE_MERGED + " to see a line generated from two users merged. "
-if Config.ALL_USED:
-  BOT_DESC_BASIC += "You may also type '" \
-  + GENERATE_ALL + " to see a line generated from all channel users combined. "
-
-BOT_DESC_MYSTERY = "Type " \
-  + MYSTERY_START + " to generate a mystery line. Then type " \
-  + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
-  + MYSTERY_HINT + " for a hint, or " \
-  + MYSTERY_SOLVE + " to see the solution. "
-
-BOT_DESC_ADDITIONAL = "Type " \
-  + META_STATS + " for basic channel statistics, or " \
-  + META_STATS_USER + " for statistics on a specific user. See " \
-  + REPOSITORY + " for (slightly) more information. "
-
-NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
-MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
-MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s. Congratulations, %s! "
 
 
 class Mystery:
@@ -135,6 +95,7 @@ class Mystery:
   def guess(self, guess):
     return guess == self.author
 
+
 class MessageLogger:
   """
   An independent logger class (because separation of application
@@ -155,6 +116,47 @@ class MessageLogger:
 
 class ImpostorBot(irc.IRCClient):
   
+  GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
+  STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
+  MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
+
+  BOT_NICK = Style.BOLD + Config.BOT_NICK + Style.CLEAR
+  GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
+  GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
+  GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
+  GENERATE_ALL = GENERATE_TRIGGER + Config.ALL_NICK + Style.CLEAR
+
+  META_STATS = STATS_TRIGGER + Config.META_STATS + Style.CLEAR
+  META_STATS_USER = STATS_TRIGGER + Config.META_STATS + " <nick>" + Style.CLEAR
+
+  MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
+  MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
+  MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
+  MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
+
+  BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
+    + GENERATE_SINGLE + " to see a line generated for a single user, " \
+    + GENERATE_RANDOM + " for a line generated for a random user, or " \
+    + GENERATE_MERGED + " to see a line generated from two users merged. "
+  if Config.ALL_USED:
+    BOT_DESC_BASIC += "You may also type '" \
+    + GENERATE_ALL + " to see a line generated from all channel users combined. "
+
+  BOT_DESC_MYSTERY = "Type " \
+    + MYSTERY_START + " to generate a mystery line. Then type " \
+    + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
+    + MYSTERY_HINT + " for a hint, or " \
+    + MYSTERY_SOLVE + " to see the solution. "
+
+  BOT_DESC_ADDITIONAL = "Type " \
+    + META_STATS + " for basic channel statistics, or " \
+    + META_STATS_USER + " for statistics on a specific user. See " \
+    + Config.REPOSITORY + " for (slightly) more information. "
+
+  NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
+  MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
+  MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s. Congratulations, %s! "
+
   nickname = Config.BOT_NICK
 
   def __init__(self, source_dir):
@@ -232,7 +234,7 @@ class ImpostorBot(irc.IRCClient):
     return nickname + '^'
 
   def makeHelp(self):
-    return [BOT_DESC_BASIC, BOT_DESC_MYSTERY + BOT_DESC_ADDITIONAL]
+    return [ImpostorBot.BOT_DESC_BASIC, ImpostorBot.BOT_DESC_MYSTERY + ImpostorBot.BOT_DESC_ADDITIONAL]
 
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
@@ -433,7 +435,7 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if not self.current_mystery:
-      output_message = NO_MYSTERY
+      output_message = ImpostorBot.NO_MYSTERY
 
     else:
 
@@ -444,7 +446,7 @@ class ImpostorBot(irc.IRCClient):
         success = self.current_mystery.guess(guess)
 
         if success:
-          output_message = MYSTERY_SOLVE_WITH_WINNER % (guess, user)
+          output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
     return [output_message]
@@ -452,7 +454,7 @@ class ImpostorBot(irc.IRCClient):
   # Give hint about mystery by printing a random character from the author's nick
   def hintMystery(self):
 
-    output_message = NO_MYSTERY
+    output_message = ImpostorBot.NO_MYSTERY
 
     if self.current_mystery:
       output_message = self.current_mystery.getHint()
@@ -462,10 +464,10 @@ class ImpostorBot(irc.IRCClient):
   # End a mystery sequence, revealing the author; return response string
   def solveMystery(self):
 
-    output_message = NO_MYSTERY
+    output_message = ImpostorBot.NO_MYSTERY
 
     if self.current_mystery:
-      output_message = MYSTERY_SOLVE_NO_WINNER % self.current_mystery.author
+      output_message = ImpostorBot.MYSTERY_SOLVE_NO_WINNER % self.current_mystery.author
       self.current_mystery = None
 
     return [output_message]

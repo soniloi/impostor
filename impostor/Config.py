@@ -34,3 +34,5 @@ OUTPUT_NICKS_OPEN = '[' # Character(s) before a nick(s)
 OUTPUT_NICKS_SEP = ':' # Character(s) between output nicks
 OUTPUT_NICKS_CLOSE = '] ' # Character(s) after nick(s)
 
+REPOSITORY = 'https://github.com/soniloi/impostor'
+
