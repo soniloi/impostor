@@ -381,7 +381,7 @@ class ImpostorBot(irc.IRCClient):
 
       if output_nicks:
         author = output_nicks[0]
-        hints = self.makeHints(author)
+        hints = self.makeHints(author, len(output_quote.split()))
         self.current_mystery = Mystery(author, output_quote, hints)
         output_message += self.current_mystery.describe()
 
@@ -396,7 +396,7 @@ class ImpostorBot(irc.IRCClient):
 
     return Config.MYSTERY_HINTS_MAX
 
-  def makeHints(self, author):
+  def makeHints(self, author, first_hint_len):
 
     hints = []
 
@@ -408,11 +408,12 @@ class ImpostorBot(irc.IRCClient):
       hints.append(hint)
 
     # Create another quote by the mystery author as an additional hint
-    nick_tuple = ImpostorBot.makeNickTuple(author)
-    (_, additional_quote) = self.generator.generate([nick_tuple])
-    if additional_quote:
-      additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
-      hints.append(additional_quote_hint)
+    if first_hint_len <= Config.MYSTERY_WORDS_MAX_FOR_SECOND :
+      nick_tuple = ImpostorBot.makeNickTuple(author)
+      (_, additional_quote) = self.generator.generate([nick_tuple])
+      if additional_quote:
+        additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
+        hints.append(additional_quote_hint)
 
     return hints
 

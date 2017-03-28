@@ -11,6 +11,7 @@ MYSTERY_HINT = 'hint'
 MYSTERY_SOLVE = 'solve'
 MYSTERY_MIN_STARTERS = 1000 # Minimum number of starter tuples a user must have before the mystery generator will generate a quote from them
 MYSTERY_HINTS_MAX = 3
+MYSTERY_WORDS_MAX_FOR_SECOND = 5 # A second quote hint will only be given if the first consisted of this number of words or fewer 
 
 LOOKBACK_LEN = 2 # Number of predecessors to a successor
 SOURCEFILE_EXT = ".src" # Source material file extension
