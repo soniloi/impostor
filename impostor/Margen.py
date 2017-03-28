@@ -70,7 +70,8 @@ class Margen:
 
     for line in infile:
       words = line.split()
-      self.processLineWords(words, nick, starters, lookbackmap)
+      if len(words) >= (Config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
+        self.processLineWords(words, nick, starters, lookbackmap)
 
     infile.close()
 

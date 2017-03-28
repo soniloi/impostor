@@ -341,7 +341,13 @@ class ImpostorBot(irc.IRCClient):
     additionals = "[Unknown or None]"
     additionals_raw = self.generator.getAdditionalSourceChannels()
     if additionals_raw:
-      additionals = ", ".join(additionals_raw[:-1]) + ", and " + additionals_raw[-1]
+      if len(additionals_raw) == 1:
+        additionals = additionals_raw[0]
+      else:
+        additionals = ", ".join(additionals_raw[:-1])
+        if len(additionals_raw) > 2:
+          additionals += ","
+        additionals += " and " + additionals_raw[-1]
 
     return "I have material from " + count \
       + " users. My source material was generated on " + date \
