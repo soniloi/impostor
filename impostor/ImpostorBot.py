@@ -116,11 +116,13 @@ class MessageLogger:
 
 class ImpostorBot(irc.IRCClient):
   
+  BOLD_DEFAULT = Style.BOLD + "%s" + Style.CLEAR
+
   GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
   STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
   MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
 
-  BOT_NICK = Style.BOLD + Config.BOT_NICK + Style.CLEAR
+  BOT_NICK = BOLD_DEFAULT % Config.BOT_NICK
   GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
   GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
   GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
@@ -324,7 +326,7 @@ class ImpostorBot(irc.IRCClient):
       output_message = self.makeChannelStats()
 
     else:
-      output_message = self.makeUserStats(nicks)
+      output_message = self.makeUserStats(nicks[0])
 
     return [output_message]
 
@@ -360,24 +362,26 @@ class ImpostorBot(irc.IRCClient):
       + ". Its primary source channel was " + primary \
       + ", and additional material was drawn from " + additionals + ". "
 
-  def makeUserStats(self, nicks):
+  def makeUserStats(self, nick):
 
     output_message = ""
+    stats = self.generator.getUserStatistics(nick)
+    nick_formatted = ImpostorBot.BOLD_DEFAULT % nick
 
-    for nick in nicks:
+    if not stats:
 
-      stats = self.generator.getUserStatistics(nick)
+      output_message += "I know of no such user " + nick_formatted + ". "
 
-      if not stats:
-        output_message += "I know of no such user " + nick + ". "
+    else:
 
-      else:
-        (production_count, quotes_requested, aliases) = stats
-        output_message += "The user " + nick
-        if aliases:
-          output_message += ImpostorBot.formatAliases(aliases)
-        output_message += " has " + str(production_count) + " productions. "
-        output_message += str(quotes_requested) + " quote(s) have been requested of them. "
+      (production_count, quotes_requested, aliases) = stats
+      output_message += "The user " + nick_formatted
+
+      if aliases:
+        output_message += ImpostorBot.formatAliases(aliases)
+
+      output_message += " has " + str(production_count) + " productions. "
+      output_message += str(quotes_requested) + " quote(s) have been requested of them. "
 
     return output_message
 
@@ -393,19 +397,23 @@ class ImpostorBot(irc.IRCClient):
 
     result = " (AKA "
     sample_aliases = random.sample(aliases, display_count)
+
     if display_count == 1:
       result += sample_aliases[0]
+
     elif display_count == 2:
       form = "%s and %s"
       if additional_alias_count > 0:
         form = "%s, %s,"
       result += form % tuple(sample_aliases[:2])
+
     else:
       result += ", ".join(sample_aliases[:-1])
       form = ", and %s"
       if additional_alias_count > 0:
         form = ", %s,"
       result += form % sample_aliases[-1]
+
     if additional_alias_count > 0:
       form = " and %d other nick"
       if additional_alias_count >= 2:
