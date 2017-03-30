@@ -387,10 +387,32 @@ class ImpostorBot(irc.IRCClient):
 
   @staticmethod
   def formatAliases(aliases):
+
     display_count = ImpostorBot.getAliasDisplayCount(len(aliases))
-    sample_aliases = random.sample(aliases, display_count)
     additional_alias_count = len(aliases) - display_count
-    result = " (AKA " + ", ".join(sample_aliases) + " and " + str(additional_alias_count) + " other nicks)"
+
+    result = " (AKA "
+    sample_aliases = random.sample(aliases, display_count)
+    if display_count == 1:
+      result += sample_aliases[0]
+    elif display_count == 2:
+      form = "%s and %s"
+      if additional_alias_count > 0:
+        form = "%s, %s,"
+      result += form % tuple(sample_aliases[:2])
+    else:
+      result += ", ".join(sample_aliases[:-1])
+      form = ", and %s"
+      if additional_alias_count > 0:
+        form = ", %s,"
+      result += form % sample_aliases[-1]
+    if additional_alias_count > 0:
+      form = " and %d other nick"
+      if additional_alias_count >= 2:
+        form += "s"
+      result += form % additional_alias_count
+
+    result += ")"
     return result
 
   # Attempt to start a mystery sequence; return response string
