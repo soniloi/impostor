@@ -22,6 +22,7 @@ META_PRIMARY = "primary"
 META_ADDITIONAL = "additional"
 
 MERGEINFO_FILE_NAME = "merge.lst" # User merge list file inside sources directory
+MERGEINFO_ALIASES_MAX = 3 # Display at most this number of aliases when listing
 
 BOT_NICK = 'impostor' # Default name of the bot in channel
 RANDOM_NICK = 'random' # Word that will trigger a random user to be 'quoted'

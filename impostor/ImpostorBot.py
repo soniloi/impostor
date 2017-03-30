@@ -376,7 +376,9 @@ class ImpostorBot(irc.IRCClient):
       else:
         output_message += "The user " + nick
         if aliases:
-          output_message += ", AKA " + str(aliases) + ","
+          sample_aliases = random.sample(aliases, Config.MERGEINFO_ALIASES_MAX)
+          additional_alias_count = len(aliases) - Config.MERGEINFO_ALIASES_MAX
+          output_message += " (AKA " + ", ".join(sample_aliases) + " and " + str(additional_alias_count) + " other nicks)"
         output_message += " has " + str(production_count) + " productions. "
         output_message += str(quotes_requested) + " quote(s) have been requested of them. "
 
