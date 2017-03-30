@@ -170,31 +170,14 @@ class Margen:
     return len(self.users)
 
 
-  # Return the number of productions a user has, or -1 if the user does not exist
-  def getUserProductionCount(self, nick):
-
-    if not nick in self.users:
-      return -1
-
-    return self.users[nick].countProductions()
-
-
-  # Return the number of times a quote has been requested from a user, or -1 if the user does not exist
-  def getUserQuotesRequestedCount(self, nick):
-
-    if not nick in self.users:
-      return -1
-
-    return self.users[nick].quotes_requested
-
-
-  # Return a list of other nicks a user is known by, or None if the user does not exist
-  def getUserAliases(self, nick):
+  # Return a tuple consisting of a user's statistics, or None if the user does not exist
+  def getUserStatistics(self, nick):
 
     if not nick in self.users:
       return None
 
-    return self.users[nick].aliases
+    user = self.users[nick]
+    return (user.countProductions(), user.quotes_requested, user.aliases)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,

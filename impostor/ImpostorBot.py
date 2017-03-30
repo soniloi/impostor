@@ -366,14 +366,13 @@ class ImpostorBot(irc.IRCClient):
 
     for nick in nicks:
 
-      production_count = self.generator.getUserProductionCount(nick)
-      quotes_requested = self.generator.getUserQuotesRequestedCount(nick)
-      aliases = self.generator.getUserAliases(nick)
+      stats = self.generator.getUserStatistics(nick)
 
-      if production_count < 1:
+      if not stats:
         output_message += "I know of no such user " + nick + ". "
 
       else:
+        (production_count, quotes_requested, aliases) = stats
         output_message += "The user " + nick
         if aliases:
           sample_aliases = random.sample(aliases, Config.MERGEINFO_ALIASES_MAX)
