@@ -21,6 +21,8 @@ META_DATE = "date"
 META_PRIMARY = "primary"
 META_ADDITIONAL = "additional"
 
+MERGEINFO_FILE_NAME = "merge.lst" # User merge list file inside sources directory
+
 BOT_NICK = 'impostor' # Default name of the bot in channel
 RANDOM_NICK = 'random' # Word that will trigger a random user to be 'quoted'
 ALL_USED = False # Indicates whether there is a nick that will be a composite of all in channel

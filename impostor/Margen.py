@@ -19,6 +19,7 @@ class User:
     self.starters = starters # List of all starting tuples from this user
     self.lookbacks = lookbacks # Map of this user's tuples to follows
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
+    self.aliases = []
 
 
   def countProductions(self):
@@ -40,6 +41,7 @@ class Margen:
     self.users = {} # Map of nick to User objects
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
+    self.buildMergeInfo(source_dir)
 
 
   def buildSources(self, source_dir):
@@ -118,6 +120,28 @@ class Margen:
     meta_file.close()
 
 
+  def buildMergeInfo(self, source_dir):
+
+    mergeinfo_filename = source_dir + Config.MERGEINFO_FILE_NAME
+    if not os.path.isfile(mergeinfo_filename):
+      return
+
+    mergeinfo_file = open(mergeinfo_filename, 'r')
+
+    for mergeinfo_line in mergeinfo_file:
+
+      mergeinfo_words = mergeinfo_line.strip().split()
+      if len(mergeinfo_words) < 2:
+        continue
+
+      primary = mergeinfo_words[0]
+      if not primary in self.users:
+        continue
+
+      user = self.users[primary]
+      user.aliases = mergeinfo_words[1:]
+
+
   @staticmethod
   def getFirstOrNone(lis):
     if not lis:
@@ -161,6 +185,15 @@ class Margen:
       return -1
 
     return self.users[nick].quotes_requested
+
+
+  # Return a list of other nicks a user is known by, or None if the user does not exist
+  def getUserAliases(self, nick):
+
+    if not nick in self.users:
+      return None
+
+    return self.users[nick].aliases
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
