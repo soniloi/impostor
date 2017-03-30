@@ -39,6 +39,7 @@ class Margen:
   def __init__(self, source_dir):
 
     self.users = {} # Map of nick to User objects
+    self.meta = {}
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
     self.buildMergeInfo(source_dir)
@@ -99,8 +100,6 @@ class Margen:
 
   def buildMeta(self, source_dir):
 
-    self.meta = {}
-
     meta_filename = source_dir + Config.META_FILE_NAME
     if not os.path.isfile(meta_filename):
       return
@@ -140,6 +139,8 @@ class Margen:
 
       user = self.users[primary]
       user.aliases = mergeinfo_words[1:]
+
+    mergeinfo_file.close()
 
 
   @staticmethod
