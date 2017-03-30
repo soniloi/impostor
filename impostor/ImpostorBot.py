@@ -375,13 +375,23 @@ class ImpostorBot(irc.IRCClient):
         (production_count, quotes_requested, aliases) = stats
         output_message += "The user " + nick
         if aliases:
-          sample_aliases = random.sample(aliases, Config.MERGEINFO_ALIASES_MAX)
-          additional_alias_count = len(aliases) - Config.MERGEINFO_ALIASES_MAX
-          output_message += " (AKA " + ", ".join(sample_aliases) + " and " + str(additional_alias_count) + " other nicks)"
+          output_message += ImpostorBot.formatAliases(aliases)
         output_message += " has " + str(production_count) + " productions. "
         output_message += str(quotes_requested) + " quote(s) have been requested of them. "
 
     return output_message
+
+  @staticmethod
+  def getAliasDisplayCount(total_alias_count):
+    return min(total_alias_count, Config.MERGEINFO_ALIASES_MAX)
+
+  @staticmethod
+  def formatAliases(aliases):
+    display_count = ImpostorBot.getAliasDisplayCount(len(aliases))
+    sample_aliases = random.sample(aliases, display_count)
+    additional_alias_count = len(aliases) - display_count
+    result = " (AKA " + ", ".join(sample_aliases) + " and " + str(additional_alias_count) + " other nicks)"
+    return result
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
