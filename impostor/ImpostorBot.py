@@ -332,22 +332,26 @@ class ImpostorBot(irc.IRCClient):
 
   def makeChannelStats(self):
 
-    count = str(self.generator.getUserCount())
+    stats = self.generator.getGenericStatistics()
+
+    if not stats:
+      return
+
+    (count_raw, date_raw, primary_raw, additionals_raw) = stats
+
+    count = str(count_raw)
 
     date = "[Unknown]"
-    date_raw = self.generator.getSourceGeneratedDate()
     if date_raw:
       date = datetime.datetime.fromtimestamp(
       int(date_raw)
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
     primary = "[Unknown]"
-    primary_raw = self.generator.getPrimarySourceChannel()
     if primary_raw:
       primary = primary_raw
 
     additionals = "[Unknown or None]"
-    additionals_raw = self.generator.getAdditionalSourceChannels()
     if additionals_raw:
       if len(additionals_raw) == 1:
         additionals = additionals_raw[0]

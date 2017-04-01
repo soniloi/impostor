@@ -156,24 +156,19 @@ class Margen:
     return lis[0]
 
 
-  def getSourceGeneratedDate(self):
-    return Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
-
-
-  def getPrimarySourceChannel(self):
-    return Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
-
-
-  def getAdditionalSourceChannels(self):
-    return self.meta.get(Config.META_ADDITIONAL)
-
-
   def empty(self):
     return not self.users
 
 
-  def getUserCount(self):
-    return len(self.users)
+  # Return a tuple consisting of generic statistics
+  def getGenericStatistics(self):
+
+    date_generated = Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
+    primary_channel = Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
+    additional_channels = self.meta.get(Config.META_ADDITIONAL)
+    user_count = len(self.users)
+
+    return (user_count, date_generated, primary_channel, additional_channels)
 
 
   # Return a tuple consisting of a user's statistics, or None if the user does not exist
