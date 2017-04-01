@@ -191,9 +191,9 @@ class Margen:
   def getRandomNick(self, excludes, min_starters=0):
 
     possibles = []
-    for (nick, user) in self.users.iteritems():
-      if not nick in excludes and len(user.starters) > min_starters:
-        possibles.append(nick)
+    for user in self.users.values():
+      if not user.nick in excludes and len(user.starters) > min_starters:
+        possibles.append(user.nick)
 
     if possibles:
       return random.choice(possibles)
