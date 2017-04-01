@@ -19,6 +19,8 @@ class User:
     self.nick = nick
     self.starters = starters # List of all starting tuples from this user
     self.lookbacks = lookbacks # Map of this user's tuples to follows
+    self.production_count = self.countProductions() # This is not going to change after initialization
+
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
     self.aliases = []
 
@@ -182,7 +184,7 @@ class Margen:
       return None
 
     user = self.users[nick]
-    return (user.countProductions(), user.quotes_requested, user.aliases)
+    return (user.production_count, user.quotes_requested, user.aliases)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
