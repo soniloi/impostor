@@ -43,11 +43,13 @@ class Margen:
 
     self.users = {} # Map of nick to User objects
     self.meta = {}
+    self.user_count = 0
+    self.biggest_users = {}
 
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
 
-    self.user_count = len(self.users) # Need to record this before aliasing is done
+    self.buildStaticStats() # Need to record these before aliasing is done
 
     self.buildMergeInfo(source_dir)
 
@@ -126,6 +128,16 @@ class Margen:
     meta_file.close()
 
 
+  # Assemble any counts etc. that will not change after startup
+  def buildStaticStats(self):
+
+    self.user_count = len(self.users)
+
+    users_ordered = sorted(self.users.values(), key=lambda x:x.production_count, reverse=True)
+    for user in users_ordered[:3]:
+      self.biggest_users[user.nick] = user.production_count
+
+
   def buildMergeInfo(self, source_dir):
 
     mergeinfo_filename = source_dir + Config.MERGEINFO_FILE_NAME
@@ -174,7 +186,7 @@ class Margen:
     additional_channels = self.meta.get(Config.META_ADDITIONAL)
     user_count = self.user_count
 
-    return (user_count, date_generated, primary_channel, additional_channels)
+    return (user_count, date_generated, primary_channel, additional_channels, self.biggest_users)
 
 
   # Return a tuple consisting of a user's statistics, or None if the user does not exist

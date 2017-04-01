@@ -337,7 +337,7 @@ class ImpostorBot(irc.IRCClient):
     if not stats:
       return
 
-    (count_raw, date_raw, primary_raw, additionals_raw) = stats
+    (count_raw, date_raw, primary_raw, additionals_raw, biggest_users_raw) = stats
 
     count = str(count_raw)
 
@@ -361,10 +361,24 @@ class ImpostorBot(irc.IRCClient):
           additionals += ","
         additionals += " and " + additionals_raw[-1]
 
+    biggest_user_count = str(len(biggest_users_raw))
+    biggest_users = "[Unknown]"
+    biggest_users_formatted = []
+
+    for (nick, production_count) in biggest_users_raw.iteritems():
+      biggest_users_formatted.append(nick + " (" + str(production_count) + " productions)")
+    biggest_users = ", ".join(biggest_users_formatted[:-1])
+
+    if len(biggest_users_formatted) > 2:
+      biggest_users += ","
+    biggest_users += " and " + biggest_users_formatted[-1]
+
     return "I have material from " + count \
       + " users. My source material was generated on " + date \
       + ". Its primary source channel was " + primary \
-      + ", and additional material was drawn from " + additionals + ". "
+      + ", and additional material was drawn from " + additionals \
+      + ". The " + biggest_user_count + " users with the most source material are: " \
+      + biggest_users + ". "
 
   def makeUserStats(self, nick):
 
