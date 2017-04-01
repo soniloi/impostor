@@ -44,7 +44,7 @@ class Margen:
     self.users = {} # Map of nick to User objects
     self.meta = {}
     self.user_count = 0
-    self.biggest_users = {}
+    self.biggest_users = []
 
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
@@ -134,8 +134,9 @@ class Margen:
     self.user_count = len(self.users)
 
     users_ordered = sorted(self.users.values(), key=lambda x:x.production_count, reverse=True)
-    for user in users_ordered[:3]:
-      self.biggest_users[user.nick] = user.production_count
+    for user in users_ordered[:Config.BIGGEST_USERS_COUNT]:
+      big_user = (user.nick, user.production_count)
+      self.biggest_users.append(big_user)
 
 
   def buildMergeInfo(self, source_dir):

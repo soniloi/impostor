@@ -365,7 +365,8 @@ class ImpostorBot(irc.IRCClient):
     biggest_users = "[Unknown]"
     biggest_users_formatted = []
 
-    for (nick, production_count) in biggest_users_raw.iteritems():
+    for big_user in biggest_users_raw:
+      (nick, production_count) = big_user
       biggest_users_formatted.append(nick + " (" + str(production_count) + " productions)")
     biggest_users = ", ".join(biggest_users_formatted[:-1])
 
