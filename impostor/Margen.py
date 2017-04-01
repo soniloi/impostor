@@ -14,8 +14,9 @@ class NickType:
 
 class User:
 
-  def __init__(self, starters, lookbacks):
+  def __init__(self, nick, starters, lookbacks):
 
+    self.nick = nick
     self.starters = starters # List of all starting tuples from this user
     self.lookbacks = lookbacks # Map of this user's tuples to follows
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
@@ -64,7 +65,7 @@ class Margen:
 
     # Only add nick to sources if any material actually found in file
     if lookbackmap:
-      self.users[nick] = User(starters, lookbackmap)
+      self.users[nick] = User(nick, starters, lookbackmap)
 
 
   def processSourceFile(self, filepath, nick, starters, lookbackmap):
@@ -137,8 +138,13 @@ class Margen:
       if not primary in self.users:
         continue
 
+      secondaries = mergeinfo_words[1:]
+
       user = self.users[primary]
-      user.aliases = mergeinfo_words[1:]
+      user.aliases = secondaries
+
+      for alias in secondaries:
+        self.users[alias] = user
 
     mergeinfo_file.close()
 
@@ -204,19 +210,20 @@ class Margen:
 
     for nick_tuple in nick_tuples:
 
-      real_nick = nick_tuple[1]
+      real_alias = nick_tuple[1]
 
       # Expand any randoms to real nicks
       if nick_tuple[0] == NickType.RANDOM:
-        real_nick = self.getRandomNick(real_nicks, random_min_starters)
+        real_alias = self.getRandomNick(real_nicks, random_min_starters)
 
       # Catch any Nones or empties
-      if real_nick and real_nick in self.users:
+      if real_alias and real_alias in self.users:
 
         # Only increment this if the user was directly requested
         if nick_tuple[0] == NickType.NONRANDOM:
-          self.users[real_nick].quotes_requested += 1
+          self.users[real_alias].quotes_requested += 1
 
+        real_nick = self.users[real_alias].nick
         real_nicks.add(real_nick)
 
     return list(real_nicks)
