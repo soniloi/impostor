@@ -41,8 +41,12 @@ class Margen:
 
     self.users = {} # Map of nick to User objects
     self.meta = {}
+
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
+
+    self.user_count = len(self.users) # Need to record this before aliasing is done
+
     self.buildMergeInfo(source_dir)
 
 
@@ -166,7 +170,7 @@ class Margen:
     date_generated = Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
     primary_channel = Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
     additional_channels = self.meta.get(Config.META_ADDITIONAL)
-    user_count = len(self.users)
+    user_count = self.user_count
 
     return (user_count, date_generated, primary_channel, additional_channels)
 
