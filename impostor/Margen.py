@@ -44,7 +44,7 @@ class Margen:
     self.users = {} # Map of nick to User objects
     self.meta = {}
     self.user_count = 0
-    self.biggest_users = []
+    self.biggest_users = None
 
     self.buildSources(source_dir)
     self.buildMeta(source_dir)
@@ -134,9 +134,11 @@ class Margen:
     self.user_count = len(self.users)
 
     users_ordered = sorted(self.users.values(), key=lambda x:x.production_count, reverse=True)
+    biggest_users = []
     for user in users_ordered[:Config.BIGGEST_USERS_COUNT]:
       big_user = (user.nick, user.production_count)
-      self.biggest_users.append(big_user)
+      biggest_users.append(big_user)
+    self.biggest_users = tuple(biggest_users)
 
 
   def buildMergeInfo(self, source_dir):
@@ -184,7 +186,7 @@ class Margen:
 
     date_generated = Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
     primary_channel = Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
-    additional_channels = self.meta.get(Config.META_ADDITIONAL)
+    additional_channels = tuple(self.meta.get(Config.META_ADDITIONAL))
     user_count = self.user_count
 
     return (user_count, date_generated, primary_channel, additional_channels, self.biggest_users)
@@ -197,7 +199,8 @@ class Margen:
       return None
 
     user = self.users[nick]
-    return (user.production_count, user.quotes_requested, user.aliases)
+    user_aliases = tuple(user.aliases)
+    return (user.production_count, user.quotes_requested, user_aliases)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
