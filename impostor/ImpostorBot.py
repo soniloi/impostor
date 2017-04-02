@@ -320,46 +320,82 @@ class ImpostorBot(irc.IRCClient):
 
   def makeStats(self, nicks):
 
-    output_message = ""
+    output_messages = []
 
     if not nicks:
-      output_message = self.makeGenericStats()
+      output_messages = self.makeGenericStats()
 
     else:
-      output_message = self.makeUserStats(nicks[0])
+      output_messages.append(self.makeUserStats(nicks[0]))
 
-    return [output_message]
+    return output_messages
 
   def makeGenericStats(self):
 
     stats = self.generator.getGenericStatistics()
 
     if not stats:
-      return
+      return None
 
     (count_raw, date_raw, primary_raw, additionals_raw, biggest_users_raw, most_quoted_raw) = stats
 
-    count = str(count_raw)
+    count = ImpostorBot.formatUserCountInfo(count_raw)
+    date = ImpostorBot.formatDateInfo(date_raw)
+    (primary, additionals) = ImpostorBot.formatChannelInfo(primary_raw, additionals_raw)
+    (biggest_user_count, biggest_users) = ImpostorBot.formatBiggestUsersStats(biggest_users_raw)
+    most_quoted = ImpostorBot.formatMostQuotedStats(most_quoted_raw)
+
+    count_str =  "I have material from %s users. " % count
+    date_str = "My source material was generated on %s. " % date
+    channels_str = "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
+    biggest_users_str = "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
+    most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
+
+    return [count_str + date_str + channels_str, biggest_users_str + most_quoted_str]
+
+  @staticmethod
+  def formatUserCountInfo(count_raw):
+    return str(count_raw)
+
+  @staticmethod
+  def formatDateInfo(date_raw):
 
     date = "[Unknown]"
+
     if date_raw:
       date = datetime.datetime.fromtimestamp(
       int(date_raw)
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
+    return date
+
+  @staticmethod
+  def formatChannelInfo(primary_raw, additionals_raw):
+
     primary = "[Unknown]"
+
     if primary_raw:
       primary = primary_raw
 
     additionals = "[Unknown or None]"
+
     if additionals_raw:
+
       if len(additionals_raw) == 1:
         additionals = additionals_raw[0]
+
       else:
         additionals = ", ".join(additionals_raw[:-1])
+
         if len(additionals_raw) > 2:
           additionals += ","
+
         additionals += " and " + additionals_raw[-1]
+
+    return (primary, additionals)
+
+  @staticmethod
+  def formatBiggestUsersStats(biggest_users_raw):
 
     biggest_user_count = str(len(biggest_users_raw))
     biggest_users = "[Unknown]"
@@ -374,31 +410,37 @@ class ImpostorBot(irc.IRCClient):
       biggest_users += ","
     biggest_users += " and " + biggest_users_formatted[-1]
 
+    return (biggest_user_count, biggest_users)
+
+  @staticmethod
+  def formatMostQuotedStats(most_quoted_raw):
+
     most_quoted = ""
     if most_quoted_raw:
+
       (nick, quote_count) = most_quoted_raw[0]
       most_quoted = nick + " (requested " + str(quote_count) + " time(s))"
       remaining_quoted = most_quoted_raw[1:]
+
       if not remaining_quoted:
         most_quoted += ". "
+
       else:
         most_quoted += ", followed by "
         most_quoted_formatted = []
+
         for quoted_user in remaining_quoted:
           (nick, quote_count) = quoted_user
           most_quoted_formatted.append(nick + " (" + str(quote_count) + " time(s))")
+
         most_quoted += ", ".join(most_quoted_formatted[:-1])
+
         if len(remaining_quoted) > 2:
           most_quoted += ","
+
         most_quoted += " and " + most_quoted_formatted[-1]
 
-    count_str =  "I have material from %s users. " % count
-    date_str = "My source material was generated on %s. " % date
-    channels_str = "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
-    biggest_users_str = "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
-    most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
-
-    return count_str + date_str + channels_str + biggest_users_str + most_quoted_str
+    return most_quoted
 
   def makeUserStats(self, nick):
 
