@@ -375,22 +375,28 @@ class ImpostorBot(irc.IRCClient):
     primary = "[Unknown]"
 
     if primary_raw:
-      primary = primary_raw
+      primary = ImpostorBot.BOLD_DEFAULT % primary_raw
 
-    additionals = "[Unknown or None]"
+    additionals = ""
+    additionals_formatted = []
 
-    if additionals_raw:
+    if not additionals_raw:
+      additionals_formatted.append(ImpostorBot.BOLD_DEFAULT % "[Unknown or None]")
 
-      if len(additionals_raw) == 1:
-        additionals = additionals_raw[0]
+    else:
+      for additional_raw in additionals_raw:
+        additionals_formatted.append(ImpostorBot.BOLD_DEFAULT % additional_raw)
+
+      if len(additionals_formatted) == 1:
+        additionals += additionals_formatted[0]
 
       else:
-        additionals = ", ".join(additionals_raw[:-1])
+        additionals = ", ".join(additionals_formatted[:-1])
 
-        if len(additionals_raw) > 2:
+        if len(additionals_formatted) > 2:
           additionals += ","
 
-        additionals += " and " + additionals_raw[-1]
+        additionals += " and " + additionals_formatted[-1]
 
     return (primary, additionals)
 
@@ -403,7 +409,8 @@ class ImpostorBot(irc.IRCClient):
 
     for big_user in biggest_users_raw:
       (nick, production_count) = big_user
-      biggest_users_formatted.append(nick + " (" + str(production_count) + " productions)")
+      big_user_formatted = "%s%s%s (%d productions)"  % (Style.BOLD, nick, Style.CLEAR, production_count)
+      biggest_users_formatted.append(big_user_formatted)
     biggest_users = ", ".join(biggest_users_formatted[:-1])
 
     if len(biggest_users_formatted) > 2:
@@ -419,7 +426,7 @@ class ImpostorBot(irc.IRCClient):
     if most_quoted_raw:
 
       (nick, quote_count) = most_quoted_raw[0]
-      most_quoted = nick + " (requested " + str(quote_count) + " time(s))"
+      most_quoted = "%s%s%s (requested %d times(s))" % (Style.BOLD, nick, Style.CLEAR, quote_count)
       remaining_quoted = most_quoted_raw[1:]
 
       if not remaining_quoted:
@@ -431,7 +438,8 @@ class ImpostorBot(irc.IRCClient):
 
         for quoted_user in remaining_quoted:
           (nick, quote_count) = quoted_user
-          most_quoted_formatted.append(nick + " (" + str(quote_count) + " time(s))")
+          quoted_user_formatted = "%s%s%s (%d)" % (Style.BOLD, nick, Style.CLEAR, quote_count)
+          most_quoted_formatted.append(quoted_user_formatted)
 
         most_quoted += ", ".join(most_quoted_formatted[:-1])
 
