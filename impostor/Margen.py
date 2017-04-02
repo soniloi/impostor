@@ -41,16 +41,16 @@ class Margen:
 
   def __init__(self, source_dir):
 
-    self.users = {} # Map of nick to User objects
+    self.usermap = {} # Map of nick to User objects
     self.meta = {}
     self.user_count = 0
     self.biggest_users = None
 
     self.buildSources(source_dir)
+    self.userset = set(self.usermap.values())
+
     self.buildMeta(source_dir)
-
     self.buildStaticStats() # Need to record these before aliasing is done
-
     self.buildMergeInfo(source_dir)
 
 
@@ -73,7 +73,7 @@ class Margen:
 
     # Only add nick to sources if any material actually found in file
     if lookbackmap:
-      self.users[nick] = User(nick, starters, lookbackmap)
+      self.usermap[nick] = User(nick, starters, lookbackmap)
 
 
   def processSourceFile(self, filepath, nick, starters, lookbackmap):
@@ -131,9 +131,9 @@ class Margen:
   # Assemble any counts etc. that will not change after startup
   def buildStaticStats(self):
 
-    self.user_count = len(self.users)
+    self.user_count = len(self.usermap)
 
-    users_ordered = sorted(self.users.values(), key=lambda x:x.production_count, reverse=True)
+    users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []
     for user in users_ordered[:Config.BIGGEST_USERS_COUNT]:
       big_user = (user.nick, user.production_count)
@@ -156,16 +156,16 @@ class Margen:
         continue
 
       primary = mergeinfo_words[0]
-      if not primary in self.users:
+      if not primary in self.usermap:
         continue
 
       secondaries = mergeinfo_words[1:]
 
-      user = self.users[primary]
+      user = self.usermap[primary]
       user.aliases = secondaries
 
       for alias in secondaries:
-        self.users[alias] = user
+        self.usermap[alias] = user
 
     mergeinfo_file.close()
 
@@ -178,7 +178,7 @@ class Margen:
 
 
   def empty(self):
-    return not self.users
+    return not self.usermap
 
 
   # Return a tuple consisting of generic statistics
@@ -189,7 +189,7 @@ class Margen:
     additional_channels = tuple(self.meta.get(Config.META_ADDITIONAL))
     user_count = self.user_count
 
-    most_quoted_list = sorted(set(self.users.values()), key=lambda x:x.quotes_requested, reverse=True)[:3]
+    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:3]
     most_quoted_tuples = []
     for user in most_quoted_list:
       quoted_user = (user.nick, user.quotes_requested)
@@ -201,10 +201,10 @@ class Margen:
   # Return a tuple consisting of a user's statistics, or None if the user does not exist
   def getUserStatistics(self, nick):
 
-    if not nick in self.users:
+    if not nick in self.usermap:
       return None
 
-    user = self.users[nick]
+    user = self.usermap[nick]
     user_aliases = tuple(user.aliases)
     return (user.production_count, user.quotes_requested, user_aliases)
 
@@ -214,7 +214,7 @@ class Margen:
   def getRandomNick(self, excludes, min_starters=0):
 
     possibles = []
-    for user in self.users.values():
+    for user in self.userset:
       if not user.nick in excludes and len(user.starters) > min_starters:
         possibles.append(user.nick)
 
@@ -240,13 +240,13 @@ class Margen:
         real_alias = self.getRandomNick(real_nicks, random_min_starters)
 
       # Catch any Nones or empties
-      if real_alias and real_alias in self.users:
+      if real_alias and real_alias in self.usermap:
 
         # Only increment this if the user was directly requested
         if nick_tuple[0] == NickType.NONRANDOM:
-          self.users[real_alias].quotes_requested += 1
+          self.usermap[real_alias].quotes_requested += 1
 
-        real_nick = self.users[real_alias].nick
+        real_nick = self.usermap[real_alias].nick
         real_nicks.add(real_nick)
 
     return list(real_nicks)
@@ -299,7 +299,7 @@ class Margen:
       return ([], "")
 
     first_nick = real_nicks[0]
-    first_user = self.users[first_nick]
+    first_user = self.usermap[first_nick]
     starting_pairs = first_user.starters
     lookbacks = first_user.lookbacks
 
@@ -310,7 +310,7 @@ class Margen:
       lookbacks = self.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      other_user = self.users[other_nick]
+      other_user = self.usermap[other_nick]
       starting_pairs += other_user.starters
       self.mergeIntoDictionary(lookbacks, other_user.lookbacks)
 
