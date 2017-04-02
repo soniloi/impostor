@@ -151,7 +151,7 @@ class ImpostorBot(irc.IRCClient):
     + MYSTERY_SOLVE + " to see the solution. "
 
   BOT_DESC_ADDITIONAL = "Type " \
-    + META_STATS + " for basic channel statistics, or " \
+    + META_STATS + " for basic generic statistics, or " \
     + META_STATS_USER + " for statistics on a specific user. See " \
     + Config.REPOSITORY + " for (slightly) more information. "
 
@@ -323,14 +323,14 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if not nicks:
-      output_message = self.makeChannelStats()
+      output_message = self.makeGenericStats()
 
     else:
       output_message = self.makeUserStats(nicks[0])
 
     return [output_message]
 
-  def makeChannelStats(self):
+  def makeGenericStats(self):
 
     stats = self.generator.getGenericStatistics()
 
@@ -392,13 +392,13 @@ class ImpostorBot(irc.IRCClient):
           most_quoted += ","
         most_quoted += " and " + most_quoted_formatted[-1]
 
-    return "I have material from " + count \
-      + " users. My source material was generated on " + date \
-      + ". Its primary source channel was " + primary \
-      + ", and additional material was drawn from " + additionals \
-      + ". The " + biggest_user_count + " users with the most source material are: " \
-      + biggest_users + ". The user prompted for quotes most often is: " \
-      + most_quoted + ". "
+    count_str =  "I have material from %s users. " % count
+    date_str = "My source material was generated on %s. " % date
+    channels_str = "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
+    biggest_users_str = "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
+    most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
+
+    return count_str + date_str + channels_str + biggest_users_str + most_quoted_str
 
   def makeUserStats(self, nick):
 
