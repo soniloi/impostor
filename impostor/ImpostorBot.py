@@ -337,7 +337,7 @@ class ImpostorBot(irc.IRCClient):
     if not stats:
       return
 
-    (count_raw, date_raw, primary_raw, additionals_raw, biggest_users_raw) = stats
+    (count_raw, date_raw, primary_raw, additionals_raw, biggest_users_raw, most_quoted_raw) = stats
 
     count = str(count_raw)
 
@@ -374,12 +374,31 @@ class ImpostorBot(irc.IRCClient):
       biggest_users += ","
     biggest_users += " and " + biggest_users_formatted[-1]
 
+    most_quoted = ""
+    if most_quoted_raw:
+      (nick, quote_count) = most_quoted_raw[0]
+      most_quoted = nick + " (requested " + str(quote_count) + " time(s))"
+      remaining_quoted = most_quoted_raw[1:]
+      if not remaining_quoted:
+        most_quoted += ". "
+      else:
+        most_quoted += ", followed by "
+        most_quoted_formatted = []
+        for quoted_user in remaining_quoted:
+          (nick, quote_count) = quoted_user
+          most_quoted_formatted.append(nick + " (" + str(quote_count) + " time(s))")
+        most_quoted += ", ".join(most_quoted_formatted[:-1])
+        if len(remaining_quoted) > 2:
+          most_quoted += ","
+        most_quoted += " and " + most_quoted_formatted[-1]
+
     return "I have material from " + count \
       + " users. My source material was generated on " + date \
       + ". Its primary source channel was " + primary \
       + ", and additional material was drawn from " + additionals \
       + ". The " + biggest_user_count + " users with the most source material are: " \
-      + biggest_users + ". "
+      + biggest_users + ". The user prompted for quotes most often is: " \
+      + most_quoted + ". "
 
   def makeUserStats(self, nick):
 
