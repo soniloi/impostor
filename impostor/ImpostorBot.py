@@ -335,15 +335,13 @@ class ImpostorBot(irc.IRCClient):
     stats = self.generator.getGenericStatistics()
 
     if not stats:
-      return None
+      return []
 
-    (count_raw, date_raw, primary_raw, additionals_raw, biggest_users_raw, most_quoted_raw) = stats
-
-    count = ImpostorBot.formatUserCountInfo(count_raw)
-    date = ImpostorBot.formatDateInfo(date_raw)
-    channels = ImpostorBot.formatChannelInfo(primary_raw, additionals_raw)
-    biggest_users = ImpostorBot.formatBiggestUsersStats(biggest_users_raw)
-    most_quoted = ImpostorBot.formatMostQuotedStats(most_quoted_raw)
+    count = ImpostorBot.formatUserCountInfo(stats.userCount)
+    date = ImpostorBot.formatDateInfo(stats.dateGenerated)
+    channels = ImpostorBot.formatChannelInfo(stats.primaryChannel, stats.additionalChannels)
+    biggest_users = ImpostorBot.formatBiggestUsersStats(stats.biggestUsers)
+    most_quoted = ImpostorBot.formatMostQuotedStats(stats.mostQuoted)
 
     return [count + date + channels, biggest_users + most_quoted]
 

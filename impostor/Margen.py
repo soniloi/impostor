@@ -2,9 +2,20 @@
 
 # Per-user Markov generator class
 
+from collections import namedtuple
 import os
 import random
+
 import Config
+
+
+GeneratorStats = namedtuple("GeneratorStats", \
+                            "userCount \
+                             dateGenerated \
+                             primaryChannel \
+                             additionalChannels \
+                             biggestUsers \
+                             mostQuoted")
 
 
 class NickType:
@@ -183,14 +194,12 @@ class Margen:
 
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
-
-    date_generated = Margen.getFirstOrNone(self.meta.get(Config.META_DATE))
-    primary_channel = Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
-    additional_channels = tuple(self.meta.get(Config.META_ADDITIONAL))
-    user_count = self.user_count
-    most_quoted = self.getMostQuoted()
-
-    return (user_count, date_generated, primary_channel, additional_channels, self.biggest_users, most_quoted)
+    return GeneratorStats(self.user_count, \
+                          Margen.getFirstOrNone(self.meta.get(Config.META_DATE)), \
+                          Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY)), \
+                          tuple(self.meta.get(Config.META_ADDITIONAL)), \
+                          self.biggest_users, \
+                          self.getMostQuoted())
 
 
   def getMostQuoted(self):
