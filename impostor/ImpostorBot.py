@@ -424,10 +424,7 @@ class ImpostorBot(irc.IRCClient):
       most_quoted = "%s%s%s (requested %d times(s))" % (Style.BOLD, nick, Style.CLEAR, quote_count)
       remaining_quoted = most_quoted_raw[1:]
 
-      if not remaining_quoted:
-        most_quoted += ". "
-
-      else:
+      if remaining_quoted:
         most_quoted += ", followed by "
         most_quoted_formatted = []
 
@@ -441,7 +438,10 @@ class ImpostorBot(irc.IRCClient):
         if len(remaining_quoted) > 2:
           most_quoted += ","
 
-        most_quoted += " and " + most_quoted_formatted[-1]
+        if len(remaining_quoted) >= 2:
+          most_quoted += " and "
+
+        most_quoted += most_quoted_formatted[-1]
 
     return "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
 
