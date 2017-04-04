@@ -341,23 +341,15 @@ class ImpostorBot(irc.IRCClient):
 
     count = ImpostorBot.formatUserCountInfo(count_raw)
     date = ImpostorBot.formatDateInfo(date_raw)
-    (primary, additionals) = ImpostorBot.formatChannelInfo(primary_raw, additionals_raw)
-    (biggest_user_count, biggest_users) = ImpostorBot.formatBiggestUsersStats(biggest_users_raw)
+    channels = ImpostorBot.formatChannelInfo(primary_raw, additionals_raw)
+    biggest_users = ImpostorBot.formatBiggestUsersStats(biggest_users_raw)
     most_quoted = ImpostorBot.formatMostQuotedStats(most_quoted_raw)
 
-    count_str =  "I have material from %s users. " % count
-    date_str = "My source material was generated on %s. " % date
-    channels_str = "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
-    biggest_users_str = "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
-    most_quoted_str = ""
-    if most_quoted:
-      most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
-
-    return [count_str + date_str + channels_str, biggest_users_str + most_quoted_str]
+    return [count + date + channels, biggest_users + most_quoted]
 
   @staticmethod
   def formatUserCountInfo(count_raw):
-    return str(count_raw)
+    return "I have material from %d users. " % count_raw
 
   @staticmethod
   def formatDateInfo(date_raw):
@@ -369,7 +361,7 @@ class ImpostorBot(irc.IRCClient):
       int(date_raw)
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
-    return date
+    return "My source material was generated on %s. " % date
 
   @staticmethod
   def formatChannelInfo(primary_raw, additionals_raw):
@@ -400,7 +392,7 @@ class ImpostorBot(irc.IRCClient):
 
         additionals += " and " + additionals_formatted[-1]
 
-    return (primary, additionals)
+    return "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
 
   @staticmethod
   def formatBiggestUsersStats(biggest_users_raw):
@@ -419,10 +411,13 @@ class ImpostorBot(irc.IRCClient):
       biggest_users += ","
     biggest_users += " and " + biggest_users_formatted[-1]
 
-    return (biggest_user_count, biggest_users)
+    return "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
 
   @staticmethod
   def formatMostQuotedStats(most_quoted_raw):
+
+    if not most_quoted_raw:
+      return ""
 
     most_quoted = ""
     if most_quoted_raw:
@@ -450,7 +445,7 @@ class ImpostorBot(irc.IRCClient):
 
         most_quoted += " and " + most_quoted_formatted[-1]
 
-    return most_quoted
+    return "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
 
   def makeUserStats(self, nick):
 
