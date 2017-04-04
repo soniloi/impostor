@@ -22,6 +22,7 @@ META_PRIMARY = "primary"
 META_ADDITIONAL = "additional"
 
 BIGGEST_USERS_COUNT = 3 # Number of biggest users to display
+MOST_QUOTED_COUNT = 3 # Number of most quoted users to display
 MERGEINFO_FILE_NAME = "merge.lst" # User merge list file inside sources directory
 MERGEINFO_ALIASES_MAX = 3 # Display at most this number of aliases when listing
 

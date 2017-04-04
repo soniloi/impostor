@@ -349,7 +349,9 @@ class ImpostorBot(irc.IRCClient):
     date_str = "My source material was generated on %s. " % date
     channels_str = "Its primary source channel was %s, and additional material was drawn from %s. " % (primary, additionals)
     biggest_users_str = "The %s users with the most source material are: %s. " % (biggest_user_count, biggest_users)
-    most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
+    most_quoted_str = ""
+    if most_quoted:
+      most_quoted_str = "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
 
     return [count_str + date_str + channels_str, biggest_users_str + most_quoted_str]
 

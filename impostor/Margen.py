@@ -188,14 +188,22 @@ class Margen:
     primary_channel = Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY))
     additional_channels = tuple(self.meta.get(Config.META_ADDITIONAL))
     user_count = self.user_count
+    most_quoted = self.getMostQuoted()
 
-    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:3]
+    return (user_count, date_generated, primary_channel, additional_channels, self.biggest_users, most_quoted)
+
+
+  def getMostQuoted(self):
+
+    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:Config.MOST_QUOTED_COUNT]
     most_quoted_tuples = []
+
     for user in most_quoted_list:
       quoted_user = (user.nick, user.quotes_requested)
-      most_quoted_tuples.append(quoted_user)
+      if user.quotes_requested > 0:
+        most_quoted_tuples.append(quoted_user)
 
-    return (user_count, date_generated, primary_channel, additional_channels, self.biggest_users, tuple(most_quoted_tuples))
+    return tuple(most_quoted_tuples)
 
 
   # Return a tuple consisting of a user's statistics, or None if the user does not exist
