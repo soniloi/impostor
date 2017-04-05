@@ -367,17 +367,17 @@ class ImpostorBot(irc.IRCClient):
     primary = "[Unknown]"
 
     if primary_raw:
-      primary = ImpostorBot.BOLD_DEFAULT % primary_raw
+      primary = ImpostorBot.formatStatsDisplayBold(primary_raw)
 
     additionals = ""
     additionals_formatted = []
 
     if not additionals_raw:
-      additionals_formatted.append(ImpostorBot.BOLD_DEFAULT % "[Unknown or None]")
+      additionals_formatted.append(ImpostorBot.formatStatsDisplayBold("[Unknown or None]"))
 
     else:
       for additional_raw in additionals_raw:
-        additionals_formatted.append(ImpostorBot.BOLD_DEFAULT % additional_raw)
+        additionals_formatted.append(ImpostorBot.formatStatsDisplayBold(additional_raw))
 
       if len(additionals_formatted) == 1:
         additionals += additionals_formatted[0]
@@ -401,7 +401,7 @@ class ImpostorBot(irc.IRCClient):
 
     for big_user in biggest_users_raw:
       (nick, production_count) = big_user
-      big_user_formatted = "%s%s%s (%d productions)"  % (Style.BOLD, nick, Style.CLEAR, production_count)
+      big_user_formatted = "%s (%d productions)"  % (ImpostorBot.formatStatsDisplayBold(nick), production_count)
       biggest_users_formatted.append(big_user_formatted)
     biggest_users = ", ".join(biggest_users_formatted[:-1])
 
@@ -421,7 +421,7 @@ class ImpostorBot(irc.IRCClient):
     if most_quoted_raw:
 
       (nick, quote_count) = most_quoted_raw[0]
-      most_quoted = "%s%s%s (requested %d times(s))" % (Style.BOLD, nick, Style.CLEAR, quote_count)
+      most_quoted = "%s (requested %d times(s))" % (ImpostorBot.formatStatsDisplayBold(nick), quote_count)
       remaining_quoted = most_quoted_raw[1:]
 
       if remaining_quoted:
@@ -430,7 +430,7 @@ class ImpostorBot(irc.IRCClient):
 
         for quoted_user in remaining_quoted:
           (nick, quote_count) = quoted_user
-          quoted_user_formatted = "%s%s%s (%d)" % (Style.BOLD, nick, Style.CLEAR, quote_count)
+          quoted_user_formatted = "%s (%d)" % (ImpostorBot.formatStatsDisplayBold(nick), quote_count)
           most_quoted_formatted.append(quoted_user_formatted)
 
         most_quoted += ", ".join(most_quoted_formatted[:-1])
@@ -445,11 +445,15 @@ class ImpostorBot(irc.IRCClient):
 
     return "Since the last time I was started, the user prompted for quotes most often is: %s. " % most_quoted
 
+  @staticmethod
+  def formatStatsDisplayBold(nick):
+    return ImpostorBot.BOLD_DEFAULT % nick
+
   def makeUserStats(self, nick):
 
     output_message = ""
     stats = self.generator.getUserStatistics(nick)
-    nick_formatted = ImpostorBot.BOLD_DEFAULT % nick
+    nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
     if not stats:
 
@@ -458,7 +462,7 @@ class ImpostorBot(irc.IRCClient):
     else:
 
       (real_nick, production_count, quotes_requested, aliases) = stats
-      real_nick_formatted = ImpostorBot.BOLD_DEFAULT % stats.realNick
+      real_nick_formatted = ImpostorBot.formatStatsDisplayBold(stats.realNick)
       output_message += "The user %s" % real_nick_formatted
 
       if aliases:
