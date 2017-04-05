@@ -457,8 +457,9 @@ class ImpostorBot(irc.IRCClient):
 
     else:
 
-      (production_count, quotes_requested, aliases) = stats
-      output_message += "The user " + nick_formatted
+      (real_nick, production_count, quotes_requested, aliases) = stats
+      real_nick_formatted = ImpostorBot.BOLD_DEFAULT % real_nick
+      output_message += "The user " + real_nick_formatted
 
       if aliases:
         output_message += ImpostorBot.formatAliases(aliases)

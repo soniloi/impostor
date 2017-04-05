@@ -223,7 +223,7 @@ class Margen:
 
     user = self.usermap[nick]
     user_aliases = tuple(user.aliases)
-    return (user.production_count, user.quotes_requested, user_aliases)
+    return (user.nick, user.production_count, user.quotes_requested, user_aliases)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
