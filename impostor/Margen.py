@@ -9,13 +9,20 @@ import random
 import Config
 
 
-GeneratorStats = namedtuple("GeneratorStats", \
+GenericStats = namedtuple("GenericStats", \
                             "userCount \
                              dateGenerated \
                              primaryChannel \
                              additionalChannels \
                              biggestUsers \
                              mostQuoted")
+
+
+UserStats = namedtuple("UserStats", \
+                       "realNick, \
+                        productionCount, \
+                        quotesRequested, \
+                        aliases")
 
 
 class NickType:
@@ -194,12 +201,12 @@ class Margen:
 
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
-    return GeneratorStats(self.user_count, \
-                          Margen.getFirstOrNone(self.meta.get(Config.META_DATE)), \
-                          Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY)), \
-                          tuple(self.meta.get(Config.META_ADDITIONAL)), \
-                          self.biggest_users, \
-                          self.getMostQuoted())
+    return GenericStats(self.user_count, \
+                        Margen.getFirstOrNone(self.meta.get(Config.META_DATE)), \
+                        Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY)), \
+                        tuple(self.meta.get(Config.META_ADDITIONAL)), \
+                        self.biggest_users, \
+                        self.getMostQuoted())
 
 
   def getMostQuoted(self):
@@ -223,7 +230,10 @@ class Margen:
 
     user = self.usermap[nick]
     user_aliases = tuple(user.aliases)
-    return (user.nick, user.production_count, user.quotes_requested, user_aliases)
+    return UserStats(user.nick, \
+                     user.production_count, \
+                     user.quotes_requested, \
+                     user_aliases)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,

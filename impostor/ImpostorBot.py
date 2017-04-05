@@ -453,19 +453,19 @@ class ImpostorBot(irc.IRCClient):
 
     if not stats:
 
-      output_message += "I know of no such user " + nick_formatted + ". "
+      output_message += "I know of no such user %s. " % nick_formatted
 
     else:
 
       (real_nick, production_count, quotes_requested, aliases) = stats
-      real_nick_formatted = ImpostorBot.BOLD_DEFAULT % real_nick
-      output_message += "The user " + real_nick_formatted
+      real_nick_formatted = ImpostorBot.BOLD_DEFAULT % stats.realNick
+      output_message += "The user %s" % real_nick_formatted
 
       if aliases:
-        output_message += ImpostorBot.formatAliases(aliases)
+        output_message += ImpostorBot.formatAliases(stats.aliases)
 
-      output_message += " has " + str(production_count) + " productions. "
-      output_message += str(quotes_requested) + " quote(s) have been requested of them. "
+      output_message += " has %d productions. " % stats.productionCount
+      output_message += "%d quote(s) have been requested of them. " % stats.quotesRequested
 
     return output_message
 
