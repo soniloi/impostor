@@ -51,7 +51,7 @@ today is not a good day
 
 ## Metadata
 
-An optional file called meta.info may be added to the input directory. If present, this would contain metadata about source generation. The following attributes are supported.
+An optional file called ```meta.info``` may be added to the input directory. If present, this would contain metadata about source generation. The following attributes are supported.
 * Date: Unix timestamp of when the source material was generated.
 * Primary: The primary channel used to generate source material.
 * Additional: Other channels from which source material is taken (one may wish, for example, to exclude users found in the additional channels but not in the primary).
@@ -63,6 +63,13 @@ date=1489964352
 primary=#underthesea
 additional=#mollusc_test #beach #iloveraisins
 ```
+
+## User merge information
+
+An optional file called ```merge.lst``` may be added to the input directory. If present, this would contain mappings of user aliases (other nicks a user has been known by) to canonical nicknames. The file should be laid out as follows.
+* Each user must be on its own line.
+* Lines consist of tab-separated nicks.
+* The first nick is the canonical one; all other nicks are aliases.
 
 # Running
 
@@ -132,6 +139,8 @@ A random-user comment is one generated from a random user in the set. To generat
 #### Notes
 
 If the bot is called on a username that does not exist, then it does not do anything.
+
+If the bot is called on a nick that is an alias, then the real user will be resolved.
 
 If it is called for a combination of a user that exists and one that does not, then it will only return a quote for one that exists.
 
