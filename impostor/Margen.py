@@ -6,7 +6,7 @@ from collections import namedtuple
 import os
 import random
 
-import Config
+import GeneratorConfig
 
 
 GenericStats = namedtuple("GenericStats", \
@@ -55,7 +55,7 @@ class User:
 
 class Margen:
 
-  SOURCEFILE_EXTLEN = len(Config.SOURCEFILE_EXT) # Length of the source file extension
+  SOURCEFILE_EXTLEN = len(GeneratorConfig.SOURCEFILE_EXT) # Length of the source file extension
 
   def __init__(self, source_dir):
 
@@ -76,7 +76,7 @@ class Margen:
 
     source_filenames = os.listdir(source_dir)
     for source_filename in source_filenames:
-      if source_filename.endswith(Config.SOURCEFILE_EXT):
+      if source_filename.endswith(GeneratorConfig.SOURCEFILE_EXT):
         self.buildSource(source_dir, source_filename)
 
 
@@ -100,7 +100,7 @@ class Margen:
 
     for line in infile:
       words = line.split()
-      if len(words) >= (Config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
+      if len(words) >= (GeneratorConfig.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
         self.processLineWords(words, nick, starters, lookbackmap)
 
     infile.close()
@@ -111,7 +111,7 @@ class Margen:
     starter = (words[0], words[1])
     starters.append(starter)
 
-    bound = len(words) - Config.LOOKBACK_LEN
+    bound = len(words) - GeneratorConfig.LOOKBACK_LEN
     for i in range(0, bound):
 
       first = words[i]
@@ -127,7 +127,7 @@ class Margen:
 
   def buildMeta(self, source_dir):
 
-    meta_filename = source_dir + Config.META_FILE_NAME
+    meta_filename = source_dir + GeneratorConfig.META_FILE_NAME
     if not os.path.isfile(meta_filename):
       return
 
@@ -153,7 +153,7 @@ class Margen:
 
     users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []
-    for user in users_ordered[:Config.BIGGEST_USERS_COUNT]:
+    for user in users_ordered[:GeneratorConfig.BIGGEST_USERS_COUNT]:
       big_user = (user.nick, user.production_count)
       biggest_users.append(big_user)
     self.biggest_users = tuple(biggest_users)
@@ -161,7 +161,7 @@ class Margen:
 
   def buildMergeInfo(self, source_dir):
 
-    mergeinfo_filename = source_dir + Config.MERGEINFO_FILE_NAME
+    mergeinfo_filename = source_dir + GeneratorConfig.MERGEINFO_FILE_NAME
     if not os.path.isfile(mergeinfo_filename):
       return
 
@@ -202,16 +202,16 @@ class Margen:
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
     return GenericStats(self.user_count, \
-                        Margen.getFirstOrNone(self.meta.get(Config.META_DATE)), \
-                        Margen.getFirstOrNone(self.meta.get(Config.META_PRIMARY)), \
-                        tuple(self.meta.get(Config.META_ADDITIONAL)), \
+                        Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)), \
+                        Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY)), \
+                        tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL)), \
                         self.biggest_users, \
                         self.getMostQuoted())
 
 
   def getMostQuoted(self):
 
-    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:Config.MOST_QUOTED_COUNT]
+    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:GeneratorConfig.MOST_QUOTED_COUNT]
     most_quoted_tuples = []
 
     for user in most_quoted_list:
@@ -307,7 +307,7 @@ class Margen:
       return line
 
     i = 0
-    while current in lookbacks and i < Config.OUTPUT_WORDS_MAX:
+    while current in lookbacks and i < GeneratorConfig.OUTPUT_WORDS_MAX:
       next = random.choice(lookbacks[current])
       line += ' ' + next
       current = (current[1], next)
