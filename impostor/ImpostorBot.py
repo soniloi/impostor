@@ -164,6 +164,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
+    self.correct_guesses = {}
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
 
@@ -315,6 +316,9 @@ class ImpostorBot(irc.IRCClient):
 
     elif command == Config.MYSTERY_SOLVE:
       output_messages = self.solveMystery()
+
+    elif command == Config.MYSTERY_SCORE:
+      output_messages = self.scoreMystery(raw_tokens[1:])
 
     return output_messages
 
@@ -579,6 +583,9 @@ class ImpostorBot(irc.IRCClient):
         success = self.current_mystery.guess(guess)
 
         if success:
+          if not user in self.correct_guesses:
+            self.correct_guesses[user] = 0
+          self.correct_guesses[user] += 1
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
@@ -602,6 +609,23 @@ class ImpostorBot(irc.IRCClient):
     if self.current_mystery:
       output_message = ImpostorBot.MYSTERY_SOLVE_NO_WINNER % self.current_mystery.author
       self.current_mystery = None
+
+    return [output_message]
+
+  # Return information about mystery game scores
+  def scoreMystery(self, nicks):
+
+    if not nicks:
+      return []
+
+    nick = nicks[0]
+    nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
+
+    output_message = "If there is a player called %s, then they have not guessed correctly yet." % nick_formatted
+
+    if nick in self.correct_guesses:
+      correct_guess_count = self.correct_guesses[nick]
+      output_message = "The user %s has guessed correctly %d time(s)." % (nick_formatted, correct_guess_count)
 
     return [output_message]
 

@@ -9,6 +9,7 @@ MYSTERY_START = 'mystery'
 MYSTERY_GUESS = 'guess'
 MYSTERY_HINT = 'hint'
 MYSTERY_SOLVE = 'solve'
+MYSTERY_SCORE = 'score'
 MYSTERY_MIN_STARTERS = 1000 # Minimum number of starter tuples a user must have before the mystery generator will generate a quote from them
 MYSTERY_CHARACTER_HINTS_MAX = 3 # Maximum number of nick-character hints that will be given under any circumstances
 MYSTERY_WORDS_MAX_FOR_SECOND = 5 # A second quote hint will only be given if the first consisted of this number of words or fewer
