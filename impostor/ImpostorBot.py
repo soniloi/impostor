@@ -96,6 +96,14 @@ class Mystery:
     return guess == self.author
 
 
+class Player:
+
+  def __init__(self, nick):
+    self.nick = nick
+    self.correct_guesses = 0
+    self.incorrect_guesses = 0
+
+
 class MessageLogger:
   """
   An independent logger class (because separation of application
@@ -164,7 +172,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
-    self.correct_guesses = {}
+    self.players = {}
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
 
@@ -225,8 +233,11 @@ class ImpostorBot(irc.IRCClient):
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
 
-    if old_nick in self.correct_guesses:
-      self.correct_guesses[new_nick] = self.correct_guesses.pop(old_nick)
+    if old_nick in self.players:
+      player = self.players[old_nick]
+      player.nick = new_nick
+      self.players[new_nick] = player
+      del self.players[old_nick]
 
   # For fun, override the method that determines how a nickname is changed on
   # collisions. The default method appends an underscore.
@@ -583,10 +594,14 @@ class ImpostorBot(irc.IRCClient):
         guess = tokens[1]
         success = self.current_mystery.guess(guess)
 
-        if success:
-          if not user in self.correct_guesses:
-            self.correct_guesses[user] = 0
-          self.correct_guesses[user] += 1
+        if not user in self.players:
+          self.players[user] = Player(user)
+
+        if not success:
+          self.players[user].incorrect_guesses += 1
+
+        else:
+          self.players[user].correct_guesses += 1
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
@@ -624,9 +639,11 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = "If there is a player currently called %s, then they have not guessed correctly yet." % nick_formatted
 
-    if nick in self.correct_guesses:
-      correct_guess_count = self.correct_guesses[nick]
-      output_message = "The player %s has guessed correctly %d time(s)." % (nick_formatted, correct_guess_count)
+    if nick in self.players:
+      correct_guess_count = self.players[nick].correct_guesses
+      incorrect_guess_count = self.players[nick].incorrect_guesses
+      output_message = "The player %s has guessed incorrectly %d time(s) and correctly %d time(s) ." \
+        % (nick_formatted, incorrect_guess_count, correct_guess_count)
 
     return [output_message]
 
