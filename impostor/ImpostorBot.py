@@ -221,11 +221,12 @@ class ImpostorBot(irc.IRCClient):
   # irc callbacks
 
   def irc_NICK(self, prefix, params):
-    """Called when an IRC user changes their nickname."""
+
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
-    self.logger.log("%s is now known as %s" % (old_nick, new_nick))
 
+    if old_nick in self.correct_guesses:
+      self.correct_guesses[new_nick] = self.correct_guesses.pop(old_nick)
 
   # For fun, override the method that determines how a nickname is changed on
   # collisions. The default method appends an underscore.
@@ -621,11 +622,11 @@ class ImpostorBot(irc.IRCClient):
     nick = nicks[0]
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
-    output_message = "If there is a player called %s, then they have not guessed correctly yet." % nick_formatted
+    output_message = "If there is a player currently called %s, then they have not guessed correctly yet." % nick_formatted
 
     if nick in self.correct_guesses:
       correct_guess_count = self.correct_guesses[nick]
-      output_message = "The user %s has guessed correctly %d time(s)." % (nick_formatted, correct_guess_count)
+      output_message = "The player %s has guessed correctly %d time(s)." % (nick_formatted, correct_guess_count)
 
     return [output_message]
 
