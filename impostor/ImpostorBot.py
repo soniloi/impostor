@@ -55,6 +55,7 @@ class Mystery:
     self.quotes = [initial_quote]
     self.nick_characters = []
     self.future_hints = hints
+    self.already_guessed = set()
 
   def describe(self):
 
@@ -66,6 +67,11 @@ class Mystery:
     if self.nick_characters:
       description += "Their nick contains the character(s) ["
       description += ",".join(self.nick_characters)
+      description += "]. "
+
+    if self.already_guessed:
+      description += "The nick(s) guessed so far are ["
+      description += ",".join(self.already_guessed)
       description += "]. "
 
     return description
@@ -93,6 +99,7 @@ class Mystery:
     return hint_message
 
   def guess(self, guess):
+    self.already_guessed.add(guess)
     return guess == self.author
 
 
