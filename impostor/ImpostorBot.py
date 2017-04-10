@@ -104,18 +104,34 @@ class Mystery:
     return guess == self.author
 
 
+class PlayerScoreType:
+  GAMES_PLAYED = 0
+  GUESSES_CORRECT = 1
+  GUESSES_INCORRECT = 2
+
+
 class Player:
 
   def __init__(self, nick):
     self.nick = nick
-    self.games_played = 0
     self.last_played_ident = -1
-    self.correct_guesses = 0
-    self.incorrect_guesses = 0
+    self.scores = {}
+
+  def increment_score(self, score_type):
+    if not score_type in self.scores:
+      self.scores[score_type] = 0
+    self.scores[score_type] += 1
+
+  def get_score(self, score_type):
+    if score_type in self.scores:
+      return self.scores[score_type]
+    return 0
 
   def record_game(self, ident):
     if ident != self.last_played_ident:
-      self.games_played += 1
+      if not PlayerScoreType.GAMES_PLAYED in self.scores:
+        self.scores[PlayerScoreType.GAMES_PLAYED] = 0
+      self.scores[PlayerScoreType.GAMES_PLAYED] += 1
       self.last_played_ident = ident
 
 
@@ -620,10 +636,10 @@ class ImpostorBot(irc.IRCClient):
         success = self.current_mystery.guess(guess)
 
         if not success:
-          player.incorrect_guesses += 1
+          player.increment_score(PlayerScoreType.GUESSES_INCORRECT)
 
         else:
-          player.correct_guesses += 1
+          player.increment_score(PlayerScoreType.GUESSES_CORRECT)
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
@@ -668,9 +684,11 @@ class ImpostorBot(irc.IRCClient):
     output_message = "No-one has participated in any games since I was last started."
 
     if self.players:
-      players_ordered = sorted(self.players.values(), key=lambda x:x.games_played, reverse=True)[:1]
+      players_ordered = sorted(self.players.values(), key=lambda x:x.get_score(PlayerScoreType.GAMES_PLAYED), reverse=True)[:1]
       top_player = players_ordered[0]
-      output_message = "The player who has played the most games is %s with %d game(s). " % (top_player.nick, top_player.games_played)
+      nick = top_player.nick
+      games_played = top_player.get_score(PlayerScoreType.GAMES_PLAYED)
+      output_message = "The player who has played the most games is %s with %d game(s). " % (nick, games_played)
 
     return [output_message]
 
@@ -682,9 +700,9 @@ class ImpostorBot(irc.IRCClient):
 
     if nick in self.players:
       player = self.players[nick]
-      games_played_count = player.games_played
-      correct_guess_count = player.correct_guesses
-      incorrect_guess_count = player.incorrect_guesses
+      games_played_count = player.get_score(PlayerScoreType.GAMES_PLAYED)
+      incorrect_guess_count = player.get_score(PlayerScoreType.GUESSES_INCORRECT)
+      correct_guess_count = player.get_score(PlayerScoreType.GUESSES_CORRECT)
       output_message = "The player %s has participated in %s mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s) ." \
         % (nick_formatted, games_played_count, incorrect_guess_count, correct_guess_count)
 
