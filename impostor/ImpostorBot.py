@@ -653,10 +653,29 @@ class ImpostorBot(irc.IRCClient):
   # Return information about mystery game scores
   def scoreMystery(self, nicks):
 
-    if not nicks:
-      return []
+    output_messages = []
 
-    nick = nicks[0]
+    if not nicks:
+      output_messages = self.makeGenericScore()
+
+    else:
+      output_messages = self.makeUserScore(nicks[0])
+
+    return output_messages
+
+  def makeGenericScore(self):
+
+    output_message = "No-one has participated in any games since I was last started."
+
+    if self.players:
+      players_ordered = sorted(self.players.values(), key=lambda x:x.games_played, reverse=True)[:1]
+      top_player = players_ordered[0]
+      output_message = "The player who has played the most games is %s with %d game(s). " % (top_player.nick, top_player.games_played)
+
+    return [output_message]
+
+  def makeUserScore(self, nick):
+
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
     output_message = "If there is someone currently called %s, then they have not played since I was last started." % nick_formatted
