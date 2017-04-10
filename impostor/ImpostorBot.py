@@ -50,7 +50,8 @@ class HintType:
 
 class Mystery:
 
-  def __init__(self, author, initial_quote, hints):
+  def __init__(self, ident, author, initial_quote, hints):
+    self.ident = ident
     self.author = author
     self.quotes = [initial_quote]
     self.nick_characters = []
@@ -107,8 +108,15 @@ class Player:
 
   def __init__(self, nick):
     self.nick = nick
+    self.games_played = 0
+    self.last_played_ident = -1
     self.correct_guesses = 0
     self.incorrect_guesses = 0
+
+  def record_game(self, ident):
+    if ident != self.last_played_ident:
+      self.games_played += 1
+      self.last_played_ident = ident
 
 
 class MessageLogger:
@@ -179,6 +187,7 @@ class ImpostorBot(irc.IRCClient):
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
+    self.next_mystery_ident = 0
     self.players = {}
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
@@ -550,7 +559,8 @@ class ImpostorBot(irc.IRCClient):
       if output_nicks:
         author = output_nicks[0]
         hints = self.makeHints(author, len(output_quote.split()))
-        self.current_mystery = Mystery(author, output_quote, hints)
+        self.current_mystery = Mystery(self.next_mystery_ident, author, output_quote, hints)
+        self.next_mystery_ident += 1
         output_message += self.current_mystery.describe()
 
     return [output_message]
@@ -598,17 +608,22 @@ class ImpostorBot(irc.IRCClient):
       # FIXME: what if they guess more than two? discard silently?
       if len(tokens) == 2:
 
-        guess = tokens[1]
-        success = self.current_mystery.guess(guess)
-
+        # Find or create player, and record that they took part in this game
         if not user in self.players:
           self.players[user] = Player(user)
 
+        player = self.players[user]
+        player.record_game(self.current_mystery.ident)
+
+        # Evaluate player's guess
+        guess = tokens[1]
+        success = self.current_mystery.guess(guess)
+
         if not success:
-          self.players[user].incorrect_guesses += 1
+          player.incorrect_guesses += 1
 
         else:
-          self.players[user].correct_guesses += 1
+          player.correct_guesses += 1
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
           self.current_mystery = None
 
@@ -644,13 +659,15 @@ class ImpostorBot(irc.IRCClient):
     nick = nicks[0]
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
-    output_message = "If there is a player currently called %s, then they have not guessed correctly yet." % nick_formatted
+    output_message = "If there is someone currently called %s, then they have not played since I was last started." % nick_formatted
 
     if nick in self.players:
-      correct_guess_count = self.players[nick].correct_guesses
-      incorrect_guess_count = self.players[nick].incorrect_guesses
-      output_message = "The player %s has guessed incorrectly %d time(s) and correctly %d time(s) ." \
-        % (nick_formatted, incorrect_guess_count, correct_guess_count)
+      player = self.players[nick]
+      games_played_count = player.games_played
+      correct_guess_count = player.correct_guesses
+      incorrect_guess_count = player.incorrect_guesses
+      output_message = "The player %s has participated in %s mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s) ." \
+        % (nick_formatted, games_played_count, incorrect_guess_count, correct_guess_count)
 
     return [output_message]
 
