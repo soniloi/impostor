@@ -683,11 +683,28 @@ class ImpostorBot(irc.IRCClient):
     output_message = "No-one has participated in any games since I was last started."
 
     if self.players:
-      players_ordered = sorted(self.players.values(), key=lambda x:x.get_score(PlayerScoreType.GAMES_PLAYED), reverse=True)[:1]
-      top_player = players_ordered[0]
-      nick = top_player.nick
-      games_played = top_player.get_score(PlayerScoreType.GAMES_PLAYED)
-      output_message = "The player who has played the most games is %s with %d game(s). " % (nick, games_played)
+
+      top_players = {}
+      all_players = self.players.values()
+
+      for score_type in PlayerScoreType.ALL_TYPES:
+        top_players[score_type] = all_players[0]
+
+      for player in all_players[1:]:
+        for score_type in PlayerScoreType.ALL_TYPES:
+          if player.scores[score_type] > top_players[score_type].scores[score_type]:
+            top_players[score_type] = player
+
+      most_games_player = top_players[PlayerScoreType.GAMES_PLAYED]
+      most_incorrect_player = top_players[PlayerScoreType.GUESSES_INCORRECT];
+      most_correct_player = top_players[PlayerScoreType.GUESSES_CORRECT];
+
+      output_message = "The player who has played the most games is %s with %d game(s). " \
+                       "The player with the most incorrect guesses is %s with %d. " \
+                       "The player with the most correct guesses is %s with %d. " \
+                       % (most_games_player.nick, most_games_player.scores[PlayerScoreType.GAMES_PLAYED], \
+                          most_incorrect_player.nick, most_incorrect_player.scores[PlayerScoreType.GUESSES_INCORRECT], \
+                          most_correct_player.nick, most_correct_player.scores[PlayerScoreType.GUESSES_CORRECT])
 
     return [output_message]
 
