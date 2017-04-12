@@ -108,29 +108,28 @@ class PlayerScoreType:
   GAMES_PLAYED = 0
   GUESSES_CORRECT = 1
   GUESSES_INCORRECT = 2
+  ALL_TYPES = [GAMES_PLAYED, GUESSES_CORRECT, GUESSES_INCORRECT]
 
 
 class Player:
 
   def __init__(self, nick):
+
     self.nick = nick
     self.last_played_ident = -1
     self.scores = {}
 
-  def increment_score(self, score_type):
-    if not score_type in self.scores:
+    for score_type in PlayerScoreType.ALL_TYPES:
       self.scores[score_type] = 0
+
+  def increment_score(self, score_type):
     self.scores[score_type] += 1
 
   def get_score(self, score_type):
-    if score_type in self.scores:
-      return self.scores[score_type]
-    return 0
+    return self.scores[score_type]
 
   def record_game(self, ident):
     if ident != self.last_played_ident:
-      if not PlayerScoreType.GAMES_PLAYED in self.scores:
-        self.scores[PlayerScoreType.GAMES_PLAYED] = 0
       self.scores[PlayerScoreType.GAMES_PLAYED] += 1
       self.last_played_ident = ident
 
