@@ -118,6 +118,8 @@ class PlayerScoreType:
 
 class Player:
 
+  SCORE_MESSAGE = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
+
   def __init__(self, nick):
 
     self.nick = nick
@@ -127,16 +129,20 @@ class Player:
     for score_type in PlayerScoreType.ALL_TYPES:
       self.scores[score_type] = 0
 
-  def increment_score(self, score_type):
+  def incrementScore(self, score_type):
     self.scores[score_type] += 1
 
-  def get_score(self, score_type):
-    return self.scores[score_type]
-
-  def record_game(self, ident):
+  def recordGame(self, ident):
     if ident != self.last_played_ident:
       self.scores[PlayerScoreType.GAMES_PLAYED] += 1
       self.last_played_ident = ident
+
+  def getScoreMessage(self, nick_formatted):
+    return Player.SCORE_MESSAGE % \
+      (nick_formatted, \
+       self.scores[PlayerScoreType.GAMES_PLAYED], \
+       self.scores[PlayerScoreType.GUESSES_INCORRECT], \
+       self.scores[PlayerScoreType.GUESSES_CORRECT])
 
 
 class MessageLogger:
@@ -642,17 +648,17 @@ class ImpostorBot(irc.IRCClient):
           self.players[user] = Player(user)
 
         player = self.players[user]
-        player.record_game(self.current_mystery.ident)
+        player.recordGame(self.current_mystery.ident)
 
         # Evaluate player's guess
         guess = tokens[1]
         real_author = self.current_mystery.guess(guess)
 
         if not real_author:
-          player.increment_score(PlayerScoreType.GUESSES_INCORRECT)
+          player.incrementScore(PlayerScoreType.GUESSES_INCORRECT)
 
         else:
-          player.increment_score(PlayerScoreType.GUESSES_CORRECT)
+          player.incrementScore(PlayerScoreType.GUESSES_CORRECT)
           aka = ""
           if guess != real_author:
             aka = " (AKA %s)" % guess
@@ -691,7 +697,7 @@ class ImpostorBot(irc.IRCClient):
       output_messages = self.makeGenericScore()
 
     else:
-      output_messages = self.makeUserScore(nicks[0])
+      output_messages = self.makePlayerScore(nicks[0])
 
     return output_messages
 
@@ -725,19 +731,14 @@ class ImpostorBot(irc.IRCClient):
 
     return [output_message]
 
-  def makeUserScore(self, nick):
+  def makePlayerScore(self, nick):
 
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
     output_message = "If there is someone currently called %s, then they have not played since I was last started." % nick_formatted
 
     if nick in self.players:
-      player = self.players[nick]
-      games_played_count = player.get_score(PlayerScoreType.GAMES_PLAYED)
-      incorrect_guess_count = player.get_score(PlayerScoreType.GUESSES_INCORRECT)
-      correct_guess_count = player.get_score(PlayerScoreType.GUESSES_CORRECT)
-      output_message = "The player %s has participated in %s mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s) ." \
-        % (nick_formatted, games_played_count, incorrect_guess_count, correct_guess_count)
+      output_message = self.players[nick].getScoreMessage(nick_formatted)
 
     return [output_message]
 
