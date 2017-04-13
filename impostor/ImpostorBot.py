@@ -50,9 +50,10 @@ class HintType:
 
 class Mystery:
 
-  def __init__(self, ident, author, initial_quote, hints):
+  def __init__(self, ident, author, author_aliases, initial_quote, hints):
     self.ident = ident
     self.author = author
+    self.author_aliases = author_aliases
     self.quotes = [initial_quote]
     self.nick_characters = []
     self.future_hints = hints
@@ -99,9 +100,13 @@ class Mystery:
 
     return hint_message
 
+  # Evaluate a guess, with aliasing
+  # Return the original (real) nick if correct, or None if incorrect
   def guess(self, guess):
     self.already_guessed.add(guess)
-    return guess == self.author
+    if guess == self.author or guess in self.author_aliases:
+      return self.author
+    return None
 
 
 class PlayerScoreType:
@@ -195,7 +200,7 @@ class ImpostorBot(irc.IRCClient):
 
   NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
-  MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s. Congratulations, %s! "
+  MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s%s. Congratulations, %s! "
 
   nickname = Config.BOT_NICK
 
@@ -578,9 +583,12 @@ class ImpostorBot(irc.IRCClient):
       output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
 
       if output_nicks:
+
         author = output_nicks[0]
         hints = self.makeHints(author, len(output_quote.split()))
-        self.current_mystery = Mystery(self.next_mystery_ident, author, output_quote, hints)
+
+        author_aliases = self.generator.getUserAliases(author)
+        self.current_mystery = Mystery(self.next_mystery_ident, author, author_aliases, output_quote, hints)
         self.next_mystery_ident += 1
         output_message += self.current_mystery.describe()
 
@@ -638,14 +646,17 @@ class ImpostorBot(irc.IRCClient):
 
         # Evaluate player's guess
         guess = tokens[1]
-        success = self.current_mystery.guess(guess)
+        real_author = self.current_mystery.guess(guess)
 
-        if not success:
+        if not real_author:
           player.increment_score(PlayerScoreType.GUESSES_INCORRECT)
 
         else:
           player.increment_score(PlayerScoreType.GUESSES_CORRECT)
-          output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (guess, user)
+          aka = ""
+          if guess != real_author:
+            aka = " (AKA %s)" % guess
+          output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (real_author, aka, user)
           self.current_mystery = None
 
     return [output_message]

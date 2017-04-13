@@ -199,6 +199,13 @@ class Margen:
     return not self.usermap
 
 
+  # Return a tuple consisting of a user's aliases, or None if the user does not exist
+  def getUserAliases(self, nick):
+    if nick in self.usermap:
+      return tuple(self.usermap[nick].aliases)
+    return tuple()
+
+
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
     return GenericStats(self.user_count, \
