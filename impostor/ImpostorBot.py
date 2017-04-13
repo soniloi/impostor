@@ -508,12 +508,14 @@ class ImpostorBot(irc.IRCClient):
 
     else:
 
-      (real_nick, production_count, quotes_requested, aliases) = stats
       real_nick_formatted = ImpostorBot.formatStatsDisplayBold(stats.realNick)
       output_message += "The user %s" % real_nick_formatted
 
-      if aliases:
-        output_message += ImpostorBot.formatAliases(stats.aliases)
+      if stats.aliases:
+        requested_nick = None
+        if nick != stats.realNick:
+          requested_nick = nick
+        output_message += ImpostorBot.formatAliases(stats.aliases, requested_nick)
 
       output_message += " has %d productions. " % stats.productionCount
       output_message += "%d quote(s) have been requested of them. " % stats.quotesRequested
@@ -525,13 +527,17 @@ class ImpostorBot(irc.IRCClient):
     return min(total_alias_count, Config.MERGEINFO_ALIASES_MAX)
 
   @staticmethod
-  def formatAliases(aliases):
+  def formatAliases(aliases, requested_nick):
 
     display_count = ImpostorBot.getAliasDisplayCount(len(aliases))
     additional_alias_count = len(aliases) - display_count
 
     result = " (AKA "
     sample_aliases = random.sample(aliases, display_count)
+
+    # Always display the nick that was originally prompted, if it was an alias (if None, it was the real one)
+    if requested_nick is not None and requested_nick not in sample_aliases:
+      sample_aliases[0] = requested_nick
 
     if display_count == 1:
       result += sample_aliases[0]
