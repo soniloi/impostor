@@ -5,12 +5,14 @@
 from collections import namedtuple
 import os
 import random
+import time
 
 import GeneratorConfig
 
 
 GenericStats = namedtuple("GenericStats", \
                             "userCount \
+                             dateStarted \
                              dateGenerated \
                              primaryChannel \
                              additionalChannels \
@@ -63,6 +65,7 @@ class Margen:
     self.meta = {}
     self.user_count = 0
     self.biggest_users = None
+    self.date_started = int(time.time())
 
     self.buildSources(source_dir)
     self.userset = set(self.usermap.values())
@@ -209,6 +212,7 @@ class Margen:
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
     return GenericStats(self.user_count, \
+                        self.date_started, \
                         Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)), \
                         Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY)), \
                         tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL)), \

@@ -396,19 +396,20 @@ class ImpostorBot(irc.IRCClient):
       return []
 
     count = ImpostorBot.formatUserCountInfo(stats.userCount)
-    date = ImpostorBot.formatDateInfo(stats.dateGenerated)
+    date_started = ImpostorBot.formatDateInfo(stats.dateStarted, "I have been running since %s. ")
+    date_generated = ImpostorBot.formatDateInfo(stats.dateGenerated, "My source material was generated on %s. ")
     channels = ImpostorBot.formatChannelInfo(stats.primaryChannel, stats.additionalChannels)
     biggest_users = ImpostorBot.formatBiggestUsersStats(stats.biggestUsers)
     most_quoted = ImpostorBot.formatMostQuotedStats(stats.mostQuoted)
 
-    return [count + date + channels, biggest_users + most_quoted]
+    return [count + date_started + date_generated + channels, biggest_users + most_quoted]
 
   @staticmethod
   def formatUserCountInfo(count_raw):
     return "I have material from %d users. " % count_raw
 
   @staticmethod
-  def formatDateInfo(date_raw):
+  def formatDateInfo(date_raw, format_str):
 
     date = "[Unknown]"
 
@@ -417,7 +418,7 @@ class ImpostorBot(irc.IRCClient):
       int(date_raw)
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
-    return "My source material was generated on %s. " % date
+    return format_str % date
 
   @staticmethod
   def formatChannelInfo(primary_raw, additionals_raw):
