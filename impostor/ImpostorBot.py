@@ -4,6 +4,7 @@ import re
 
 import Config
 import Margen
+from Margen import StatisticType
 
 #
 # IRC bot to be used with per-user Markov generator
@@ -161,15 +162,6 @@ class MessageLogger:
 
   def close(self):
     self.file.close()
-
-
-class StatisticType:
-  USER_COUNT = 0
-  DATE_STARTED = 1
-  DATE_GENERATED = 2
-  SOURCE_CHANNELS = 3
-  BIGGEST_USERS = 4
-  MOST_QUOTED_USERS = 5
 
 
 class ImpostorBot(irc.IRCClient):
@@ -413,12 +405,12 @@ class ImpostorBot(irc.IRCClient):
     if not stats:
       return []
 
-    count = ImpostorBot.formatUserCountInfo(stats.userCount)
-    date_started = ImpostorBot.formatDateInfo(stats.dateStarted, ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_STARTED])
-    date_generated = ImpostorBot.formatDateInfo(stats.dateGenerated, ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_GENERATED])
-    channels = ImpostorBot.formatChannelInfo(stats.primaryChannel, stats.additionalChannels)
-    biggest_users = ImpostorBot.formatBiggestUsersStats(stats.biggestUsers)
-    most_quoted = ImpostorBot.formatMostQuotedStats(stats.mostQuoted)
+    count = ImpostorBot.formatUserCountInfo(stats[StatisticType.USER_COUNT])
+    date_started = ImpostorBot.formatDateInfo(stats[StatisticType.DATE_STARTED], ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_STARTED])
+    date_generated = ImpostorBot.formatDateInfo(stats[StatisticType.DATE_GENERATED], ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_GENERATED])
+    channels = ImpostorBot.formatChannelInfo(stats[StatisticType.SOURCE_CHANNELS][0], stats[StatisticType.SOURCE_CHANNELS][1])
+    biggest_users = ImpostorBot.formatBiggestUsersStats(stats[StatisticType.BIGGEST_USERS])
+    most_quoted = ImpostorBot.formatMostQuotedStats(stats[StatisticType.MOST_QUOTED_USERS])
 
     return [count + date_started + date_generated + channels, biggest_users + most_quoted]
 

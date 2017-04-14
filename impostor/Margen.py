@@ -10,16 +10,6 @@ import time
 import GeneratorConfig
 
 
-GenericStats = namedtuple("GenericStats", \
-                            "userCount \
-                             dateStarted \
-                             dateGenerated \
-                             primaryChannel \
-                             additionalChannels \
-                             biggestUsers \
-                             mostQuoted")
-
-
 UserStats = namedtuple("UserStats", \
                        "realNick, \
                         productionCount, \
@@ -53,6 +43,15 @@ class User:
       production_count += len(production_list)
 
     return production_count
+
+
+class StatisticType:
+  USER_COUNT = 0
+  DATE_STARTED = 1
+  DATE_GENERATED = 2
+  SOURCE_CHANNELS = 3
+  BIGGEST_USERS = 4
+  MOST_QUOTED_USERS = 5
 
 
 class Margen:
@@ -211,13 +210,15 @@ class Margen:
 
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
-    return GenericStats(self.user_count, \
-                        self.date_started, \
-                        Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)), \
-                        Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY)), \
-                        tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL)), \
-                        self.biggest_users, \
-                        self.getMostQuoted())
+    return { \
+      StatisticType.USER_COUNT: self.user_count, \
+      StatisticType.DATE_STARTED: self.date_started, \
+      StatisticType.DATE_GENERATED: self.meta.get(GeneratorConfig.META_DATE)[0], \
+      StatisticType.SOURCE_CHANNELS: \
+        (self.meta.get(GeneratorConfig.META_PRIMARY)[0], tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL))), \
+      StatisticType.BIGGEST_USERS: self.biggest_users, \
+      StatisticType.MOST_QUOTED_USERS: self.getMostQuoted()
+    }
 
 
   def getMostQuoted(self):
