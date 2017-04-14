@@ -9,14 +9,6 @@ import time
 
 import GeneratorConfig
 
-SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
-
-UserStats = namedtuple("UserStats", \
-                       "realNick, \
-                        productionCount, \
-                        quotesRequested, \
-                        aliases")
-
 
 class NickType:
   NONRANDOM = 0
@@ -46,6 +38,9 @@ class User:
     return production_count
 
 
+SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
+
+
 class GenericStatisticType:
   USER_COUNT = 0
   DATE_STARTED = 1
@@ -53,6 +48,13 @@ class GenericStatisticType:
   SOURCE_CHANNELS = 3
   BIGGEST_USERS = 4
   MOST_QUOTED_USERS = 5
+
+
+class UserStatisticType:
+  REAL_NICK = 0
+  ALIASES = 1
+  PRODUCTION_COUNT = 2
+  QUOTES_REQUESTED = 3
 
 
 class Margen:
@@ -211,13 +213,13 @@ class Margen:
 
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
-    return { \
-      GenericStatisticType.USER_COUNT: self.user_count, \
-      GenericStatisticType.DATE_STARTED: self.date_started, \
-      GenericStatisticType.DATE_GENERATED: self.meta.get(GeneratorConfig.META_DATE)[0], \
-      GenericStatisticType.SOURCE_CHANNELS: \
-        SourceChannelNames(self.meta.get(GeneratorConfig.META_PRIMARY)[0], tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL))), \
-      GenericStatisticType.BIGGEST_USERS: self.biggest_users, \
+    return {
+      GenericStatisticType.USER_COUNT: self.user_count,
+      GenericStatisticType.DATE_STARTED: self.date_started,
+      GenericStatisticType.DATE_GENERATED: self.meta.get(GeneratorConfig.META_DATE)[0],
+      GenericStatisticType.SOURCE_CHANNELS:
+        SourceChannelNames(self.meta.get(GeneratorConfig.META_PRIMARY)[0], tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL))),
+      GenericStatisticType.BIGGEST_USERS: self.biggest_users,
       GenericStatisticType.MOST_QUOTED_USERS: self.getMostQuoted()
     }
 
@@ -242,11 +244,12 @@ class Margen:
       return None
 
     user = self.usermap[nick]
-    user_aliases = tuple(user.aliases)
-    return UserStats(user.nick, \
-                     user.production_count, \
-                     user.quotes_requested, \
-                     user_aliases)
+    return {
+      UserStatisticType.REAL_NICK: user.nick,
+      UserStatisticType.PRODUCTION_COUNT: user.production_count,
+      UserStatisticType.QUOTES_REQUESTED: user.quotes_requested,
+      UserStatisticType.ALIASES: tuple(user.aliases)
+    }
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
