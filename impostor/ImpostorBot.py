@@ -4,7 +4,7 @@ import re
 
 import Config
 import Margen
-from Margen import StatisticType
+from Margen import GenericStatisticType
 
 #
 # IRC bot to be used with per-user Markov generator
@@ -212,12 +212,12 @@ class ImpostorBot(irc.IRCClient):
   nickname = Config.BOT_NICK
 
   STATISTIC_DESCRIPTIONS = {
-    StatisticType.USER_COUNT: "I have material from %d users. ",
-    StatisticType.DATE_STARTED: "I have been running since %s. ",
-    StatisticType.DATE_GENERATED: "My source material was generated on %s. ",
-    StatisticType.SOURCE_CHANNELS: "Its primary source channel was %s, and additional material was drawn from %s. ",
-    StatisticType.BIGGEST_USERS: "The %d users with the most source material are: %s. ",
-    StatisticType.MOST_QUOTED_USERS: "Since the last time I was started, the user prompted for quotes most often is: %s. "
+    GenericStatisticType.USER_COUNT: "I have material from %d users. ",
+    GenericStatisticType.DATE_STARTED: "I have been running since %s. ",
+    GenericStatisticType.DATE_GENERATED: "My source material was generated on %s. ",
+    GenericStatisticType.SOURCE_CHANNELS: "Its primary source channel was %s, and additional material was drawn from %s. ",
+    GenericStatisticType.BIGGEST_USERS: "The %d users with the most source material are: %s. ",
+    GenericStatisticType.MOST_QUOTED_USERS: "Since the last time I was started, the user prompted for quotes most often is: %s. "
   }
 
   def __init__(self, source_dir):
@@ -405,18 +405,18 @@ class ImpostorBot(irc.IRCClient):
     if not stats:
       return []
 
-    count = ImpostorBot.formatUserCountInfo(stats[StatisticType.USER_COUNT])
-    date_started = ImpostorBot.formatDateInfo(stats[StatisticType.DATE_STARTED], ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_STARTED])
-    date_generated = ImpostorBot.formatDateInfo(stats[StatisticType.DATE_GENERATED], ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.DATE_GENERATED])
-    channels = ImpostorBot.formatChannelInfo(stats[StatisticType.SOURCE_CHANNELS][0], stats[StatisticType.SOURCE_CHANNELS][1])
-    biggest_users = ImpostorBot.formatBiggestUsersStats(stats[StatisticType.BIGGEST_USERS])
-    most_quoted = ImpostorBot.formatMostQuotedStats(stats[StatisticType.MOST_QUOTED_USERS])
+    count = ImpostorBot.formatUserCountInfo(stats[GenericStatisticType.USER_COUNT])
+    date_started = ImpostorBot.formatDateInfo(stats[GenericStatisticType.DATE_STARTED], ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.DATE_STARTED])
+    date_generated = ImpostorBot.formatDateInfo(stats[GenericStatisticType.DATE_GENERATED], ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.DATE_GENERATED])
+    channels = ImpostorBot.formatChannelInfo(stats[GenericStatisticType.SOURCE_CHANNELS].primary, stats[GenericStatisticType.SOURCE_CHANNELS].additionals)
+    biggest_users = ImpostorBot.formatBiggestUsersStats(stats[GenericStatisticType.BIGGEST_USERS])
+    most_quoted = ImpostorBot.formatMostQuotedStats(stats[GenericStatisticType.MOST_QUOTED_USERS])
 
     return [count + date_started + date_generated + channels, biggest_users + most_quoted]
 
   @staticmethod
   def formatUserCountInfo(count_raw):
-    return ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.USER_COUNT] % count_raw
+    return ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.USER_COUNT] % count_raw
 
   @staticmethod
   def formatDateInfo(date_raw, format_str):
@@ -459,7 +459,7 @@ class ImpostorBot(irc.IRCClient):
 
         additionals += " and " + additionals_formatted[-1]
 
-    return ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.SOURCE_CHANNELS] % (primary, additionals)
+    return ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.SOURCE_CHANNELS] % (primary, additionals)
 
   @staticmethod
   def formatBiggestUsersStats(biggest_users_raw):
@@ -478,7 +478,7 @@ class ImpostorBot(irc.IRCClient):
       biggest_users += ","
     biggest_users += " and " + biggest_users_formatted[-1]
 
-    return ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.BIGGEST_USERS] % (biggest_user_count, biggest_users)
+    return ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.BIGGEST_USERS] % (biggest_user_count, biggest_users)
 
   @staticmethod
   def formatMostQuotedStats(most_quoted_raw):
@@ -512,7 +512,7 @@ class ImpostorBot(irc.IRCClient):
 
         most_quoted += most_quoted_formatted[-1]
 
-    return ImpostorBot.STATISTIC_DESCRIPTIONS[StatisticType.MOST_QUOTED_USERS] % most_quoted
+    return ImpostorBot.STATISTIC_DESCRIPTIONS[GenericStatisticType.MOST_QUOTED_USERS] % most_quoted
 
   @staticmethod
   def formatStatsDisplayBold(nick):
