@@ -429,7 +429,7 @@ class ImpostorBot(irc.IRCClient):
   @staticmethod
   def formatDateInfo(date_raw, format_str):
 
-    date = "[Unknown]"
+    date = ImpostorBot.formatStatsDisplayBold("[Unknown]")
 
     if date_raw:
       date = datetime.datetime.fromtimestamp(
@@ -441,18 +441,15 @@ class ImpostorBot(irc.IRCClient):
   @staticmethod
   def formatChannelInfo(primary_raw, additionals_raw):
 
-    primary = "[Unknown]"
+    primary = ImpostorBot.formatStatsDisplayBold("[Unknown]")
 
     if primary_raw:
       primary = ImpostorBot.formatStatsDisplayBold(primary_raw)
 
-    additionals = ""
+    additionals = ImpostorBot.formatStatsDisplayBold("[Unknown or None]")
     additionals_formatted = []
 
-    if not additionals_raw:
-      additionals_formatted.append(ImpostorBot.formatStatsDisplayBold("[Unknown or None]"))
-
-    else:
+    if additionals_raw:
       for additional_raw in additionals_raw:
         additionals_formatted.append(ImpostorBot.formatStatsDisplayBold(additional_raw))
 
@@ -473,7 +470,7 @@ class ImpostorBot(irc.IRCClient):
   def formatBiggestUsersStats(biggest_users_raw):
 
     biggest_user_count = len(biggest_users_raw)
-    biggest_users = "[Unknown]"
+    biggest_users = ImpostorBot.formatStatsDisplayBold("[Unknown]")
     biggest_users_formatted = []
 
     for big_user in biggest_users_raw:

@@ -213,12 +213,17 @@ class Margen:
 
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
+
+    channel_primary = Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
+    channel_additionals = tuple()
+    if GeneratorConfig.META_ADDITIONAL in self.meta:
+      channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
+
     return {
       GenericStatisticType.USER_COUNT: self.user_count,
       GenericStatisticType.DATE_STARTED: self.date_started,
-      GenericStatisticType.DATE_GENERATED: self.meta.get(GeneratorConfig.META_DATE)[0],
-      GenericStatisticType.SOURCE_CHANNELS:
-        SourceChannelNames(self.meta.get(GeneratorConfig.META_PRIMARY)[0], tuple(self.meta.get(GeneratorConfig.META_ADDITIONAL))),
+      GenericStatisticType.DATE_GENERATED: Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
+      GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
       GenericStatisticType.BIGGEST_USERS: self.biggest_users,
       GenericStatisticType.MOST_QUOTED_USERS: self.getMostQuoted()
     }
