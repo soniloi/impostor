@@ -249,11 +249,15 @@ class Margen:
       return None
 
     user = self.usermap[nick]
+    requested_nick = None
+    if requested_nick != user.nick:
+      requested_nick = nick
+
     return {
       UserStatisticType.REAL_NICK: user.nick,
+      UserStatisticType.ALIASES: (tuple(user.aliases), requested_nick),
       UserStatisticType.PRODUCTION_COUNT: user.production_count,
       UserStatisticType.QUOTES_REQUESTED: user.quotes_requested,
-      UserStatisticType.ALIASES: tuple(user.aliases)
     }
 
 

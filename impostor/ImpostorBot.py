@@ -212,29 +212,32 @@ class ImpostorBot(irc.IRCClient):
 
   nickname = Config.BOT_NICK
 
-  USER_STATISTIC_DESCRIPTIONS = {
-    UserStatisticType.REAL_NICK: "The user %s ",
-    UserStatisticType.PRODUCTION_COUNT: "has %d production(s). ",
-    UserStatisticType.QUOTES_REQUESTED: "%d quote(s) have been requested of them. ",
-    UserStatisticType.ALIASES: "(AKA %s) ",
-  }
-
   def __init__(self, source_dir):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.players = {}
+    self.initStatisticFormatters()
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
-    self.generic_statistic_handles = {
-      GenericStatisticType.USER_COUNT: (ImpostorBot.formatUserCountInfo, "I have material from %d users. "),
-      GenericStatisticType.DATE_STARTED: (ImpostorBot.formatDateInfo, "I have been running since %s. "),
-      GenericStatisticType.DATE_GENERATED: (ImpostorBot.formatDateInfo, "My source material was generated on %s. "),
-      GenericStatisticType.SOURCE_CHANNELS: (ImpostorBot.formatChannelInfo, "Its primary source channel was %s, and additional material was drawn from %s. "),
-      GenericStatisticType.BIGGEST_USERS: (ImpostorBot.formatBiggestUsersStats, "The %d users with the most source material are: %s. "),
-      GenericStatisticType.MOST_QUOTED_USERS: (ImpostorBot.formatMostQuotedUsersStats, "Since the last time I was started, the user prompted for quotes most often is: %s. ")
+
+  def initStatisticFormatters(self):
+
+    self.generic_statistic_formatters = {
+      GenericStatisticType.USER_COUNT: (ImpostorBot.formatGenericUserCount, "I have material from %d users. "),
+      GenericStatisticType.DATE_STARTED: (ImpostorBot.formatGenericDate, "I have been running since %s. "),
+      GenericStatisticType.DATE_GENERATED: (ImpostorBot.formatGenericDate, "My source material was generated on %s. "),
+      GenericStatisticType.SOURCE_CHANNELS: (ImpostorBot.formatGenericChannels, "Its primary source channel was %s, and additional material was drawn from %s. "),
+      GenericStatisticType.BIGGEST_USERS: (ImpostorBot.formatGenericBiggestUsers, "The %d users with the most source material are: %s. "),
+      GenericStatisticType.MOST_QUOTED_USERS: (ImpostorBot.formatGenericMostQuotedUsers, "Since the last time I was started, the user prompted for quotes most often is: %s. "),
     }
 
+    self.user_statistic_formatters = {
+      UserStatisticType.REAL_NICK: (ImpostorBot.formatUserRealNick, "The user %s "),
+      UserStatisticType.ALIASES: (ImpostorBot.formatUserAliases, "(AKA %s) "),
+      UserStatisticType.PRODUCTION_COUNT: (ImpostorBot.formatUserSimpleCount, "has %d production(s). "),
+      UserStatisticType.QUOTES_REQUESTED: (ImpostorBot.formatUserSimpleCount, "%d quote(s) have been requested of them. "),
+    }
 
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
@@ -416,18 +419,17 @@ class ImpostorBot(irc.IRCClient):
     stats_formatted = []
     for (stat_type, stat_value) in stats.iteritems():
       if stat_value:
-        (stat_format_function, stat_containing_string) = self.generic_statistic_handles[stat_type]
+        (stat_format_function, stat_containing_string) = self.generic_statistic_formatters[stat_type]
         stats_formatted.append(stat_containing_string % stat_format_function(stat_value))
 
     return ["".join(stats_formatted)]
-    return [count + date_started + date_generated + channels, biggest_users + most_quoted]
 
   @staticmethod
-  def formatUserCountInfo(count_raw):
+  def formatGenericUserCount(count_raw):
     return count_raw
 
   @staticmethod
-  def formatDateInfo(date_raw):
+  def formatGenericDate(date_raw):
 
     date = ImpostorBot.formatStatsDisplayBold("[Unknown]")
 
@@ -439,7 +441,7 @@ class ImpostorBot(irc.IRCClient):
     return date
 
   @staticmethod
-  def formatChannelInfo(channels_raw):
+  def formatGenericChannels(channels_raw):
 
     primary_raw = channels_raw.primary
     additionals_raw = channels_raw.additionals
@@ -470,7 +472,7 @@ class ImpostorBot(irc.IRCClient):
     return (primary, additionals)
 
   @staticmethod
-  def formatBiggestUsersStats(biggest_users_raw):
+  def formatGenericBiggestUsers(biggest_users_raw):
 
     biggest_user_count = len(biggest_users_raw)
     biggest_users = ImpostorBot.formatStatsDisplayBold("[Unknown]")
@@ -489,7 +491,7 @@ class ImpostorBot(irc.IRCClient):
     return (biggest_user_count, biggest_users)
 
   @staticmethod
-  def formatMostQuotedUsersStats(most_quoted_raw):
+  def formatGenericMostQuotedUsers(most_quoted_raw):
 
     if not most_quoted_raw:
       return ""
@@ -533,31 +535,28 @@ class ImpostorBot(irc.IRCClient):
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
     if not stats:
+      return "I know of no such user %s. " % nick_formatted
 
-      output_message += "I know of no such user %s. " % nick_formatted
+    stats_formatted = []
+    for (stat_type, stat_value) in stats.iteritems():
+      if stat_value:
+        (stat_format_function, stat_containing_string) = self.user_statistic_formatters[stat_type]
+        stats_formatted.append(stat_containing_string % stat_format_function(stat_value))
 
-    else:
+    return "".join(stats_formatted)
 
-      real_nick_formatted = ImpostorBot.formatStatsDisplayBold(stats[UserStatisticType.REAL_NICK])
-      output_message += ImpostorBot.USER_STATISTIC_DESCRIPTIONS[UserStatisticType.REAL_NICK] % real_nick_formatted
-
-      if stats[UserStatisticType.ALIASES]:
-        requested_nick = None
-        if nick != stats[UserStatisticType.REAL_NICK]:
-          requested_nick = nick
-        output_message += ImpostorBot.formatAliases(stats[UserStatisticType.ALIASES], requested_nick)
-
-      output_message += ImpostorBot.USER_STATISTIC_DESCRIPTIONS[UserStatisticType.PRODUCTION_COUNT] % stats[UserStatisticType.PRODUCTION_COUNT]
-      output_message += ImpostorBot.USER_STATISTIC_DESCRIPTIONS[UserStatisticType.QUOTES_REQUESTED] % stats[UserStatisticType.QUOTES_REQUESTED]
-
-    return output_message
+  @staticmethod
+  def formatUserRealNick(nick_raw):
+    return ImpostorBot.formatStatsDisplayBold(nick_raw)
 
   @staticmethod
   def getAliasDisplayCount(total_alias_count):
     return min(total_alias_count, Config.MERGEINFO_ALIASES_MAX)
 
   @staticmethod
-  def formatAliases(aliases, requested_nick):
+  def formatUserAliases(aliases_raw):
+
+    (aliases, requested_nick) = aliases_raw
 
     display_count = ImpostorBot.getAliasDisplayCount(len(aliases))
     additional_alias_count = len(aliases) - display_count
@@ -591,7 +590,11 @@ class ImpostorBot(irc.IRCClient):
         form += "s"
       result += form % additional_alias_count
 
-    return ImpostorBot.USER_STATISTIC_DESCRIPTIONS[UserStatisticType.ALIASES] % result
+    return result
+
+  @staticmethod
+  def formatUserSimpleCount(count_raw):
+    return count_raw
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self):
