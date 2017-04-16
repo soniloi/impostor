@@ -10,9 +10,21 @@ import time
 import GeneratorConfig
 
 
+AliasInfo = namedtuple("AliasInfo", "aliases, requested_nick")
+NickAndCount = namedtuple("NickAndCount", "nick, count")
+SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
+
+
 class NickType:
   NONRANDOM = 0
   RANDOM = 1
+
+
+class UserStatisticType:
+  REAL_NICK = 0
+  ALIASES = 1
+  PRODUCTION_COUNT = 2
+  QUOTES_REQUESTED = 3
 
 
 class User:
@@ -38,9 +50,21 @@ class User:
     return production_count
 
 
-AliasInfo = namedtuple("AliasInfo", "aliases, requested_nick")
-NickAndCount = namedtuple("NickAndCount", "nick, count")
-SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
+  def getStatistics(self, requested_nick):
+
+    aliases = None
+    if self.aliases:
+      repeated_nick = None
+      if requested_nick != self.nick:
+        repeated_nick = requested_nick
+      aliases = AliasInfo(tuple(self.aliases), repeated_nick)
+
+    return {
+      UserStatisticType.REAL_NICK: self.nick,
+      UserStatisticType.ALIASES: aliases,
+      UserStatisticType.PRODUCTION_COUNT: self.production_count,
+      UserStatisticType.QUOTES_REQUESTED: self.quotes_requested,
+    }
 
 
 class GenericStatisticType:
@@ -50,13 +74,6 @@ class GenericStatisticType:
   SOURCE_CHANNELS = 3
   BIGGEST_USERS = 4
   MOST_QUOTED_USERS = 5
-
-
-class UserStatisticType:
-  REAL_NICK = 0
-  ALIASES = 1
-  PRODUCTION_COUNT = 2
-  QUOTES_REQUESTED = 3
 
 
 class Margen:
@@ -246,25 +263,9 @@ class Margen:
 
   # Return a tuple consisting of a user's statistics, or None if the user does not exist
   def getUserStatistics(self, nick):
-
     if not nick in self.usermap:
       return None
-
-    user = self.usermap[nick]
-
-    aliases = None
-    if user.aliases:
-      requested_nick = None
-      if nick != user.nick:
-        requested_nick = nick
-      aliases = AliasInfo(tuple(user.aliases), requested_nick)
-
-    return {
-      UserStatisticType.REAL_NICK: user.nick,
-      UserStatisticType.ALIASES: aliases,
-      UserStatisticType.PRODUCTION_COUNT: user.production_count,
-      UserStatisticType.QUOTES_REQUESTED: user.quotes_requested,
-    }
+    return self.usermap[nick].getStatistics(nick)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
