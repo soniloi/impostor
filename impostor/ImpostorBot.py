@@ -415,18 +415,19 @@ class ImpostorBot(irc.IRCClient):
 
     stats_formatted = []
     for (stat_type, stat_value) in stats.iteritems():
-      (stat_format_function, stat_format_string) = self.generic_statistic_handles[stat_type]
-      stats_formatted.append(stat_format_function(stat_format_string, stat_value))
+      if stat_value:
+        (stat_format_function, stat_containing_string) = self.generic_statistic_handles[stat_type]
+        stats_formatted.append(stat_containing_string % stat_format_function(stat_value))
 
     return ["".join(stats_formatted)]
     return [count + date_started + date_generated + channels, biggest_users + most_quoted]
 
   @staticmethod
-  def formatUserCountInfo(format_str, count_raw):
-    return format_str % count_raw
+  def formatUserCountInfo(count_raw):
+    return count_raw
 
   @staticmethod
-  def formatDateInfo(format_str, date_raw):
+  def formatDateInfo(date_raw):
 
     date = ImpostorBot.formatStatsDisplayBold("[Unknown]")
 
@@ -435,10 +436,10 @@ class ImpostorBot(irc.IRCClient):
       int(date_raw)
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
-    return format_str % date
+    return date
 
   @staticmethod
-  def formatChannelInfo(format_str, channels_raw):
+  def formatChannelInfo(channels_raw):
 
     primary_raw = channels_raw.primary
     additionals_raw = channels_raw.additionals
@@ -466,10 +467,10 @@ class ImpostorBot(irc.IRCClient):
 
         additionals += " and " + additionals_formatted[-1]
 
-    return format_str % (primary, additionals)
+    return (primary, additionals)
 
   @staticmethod
-  def formatBiggestUsersStats(format_str, biggest_users_raw):
+  def formatBiggestUsersStats(biggest_users_raw):
 
     biggest_user_count = len(biggest_users_raw)
     biggest_users = ImpostorBot.formatStatsDisplayBold("[Unknown]")
@@ -485,10 +486,10 @@ class ImpostorBot(irc.IRCClient):
       biggest_users += ","
     biggest_users += " and " + biggest_users_formatted[-1]
 
-    return format_str % (biggest_user_count, biggest_users)
+    return (biggest_user_count, biggest_users)
 
   @staticmethod
-  def formatMostQuotedUsersStats(format_str, most_quoted_raw):
+  def formatMostQuotedUsersStats(most_quoted_raw):
 
     if not most_quoted_raw:
       return ""
@@ -519,7 +520,7 @@ class ImpostorBot(irc.IRCClient):
 
         most_quoted += most_quoted_formatted[-1]
 
-    return format_str % most_quoted
+    return most_quoted
 
   @staticmethod
   def formatStatsDisplayBold(nick):
