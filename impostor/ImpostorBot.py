@@ -221,9 +221,24 @@ class ImpostorBot(irc.IRCClient):
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.players = {}
+    self.initCommandMap()
     self.initStatisticFormatters()
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
+
+  def initCommandMap(self):
+
+    self.commands = {
+      Config.META_STATS: ImpostorBot.makeStats,
+      Config.MYSTERY_START: ImpostorBot.startMystery,
+      Config.MYSTERY_GUESS: ImpostorBot.guessMystery,
+      Config.MYSTERY_HINT: ImpostorBot.hintMystery,
+      Config.MYSTERY_SOLVE: ImpostorBot.solveMystery,
+      Config.MYSTERY_SCORE: ImpostorBot.scoreMystery,
+    }
+
+    for help_string in Config.META_HELP:
+      self.commands[help_string] = ImpostorBot.makeHelp
 
   def initStatisticFormatters(self):
 
@@ -283,7 +298,7 @@ class ImpostorBot(irc.IRCClient):
       output_messages = self.triggerGenerateQuote(user, input_message)
 
     elif input_message.startswith(Config.META_TRIGGER):
-      output_messages = self.triggerMysteryQuote(user, input_message)
+      output_messages = self.triggerMeta(user, input_message)
 
     for output_message in output_messages:
       self.msg(channel, output_message)
@@ -315,7 +330,7 @@ class ImpostorBot(irc.IRCClient):
     """
     return nickname + '^'
 
-  def makeHelp(self):
+  def makeHelp(self, user, raw_tokens):
     return [ImpostorBot.BOT_DESC_BASIC, ImpostorBot.BOT_DESC_MYSTERY + ImpostorBot.BOT_DESC_ADDITIONAL]
 
   def pmdToMe(self, user, input_message):
@@ -323,7 +338,7 @@ class ImpostorBot(irc.IRCClient):
     return []
 
   def directedAtMe(self, user, input_message):
-    return self.makeHelp()
+    return self.makeHelp(user, input_message.split())
 
   def triggerGenerateQuote(self, user, input_message):
 
@@ -367,7 +382,7 @@ class ImpostorBot(irc.IRCClient):
 
     return (nick_type, nick_name)
 
-  def triggerMysteryQuote(self, user, input_message):
+  def triggerMeta(self, user, input_message):
 
     raw_tokens = re.split(' *', input_message)
     raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.META_TRIGGER):])
@@ -378,31 +393,14 @@ class ImpostorBot(irc.IRCClient):
     command = raw_commands[0]
     output_messages = []
 
-    if command in Config.META_HELP:
-      output_messages = self.makeHelp()
-
-    elif command == Config.META_STATS:
-      output_messages = self.makeStats(raw_tokens[1:])
-
-    elif command == Config.MYSTERY_START:
-      output_messages = self.startMystery()
-
-    elif command == Config.MYSTERY_GUESS:
-      output_messages = self.guessMystery(user, raw_tokens)
-
-    elif command == Config.MYSTERY_HINT:
-      output_messages = self.hintMystery()
-
-    elif command == Config.MYSTERY_SOLVE:
-      output_messages = self.solveMystery()
-
-    elif command == Config.MYSTERY_SCORE:
-      output_messages = self.scoreMystery(raw_tokens[1:])
+    if command in self.commands:
+      output_messages = self.commands[command](self, user, raw_tokens)
 
     return output_messages
 
-  def makeStats(self, nicks):
+  def makeStats(self, user, raw_tokens):
 
+    nicks = raw_tokens[1:]
     output_messages = []
 
     if not nicks:
@@ -590,7 +588,7 @@ class ImpostorBot(irc.IRCClient):
     return count_raw
 
   # Attempt to start a mystery sequence; return response string
-  def startMystery(self):
+  def startMystery(self, user, raw_tokens):
 
     output_message = ""
 
@@ -682,7 +680,7 @@ class ImpostorBot(irc.IRCClient):
     return [output_message]
 
   # Give hint about mystery by printing a random character from the author's nick
-  def hintMystery(self):
+  def hintMystery(self, user, raw_tokens):
 
     output_message = ImpostorBot.NO_MYSTERY
 
@@ -692,7 +690,7 @@ class ImpostorBot(irc.IRCClient):
     return [output_message]
 
   # End a mystery sequence, revealing the author; return response string
-  def solveMystery(self):
+  def solveMystery(self, user, raw_tokens):
 
     output_message = ImpostorBot.NO_MYSTERY
 
@@ -703,8 +701,9 @@ class ImpostorBot(irc.IRCClient):
     return [output_message]
 
   # Return information about mystery game scores
-  def scoreMystery(self, nicks):
+  def scoreMystery(self, user, raw_tokens):
 
+    nicks = raw_tokens[1:]
     output_messages = []
 
     if not nicks:
