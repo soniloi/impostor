@@ -38,6 +38,8 @@ class User:
     return production_count
 
 
+AliasInfo = namedtuple("AliasInfo", "aliases, requested_nick")
+NickAndCount = namedtuple("NickAndCount", "nick, count")
 SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
 
 
@@ -159,7 +161,7 @@ class Margen:
     users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []
     for user in users_ordered[:GeneratorConfig.BIGGEST_USERS_COUNT]:
-      big_user = (user.nick, user.production_count)
+      big_user = NickAndCount(user.nick, user.production_count)
       biggest_users.append(big_user)
     self.biggest_users = tuple(biggest_users)
 
@@ -235,7 +237,7 @@ class Margen:
     most_quoted_tuples = []
 
     for user in most_quoted_list:
-      quoted_user = (user.nick, user.quotes_requested)
+      quoted_user = NickAndCount(user.nick, user.quotes_requested)
       if user.quotes_requested > 0:
         most_quoted_tuples.append(quoted_user)
 
@@ -255,7 +257,7 @@ class Margen:
       requested_nick = None
       if nick != user.nick:
         requested_nick = nick
-      aliases = (tuple(user.aliases), requested_nick)
+      aliases = AliasInfo(tuple(user.aliases), requested_nick)
 
     return {
       UserStatisticType.REAL_NICK: user.nick,

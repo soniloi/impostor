@@ -486,8 +486,7 @@ class ImpostorBot(irc.IRCClient):
     biggest_users_formatted = []
 
     for big_user in biggest_users_raw:
-      (nick, production_count) = big_user
-      big_user_formatted = "%s (%d productions)"  % (ImpostorBot.formatStatsDisplayBold(nick), production_count)
+      big_user_formatted = "%s (%d productions)"  % (ImpostorBot.formatStatsDisplayBold(big_user.nick), big_user.count)
       biggest_users_formatted.append(big_user_formatted)
     biggest_users = ", ".join(biggest_users_formatted[:-1])
 
@@ -506,17 +505,16 @@ class ImpostorBot(irc.IRCClient):
     most_quoted = ""
     if most_quoted_raw:
 
-      (nick, quote_count) = most_quoted_raw[0]
-      most_quoted = "%s (requested %d times(s))" % (ImpostorBot.formatStatsDisplayBold(nick), quote_count)
+      quoted = most_quoted_raw[0]
+      most_quoted = "%s (requested %d times(s))" % (ImpostorBot.formatStatsDisplayBold(quoted.nick), quoted.count)
       remaining_quoted = most_quoted_raw[1:]
 
       if remaining_quoted:
         most_quoted += ", followed by "
         most_quoted_formatted = []
 
-        for quoted_user in remaining_quoted:
-          (nick, quote_count) = quoted_user
-          quoted_user_formatted = "%s (%d)" % (ImpostorBot.formatStatsDisplayBold(nick), quote_count)
+        for quoted in remaining_quoted:
+          quoted_user_formatted = "%s (%d)" % (ImpostorBot.formatStatsDisplayBold(quoted.nick), quoted.count)
           most_quoted_formatted.append(quoted_user_formatted)
 
         most_quoted += ", ".join(most_quoted_formatted[:-1])
