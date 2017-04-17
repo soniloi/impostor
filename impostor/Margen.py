@@ -286,7 +286,7 @@ class Margen:
   # Filter a list of raw nick tuples; random placeholders will be substituted, while
   #  non-random ones will be checked to see if they actually exist
   # Return a list of strings, which may be empty
-  def getRealNicks(self, nick_tuples, random_min_starters=0):
+  def getRealNicks(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
 
     real_nicks = set()
 
@@ -302,7 +302,7 @@ class Margen:
       if real_alias and real_alias in self.usermap:
 
         # Only increment this if the user was directly requested
-        if nick_tuple[0] == NickType.NONRANDOM:
+        if increment_quote_count:
           self.usermap[real_alias].quotes_requested += 1
 
         real_nick = self.usermap[real_alias].nick
@@ -351,9 +351,9 @@ class Margen:
   # Return a line generated from the source of a nick or nicks
   #   if none of those nicks were present, return an empty list and an empty string
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
-  def generate(self, nick_tuples, random_min_starters=0):
+  def generate(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
 
-    real_nicks = self.getRealNicks(nick_tuples, random_min_starters)
+    real_nicks = self.getRealNicks(nick_tuples, random_min_starters, increment_quote_count)
     if not real_nicks:
       return ([], "")
 

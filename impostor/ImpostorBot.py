@@ -598,7 +598,7 @@ class ImpostorBot(irc.IRCClient):
 
     if not output_message:
       nick_tuple = (Margen.NickType.RANDOM, "")
-      output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS)
+      output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS, False)
 
       if output_nicks:
 
@@ -635,7 +635,7 @@ class ImpostorBot(irc.IRCClient):
     # Create another quote by the mystery author as an additional hint
     if first_hint_len <= Config.MYSTERY_WORDS_MAX_FOR_SECOND:
       nick_tuple = ImpostorBot.makeNickTuple(author)
-      (_, additional_quote) = self.generator.generate([nick_tuple])
+      (_, additional_quote) = self.generator.generate([nick_tuple], 0, False)
       if additional_quote:
         additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
         hints.append(additional_quote_hint)
