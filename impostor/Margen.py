@@ -204,6 +204,56 @@ class UserCollection:
     return tuple(most_quoted_tuples)
 
 
+  # Return a tuple consisting of a user's aliases, or an empty tuple if the user does not exist
+  def getUserAliases(self, nick):
+    if nick in self.usermap:
+      return tuple(self.usermap[nick].aliases)
+    return tuple()
+
+
+  # Return a nick at random, as long as it has at least a certain number of starter entries,
+  #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
+  def getRandomNick(self, excludes, min_starters=0):
+
+    possibles = []
+    for user in self.userset:
+      if not user.nick in excludes and len(user.starters) > min_starters:
+        possibles.append(user.nick)
+
+    if possibles:
+      return random.choice(possibles)
+
+    return None
+
+
+  # Filter a list of raw nick tuples; random placeholders will be substituted, while
+  #  non-random ones will be checked to see if they actually exist
+  # Return a list of strings, which may be empty
+  def getRealNicks(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
+
+    real_nicks = set()
+
+    for nick_tuple in nick_tuples:
+
+      real_alias = nick_tuple[1]
+
+      # Expand any randoms to real nicks
+      if nick_tuple[0] == NickType.RANDOM:
+        real_alias = self.getRandomNick(real_nicks, random_min_starters)
+
+      # Catch any Nones or empties
+      if real_alias and real_alias in self.usermap:
+
+        # Only increment this if the user was directly requested
+        if increment_quote_count:
+          self.usermap[real_alias].quotes_requested += 1
+
+        real_nick = self.usermap[real_alias].nick
+        real_nicks.add(real_nick)
+
+    return list(real_nicks)
+
+
 class Margen:
 
   def __init__(self, source_dir):
@@ -245,11 +295,8 @@ class Margen:
     return self.users.empty()
 
 
-  # Return a tuple consisting of a user's aliases, or None if the user does not exist
   def getUserAliases(self, nick):
-    if nick in self.users.usermap:
-      return tuple(self.users.usermap[nick].aliases)
-    return tuple()
+    return self.users.getUserAliases(nick)
 
 
   # Return a tuple consisting of generic statistics
@@ -275,49 +322,6 @@ class Margen:
     if not nick in self.users.usermap:
       return None
     return self.users.usermap[nick].getStatistics(nick)
-
-
-  # Return a nick at random, as long as it has at least a certain number of starter entries,
-  #  and is not one of a list of excludes (such as to prevent duplicates from occurring)
-  def getRandomNick(self, excludes, min_starters=0):
-
-    possibles = []
-    for user in self.users.userset:
-      if not user.nick in excludes and len(user.starters) > min_starters:
-        possibles.append(user.nick)
-
-    if possibles:
-      return random.choice(possibles)
-
-    return None
-
-
-  # Filter a list of raw nick tuples; random placeholders will be substituted, while
-  #  non-random ones will be checked to see if they actually exist
-  # Return a list of strings, which may be empty
-  def getRealNicks(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
-
-    real_nicks = set()
-
-    for nick_tuple in nick_tuples:
-
-      real_alias = nick_tuple[1]
-
-      # Expand any randoms to real nicks
-      if nick_tuple[0] == NickType.RANDOM:
-        real_alias = self.getRandomNick(real_nicks, random_min_starters)
-
-      # Catch any Nones or empties
-      if real_alias and real_alias in self.users.usermap:
-
-        # Only increment this if the user was directly requested
-        if increment_quote_count:
-          self.users.usermap[real_alias].quotes_requested += 1
-
-        real_nick = self.users.usermap[real_alias].nick
-        real_nicks.add(real_nick)
-
-    return list(real_nicks)
 
 
   # Make a shallow (ish) copy of a dictionary of lists
@@ -362,7 +366,7 @@ class Margen:
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
   def generate(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
 
-    real_nicks = self.getRealNicks(nick_tuples, random_min_starters, increment_quote_count)
+    real_nicks = self.users.getRealNicks(nick_tuples, random_min_starters, increment_quote_count)
     if not real_nicks:
       return ([], "")
 
