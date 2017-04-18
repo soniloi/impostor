@@ -82,7 +82,7 @@ class UserCollection:
 
   def __init__(self, source_dir):
     self.usermap = {} # Map of nick to User objects
-    self.user_count = 0
+    self.count = 0
     self.biggest_users = None
 
     self.buildSources(source_dir)
@@ -148,7 +148,7 @@ class UserCollection:
   # Assemble any counts etc. that will not change after startup
   def buildStaticStats(self):
 
-    self.user_count = len(self.usermap)
+    self.count = len(self.usermap)
 
     users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []
@@ -189,6 +189,19 @@ class UserCollection:
 
   def empty(self):
     return not self.usermap
+
+
+  # Get user object from alias or real nick, when known to be in the set
+  def getByAlias(self, nick):
+    return self.usermap[nick]
+
+
+  def countUsers(self):
+    return self.count # For now, users cannot be reloaded, so this number is cached
+
+
+  def getBiggestUsers(self):
+    return self.biggest_users # Again, this is cached as it will not change after initialization
 
 
   def getMostQuoted(self):
@@ -254,6 +267,13 @@ class UserCollection:
     return list(real_nicks)
 
 
+  # Return a tuple consisting of a user's statistics, or None if the user does not exist
+  def getUserStatistics(self, nick):
+    if not nick in self.usermap:
+      return None
+    return self.usermap[nick].getStatistics(nick)
+
+
 class Margen:
 
   def __init__(self, source_dir):
@@ -308,20 +328,17 @@ class Margen:
       channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
 
     return {
-      GenericStatisticType.USER_COUNT: self.users.user_count,
+      GenericStatisticType.USER_COUNT: self.users.countUsers(),
       GenericStatisticType.DATE_STARTED: self.date_started,
       GenericStatisticType.DATE_GENERATED: Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
       GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
-      GenericStatisticType.BIGGEST_USERS: self.users.biggest_users,
+      GenericStatisticType.BIGGEST_USERS: self.users.getBiggestUsers(),
       GenericStatisticType.MOST_QUOTED_USERS: self.users.getMostQuoted()
     }
 
 
-  # Return a tuple consisting of a user's statistics, or None if the user does not exist
   def getUserStatistics(self, nick):
-    if not nick in self.users.usermap:
-      return None
-    return self.users.usermap[nick].getStatistics(nick)
+    return self.users.getUserStatistics(nick)
 
 
   # Make a shallow (ish) copy of a dictionary of lists
@@ -371,7 +388,7 @@ class Margen:
       return ([], "")
 
     first_nick = real_nicks[0]
-    first_user = self.users.usermap[first_nick]
+    first_user = self.users.getByAlias(first_nick)
     starting_pairs = first_user.starters
     lookbacks = first_user.lookbacks
 
@@ -382,7 +399,7 @@ class Margen:
       lookbacks = self.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      other_user = self.users.usermap[other_nick]
+      other_user = self.users.getByAlias(other_nick)
       starting_pairs += other_user.starters
       self.mergeIntoDictionary(lookbacks, other_user.lookbacks)
 
