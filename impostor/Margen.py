@@ -76,23 +76,19 @@ class GenericStatisticType:
   MOST_QUOTED_USERS = 5
 
 
-class Margen:
+class UserCollection:
 
   SOURCEFILE_EXTLEN = len(GeneratorConfig.SOURCEFILE_EXT) # Length of the source file extension
 
   def __init__(self, source_dir):
-
     self.usermap = {} # Map of nick to User objects
-    self.meta = {}
     self.user_count = 0
     self.biggest_users = None
-    self.date_started = int(time.time())
 
     self.buildSources(source_dir)
     self.userset = set(self.usermap.values())
 
-    self.buildMeta(source_dir)
-    self.buildStaticStats() # Need to record these before aliasing is done
+    self.buildStaticStats()
     self.buildMergeInfo(source_dir)
 
 
@@ -106,7 +102,7 @@ class Margen:
 
   def buildSource(self, source_dir, source_filename):
 
-    nick = source_filename[:-Margen.SOURCEFILE_EXTLEN]
+    nick = source_filename[:-UserCollection.SOURCEFILE_EXTLEN]
     starters = []
     lookbackmap = {}
 
@@ -147,27 +143,6 @@ class Margen:
         lookbackmap[lookback] = []
 
       lookbackmap[lookback].append(follow)
-
-
-  def buildMeta(self, source_dir):
-
-    meta_filename = source_dir + GeneratorConfig.META_FILE_NAME
-    if not os.path.isfile(meta_filename):
-      return
-
-    meta_file = open(meta_filename, 'r')
-
-    for meta_line in meta_file:
-
-      meta_words = meta_line.strip().split("=")
-      if len(meta_words) != 2:
-        continue
-
-      meta_key = meta_words[0]
-      meta_values = meta_words[1].split()
-      self.meta[meta_key] = meta_values
-
-    meta_file.close()
 
 
   # Assemble any counts etc. that will not change after startup
@@ -212,40 +187,8 @@ class Margen:
     mergeinfo_file.close()
 
 
-  @staticmethod
-  def getFirstOrNone(lis):
-    if not lis:
-      return None
-    return lis[0]
-
-
   def empty(self):
     return not self.usermap
-
-
-  # Return a tuple consisting of a user's aliases, or None if the user does not exist
-  def getUserAliases(self, nick):
-    if nick in self.usermap:
-      return tuple(self.usermap[nick].aliases)
-    return tuple()
-
-
-  # Return a tuple consisting of generic statistics
-  def getGenericStatistics(self):
-
-    channel_primary = Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
-    channel_additionals = tuple()
-    if GeneratorConfig.META_ADDITIONAL in self.meta:
-      channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
-
-    return {
-      GenericStatisticType.USER_COUNT: self.user_count,
-      GenericStatisticType.DATE_STARTED: self.date_started,
-      GenericStatisticType.DATE_GENERATED: Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
-      GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
-      GenericStatisticType.BIGGEST_USERS: self.biggest_users,
-      GenericStatisticType.MOST_QUOTED_USERS: self.getMostQuoted()
-    }
 
 
   def getMostQuoted(self):
@@ -261,11 +204,77 @@ class Margen:
     return tuple(most_quoted_tuples)
 
 
+class Margen:
+
+  def __init__(self, source_dir):
+    self.users = UserCollection(source_dir)
+    self.meta = {}
+    self.date_started = int(time.time())
+    self.buildMeta(source_dir)
+
+
+  def buildMeta(self, source_dir):
+
+    meta_filename = source_dir + GeneratorConfig.META_FILE_NAME
+    if not os.path.isfile(meta_filename):
+      return
+
+    meta_file = open(meta_filename, 'r')
+
+    for meta_line in meta_file:
+
+      meta_words = meta_line.strip().split("=")
+      if len(meta_words) != 2:
+        continue
+
+      meta_key = meta_words[0]
+      meta_values = meta_words[1].split()
+      self.meta[meta_key] = meta_values
+
+    meta_file.close()
+
+
+  @staticmethod
+  def getFirstOrNone(lis):
+    if not lis:
+      return None
+    return lis[0]
+
+
+  def empty(self):
+    return self.users.empty()
+
+
+  # Return a tuple consisting of a user's aliases, or None if the user does not exist
+  def getUserAliases(self, nick):
+    if nick in self.users.usermap:
+      return tuple(self.users.usermap[nick].aliases)
+    return tuple()
+
+
+  # Return a tuple consisting of generic statistics
+  def getGenericStatistics(self):
+
+    channel_primary = Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
+    channel_additionals = tuple()
+    if GeneratorConfig.META_ADDITIONAL in self.meta:
+      channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
+
+    return {
+      GenericStatisticType.USER_COUNT: self.users.user_count,
+      GenericStatisticType.DATE_STARTED: self.date_started,
+      GenericStatisticType.DATE_GENERATED: Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
+      GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
+      GenericStatisticType.BIGGEST_USERS: self.users.biggest_users,
+      GenericStatisticType.MOST_QUOTED_USERS: self.users.getMostQuoted()
+    }
+
+
   # Return a tuple consisting of a user's statistics, or None if the user does not exist
   def getUserStatistics(self, nick):
-    if not nick in self.usermap:
+    if not nick in self.users.usermap:
       return None
-    return self.usermap[nick].getStatistics(nick)
+    return self.users.usermap[nick].getStatistics(nick)
 
 
   # Return a nick at random, as long as it has at least a certain number of starter entries,
@@ -273,7 +282,7 @@ class Margen:
   def getRandomNick(self, excludes, min_starters=0):
 
     possibles = []
-    for user in self.userset:
+    for user in self.users.userset:
       if not user.nick in excludes and len(user.starters) > min_starters:
         possibles.append(user.nick)
 
@@ -299,13 +308,13 @@ class Margen:
         real_alias = self.getRandomNick(real_nicks, random_min_starters)
 
       # Catch any Nones or empties
-      if real_alias and real_alias in self.usermap:
+      if real_alias and real_alias in self.users.usermap:
 
         # Only increment this if the user was directly requested
         if increment_quote_count:
-          self.usermap[real_alias].quotes_requested += 1
+          self.users.usermap[real_alias].quotes_requested += 1
 
-        real_nick = self.usermap[real_alias].nick
+        real_nick = self.users.usermap[real_alias].nick
         real_nicks.add(real_nick)
 
     return list(real_nicks)
@@ -358,7 +367,7 @@ class Margen:
       return ([], "")
 
     first_nick = real_nicks[0]
-    first_user = self.usermap[first_nick]
+    first_user = self.users.usermap[first_nick]
     starting_pairs = first_user.starters
     lookbacks = first_user.lookbacks
 
@@ -369,7 +378,7 @@ class Margen:
       lookbacks = self.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      other_user = self.usermap[other_nick]
+      other_user = self.users.usermap[other_nick]
       starting_pairs += other_user.starters
       self.mergeIntoDictionary(lookbacks, other_user.lookbacks)
 
