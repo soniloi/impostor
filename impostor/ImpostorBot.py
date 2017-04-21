@@ -190,6 +190,8 @@ class ImpostorBot(irc.IRCClient):
   MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
   MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
   MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
+  MYSTERY_SCORE = MYSTERY_TRIGGER + Config.MYSTERY_SCORE + Style.CLEAR
+  MYSTERY_SCORE_NICK = MYSTERY_TRIGGER + Config.MYSTERY_SCORE + " <player-nick>" + Style.CLEAR
 
   BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
     + GENERATE_SINGLE + " to see a line generated for a single user, " \
@@ -202,8 +204,10 @@ class ImpostorBot(irc.IRCClient):
   BOT_DESC_MYSTERY = "Type " \
     + MYSTERY_START + " to generate a mystery line. Then type " \
     + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
-    + MYSTERY_HINT + " for a hint, or " \
-    + MYSTERY_SOLVE + " to see the solution. "
+    + MYSTERY_HINT + " for a hint, " \
+    + MYSTERY_SOLVE + " to see the solution, " \
+    + MYSTERY_SCORE + " to see some high scores, or " \
+    + MYSTERY_SCORE_NICK + " to see the score of a specific player. "
 
   BOT_DESC_ADDITIONAL = "Type " \
     + META_STATS + " for basic generic statistics, or " \
