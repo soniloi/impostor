@@ -14,6 +14,7 @@ import GeneratorConfig
 AliasInfo = namedtuple("AliasInfo", "aliases, requested_nick")
 NickAndCount = namedtuple("NickAndCount", "nick, count")
 SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
+UserStatsToPersist = namedtuple("UserStatsToPersist", "quotes_requested");
 
 
 class NickType:
@@ -66,6 +67,9 @@ class User:
       UserStatisticType.PRODUCTION_COUNT: self.production_count,
       UserStatisticType.QUOTES_REQUESTED: self.quotes_requested,
     }
+
+  def getStatisticsToPersist(self):
+    return UserStatsToPersist(self.quotes_requested)
 
 
 class GenericStatisticType:
@@ -279,7 +283,7 @@ class UserCollection:
 
   def updateChanges(self):
     self.changes += 1
-    if self.changes >= 5:
+    if self.changes >= GeneratorConfig.CHANGES_BETWEEN_STATS_PERSISTENCE:
       self.writeOut()
       self.changes = 0
 
@@ -287,8 +291,8 @@ class UserCollection:
   def writeOut(self):
     data = {}
     for user in self.userset:
-      data[user.nick] = user.quotes_requested
-    pickle.dump(data, open("users.p", "wb"))
+      data[user.nick] = user.getStatisticsToPersist()
+    pickle.dump(data, open(GeneratorConfig.STATS_FILE_NAME, "wb"))
 
 
 class Margen:
