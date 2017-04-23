@@ -85,6 +85,7 @@ class UserCollection:
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
+    self.changes = 0
 
     self.buildSources(source_dir)
     self.userset = set(self.usermap.values())
@@ -261,7 +262,7 @@ class UserCollection:
         # Only increment this if the user was directly requested
         if increment_quote_count:
           self.usermap[real_alias].quotes_requested += 1
-          self.writeOut()
+          self.updateChanges()
 
         real_nick = self.usermap[real_alias].nick
         real_nicks.add(real_nick)
@@ -274,6 +275,13 @@ class UserCollection:
     if not nick in self.usermap:
       return None
     return self.usermap[nick].getStatistics(nick)
+
+
+  def updateChanges(self):
+    self.changes += 1
+    if self.changes >= 5:
+      self.writeOut()
+      self.changes = 0
 
 
   def writeOut(self):
