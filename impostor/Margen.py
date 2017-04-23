@@ -4,6 +4,7 @@
 
 from collections import namedtuple
 import os
+import pickle
 import random
 import time
 
@@ -260,6 +261,7 @@ class UserCollection:
         # Only increment this if the user was directly requested
         if increment_quote_count:
           self.usermap[real_alias].quotes_requested += 1
+          self.writeOut()
 
         real_nick = self.usermap[real_alias].nick
         real_nicks.add(real_nick)
@@ -272,6 +274,13 @@ class UserCollection:
     if not nick in self.usermap:
       return None
     return self.usermap[nick].getStatistics(nick)
+
+
+  def writeOut(self):
+    data = {}
+    for user in self.userset:
+      data[user.nick] = user.quotes_requested
+    pickle.dump(data, open("users.p", "wb"))
 
 
 class Margen:
