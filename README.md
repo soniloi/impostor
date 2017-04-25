@@ -138,13 +138,13 @@ A random-user comment is one generated from a random user in the set. To generat
 
 #### Notes
 
-If the bot is called on a username that does not exist, then it does not do anything.
+* If the bot is called on a username that does not exist, then it does not do anything.
 
-If the bot is called on a nick that is an alias, then the real user will be resolved.
+* If the bot is called on a nick that is an alias, then the real user will be resolved.
 
-If it is called for a combination of a user that exists and one that does not, then it will only return a quote for one that exists.
+* If it is called for a combination of a user that exists and one that does not, then it will only return a quote for one that exists.
 
-If ```random``` is called as part of a combination (including a ```random:random``` combination), it will not return two of the same.
+* If ```random``` is called as part of a combination (including a ```random:random``` combination), it will not return two of the same.
 
 ### Additional features
 
@@ -183,7 +183,14 @@ Players then attempt to guess the identity of the author, by typing:
 ```
 @guess <nick>
 ```
-Players can guess as many times as they like. It is also possible to request hints:
+Players can guess as many times as they like. Score is kept for a given run of the bot. To see some information on scores, type:
+```
+@score
+@score <player-nick>
+```
+The first prints high scores. The second prints the score for a given player. Note that the player nick set is entirely separate from the user nick set.
+
+It is also possible to request hints:
 ```
 @hint
 ```
