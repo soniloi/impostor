@@ -1,5 +1,6 @@
 from collections import namedtuple
 import datetime
+import pickle
 import random
 import re
 
@@ -147,6 +148,12 @@ class Player:
        self.scores[PlayerScoreType.GUESSES_INCORRECT], \
        self.scores[PlayerScoreType.GUESSES_CORRECT])
 
+  def getStatisticsToPersist(self):
+    return PlayerStatsToPersist( \
+      self.scores[PlayerScoreType.GAMES_PLAYED], \
+      self.scores[PlayerScoreType.GUESSES_INCORRECT], \
+      self.scores[PlayerScoreType.GUESSES_CORRECT])
+
 
 class MessageLogger:
   """
@@ -167,6 +174,7 @@ class MessageLogger:
 
 
 StatisticFormat = namedtuple("StatisticFormat", "function, container")
+PlayerStatsToPersist = namedtuple("PlayerStatsToPersist", "games_played, guesses_incorrect, guesses_correct")
 
 
 class ImpostorBot(irc.IRCClient):
@@ -207,7 +215,7 @@ class ImpostorBot(irc.IRCClient):
     + MYSTERY_HINT + " for a hint, " \
     + MYSTERY_SOLVE + " to see the solution, " \
     + MYSTERY_SCORE + " to see some high scores, or " \
-    + MYSTERY_SCORE_NICK + " to see the score of a specific player. "
+    + MYSTERY_SCORE_NICK + " to see the score of a specific player."
 
   BOT_DESC_ADDITIONAL = "Type " \
     + META_STATS + " for basic generic statistics, or " \
@@ -224,6 +232,7 @@ class ImpostorBot(irc.IRCClient):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
+    self.changes = 0
     self.players = {}
     self.initCommandMap()
     self.initStatisticFormatters()
@@ -681,6 +690,8 @@ class ImpostorBot(irc.IRCClient):
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (real_author, aka, user)
           self.current_mystery = None
 
+      self.updateChanges()
+
     return [output_message]
 
   # Give hint about mystery by printing a random character from the author's nick
@@ -758,6 +769,18 @@ class ImpostorBot(irc.IRCClient):
       output_message = self.players[nick].getScoreMessage(nick_formatted)
 
     return [output_message]
+
+  def updateChanges(self):
+    self.changes += 1
+    if self.changes >= Config.CHANGES_BETWEEN_STATS_PERSISTENCE:
+      self.writeOut()
+      self.changes = 0
+
+  def writeOut(self):
+    data = {}
+    for (nick, player) in self.players.iteritems():
+      data[nick] = player.getStatisticsToPersist()
+    pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
 
 
 class ImpostorBotFactory(protocol.ClientFactory):

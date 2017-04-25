@@ -28,5 +28,8 @@ OUTPUT_NICKS_OPEN = '[' # Character(s) before a nick(s)
 OUTPUT_NICKS_SEP = ':' # Character(s) between output nicks
 OUTPUT_NICKS_CLOSE = '] ' # Character(s) after nick(s)
 
+STATS_FILE_NAME = "players.p" # File to save player stats to
+CHANGES_BETWEEN_STATS_PERSISTENCE = 5 # Number of changes seen between stats writes to disk
+
 REPOSITORY = 'https://github.com/soniloi/impostor'
 
