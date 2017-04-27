@@ -96,6 +96,7 @@ class UserCollection:
 
     self.buildStaticStats()
     self.buildMergeInfo(source_dir)
+    self.loadUserStats()
 
 
   def buildSources(self, source_dir):
@@ -191,6 +192,18 @@ class UserCollection:
         self.usermap[alias] = user
 
     mergeinfo_file.close()
+
+
+  def loadUserStats(self):
+
+    if not os.path.isfile(GeneratorConfig.STATS_FILE_NAME):
+      return
+
+    data = pickle.load(open(GeneratorConfig.STATS_FILE_NAME, "rb"))
+
+    for (nick, stats) in data.iteritems():
+      if nick in self.usermap:
+        self.usermap[nick].quotes_requested = stats.quotes_requested
 
 
   def empty(self):
