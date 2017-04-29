@@ -161,6 +161,24 @@ class Player:
     self.scores[PlayerScoreType.GUESSES_CORRECT] = scores.guesses_correct
 
 
+class PlayerCollection:
+
+  def __init__(self):
+    self.playermap = {} # Map of nick to Player objects
+    self.loadPlayerScores()
+
+  def loadPlayerScores(self):
+
+    if not os.path.isfile(Config.STATS_FILE_NAME):
+      return
+
+    data = pickle.load(open(Config.STATS_FILE_NAME))
+
+    for (nick, scores) in data.iteritems():
+      self.playermap[nick] = Player(nick)
+      self.playermap[nick].setScores(scores)
+
+
 class MessageLogger:
   """
   An independent logger class (because separation of application
@@ -239,8 +257,7 @@ class ImpostorBot(irc.IRCClient):
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.changes = 0
-    self.players = {}
-    self.loadPlayerScores()
+    self.players = PlayerCollection()
     self.initCommandMap()
     self.initStatisticFormatters()
     if self.generator.empty():
@@ -335,11 +352,11 @@ class ImpostorBot(irc.IRCClient):
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
 
-    if old_nick in self.players:
-      player = self.players[old_nick]
+    if old_nick in self.players.playermap:
+      player = self.players.playermap[old_nick]
       player.nick = new_nick
-      self.players[new_nick] = player
-      del self.players[old_nick]
+      self.players.playermap[new_nick] = player
+      del self.players.playermap[old_nick]
 
   # For fun, override the method that determines how a nickname is changed on
   # collisions. The default method appends an underscore.
@@ -676,10 +693,10 @@ class ImpostorBot(irc.IRCClient):
       if len(tokens) == 2:
 
         # Find or create player, and record that they took part in this game
-        if not user in self.players:
-          self.players[user] = Player(user)
+        if not user in self.players.playermap:
+          self.players.playermap[user] = Player(user)
 
-        player = self.players[user]
+        player = self.players.playermap[user]
         player.recordGame(self.current_mystery.ident)
 
         # Evaluate player's guess
@@ -740,10 +757,10 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = "No-one has participated in any games since I was last started."
 
-    if self.players:
+    if self.players.playermap:
 
       top_players = {}
-      all_players = self.players.values()
+      all_players = self.players.playermap.values()
 
       for score_type in PlayerScoreType.ALL_TYPES:
         top_players[score_type] = all_players[0]
@@ -772,8 +789,8 @@ class ImpostorBot(irc.IRCClient):
 
     output_message = "If there is someone currently called %s, then they have not played since I was last started." % nick_formatted
 
-    if nick in self.players:
-      output_message = self.players[nick].getScoreMessage(nick_formatted)
+    if nick in self.players.playermap:
+      output_message = self.players.playermap[nick].getScoreMessage(nick_formatted)
 
     return [output_message]
 
@@ -785,21 +802,9 @@ class ImpostorBot(irc.IRCClient):
 
   def writeOut(self):
     data = {}
-    for (nick, player) in self.players.iteritems():
+    for (nick, player) in self.players.playermap.iteritems():
       data[nick] = player.getStatisticsToPersist()
     pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
-
-
-  def loadPlayerScores(self):
-
-    if not os.path.isfile(Config.STATS_FILE_NAME):
-      return
-
-    data = pickle.load(open(Config.STATS_FILE_NAME))
-
-    for (nick, scores) in data.iteritems():
-      self.players[nick] = Player(nick)
-      self.players[nick].setScores(scores)
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
