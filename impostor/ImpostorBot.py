@@ -1,5 +1,6 @@
 from collections import namedtuple
 import datetime
+import os
 import pickle
 import random
 import re
@@ -149,10 +150,15 @@ class Player:
        self.scores[PlayerScoreType.GUESSES_CORRECT])
 
   def getStatisticsToPersist(self):
-    return PlayerStatsToPersist( \
+    return PlayerScoresToPersist( \
       self.scores[PlayerScoreType.GAMES_PLAYED], \
       self.scores[PlayerScoreType.GUESSES_INCORRECT], \
       self.scores[PlayerScoreType.GUESSES_CORRECT])
+
+  def setScores(self, scores):
+    self.scores[PlayerScoreType.GAMES_PLAYED] = scores.games_played
+    self.scores[PlayerScoreType.GUESSES_INCORRECT] = scores.guesses_incorrect
+    self.scores[PlayerScoreType.GUESSES_CORRECT] = scores.guesses_correct
 
 
 class MessageLogger:
@@ -174,7 +180,7 @@ class MessageLogger:
 
 
 StatisticFormat = namedtuple("StatisticFormat", "function, container")
-PlayerStatsToPersist = namedtuple("PlayerStatsToPersist", "games_played, guesses_incorrect, guesses_correct")
+PlayerScoresToPersist = namedtuple("PlayerScoresToPersist", "games_played, guesses_incorrect, guesses_correct")
 
 
 class ImpostorBot(irc.IRCClient):
@@ -234,6 +240,7 @@ class ImpostorBot(irc.IRCClient):
     self.next_mystery_ident = 0
     self.changes = 0
     self.players = {}
+    self.loadPlayerScores()
     self.initCommandMap()
     self.initStatisticFormatters()
     if self.generator.empty():
@@ -781,6 +788,18 @@ class ImpostorBot(irc.IRCClient):
     for (nick, player) in self.players.iteritems():
       data[nick] = player.getStatisticsToPersist()
     pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
+
+
+  def loadPlayerScores(self):
+
+    if not os.path.isfile(Config.STATS_FILE_NAME):
+      return
+
+    data = pickle.load(open(Config.STATS_FILE_NAME))
+
+    for (nick, scores) in data.iteritems():
+      self.players[nick] = Player(nick)
+      self.players[nick].setScores(scores)
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
