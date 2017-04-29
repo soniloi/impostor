@@ -165,6 +165,7 @@ class PlayerCollection:
 
   def __init__(self):
     self.playermap = {} # Map of nick to Player objects
+    self.changes = 0
     self.loadPlayerScores()
 
   def loadPlayerScores(self):
@@ -177,6 +178,38 @@ class PlayerCollection:
     for (nick, scores) in data.iteritems():
       self.playermap[nick] = Player(nick)
       self.playermap[nick].setScores(scores)
+
+  def updateNick(self, old_nick, new_nick):
+
+    if old_nick in self.playermap:
+      player = self.playermap[old_nick]
+      player.nick = new_nick
+      self.playermap[new_nick] = player
+      del self.playermap[old_nick]
+
+  def getOrCreatePlayer(self, nick):
+
+    if not user in self.playermap:
+      self.playermap[nick] = Player(nick)
+
+    player = self.playermap[nick]
+
+  def updateChanges(self):
+
+    self.changes += 1
+
+    if self.changes >= Config.CHANGES_BETWEEN_STATS_PERSISTENCE:
+      self.savePlayerScores()
+      self.changes = 0
+
+  def savePlayerScores(self):
+
+    data = {}
+
+    for (nick, player) in self.playermap.iteritems():
+      data[nick] = player.getStatisticsToPersist()
+
+    pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
 
 
 class MessageLogger:
@@ -256,7 +289,6 @@ class ImpostorBot(irc.IRCClient):
     self.generator = Margen.Margen(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
-    self.changes = 0
     self.players = PlayerCollection()
     self.initCommandMap()
     self.initStatisticFormatters()
@@ -352,11 +384,7 @@ class ImpostorBot(irc.IRCClient):
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
 
-    if old_nick in self.players.playermap:
-      player = self.players.playermap[old_nick]
-      player.nick = new_nick
-      self.players.playermap[new_nick] = player
-      del self.players.playermap[old_nick]
+    self.players.updateNick(old_nick, new_nick)
 
   # For fun, override the method that determines how a nickname is changed on
   # collisions. The default method appends an underscore.
@@ -693,10 +721,7 @@ class ImpostorBot(irc.IRCClient):
       if len(tokens) == 2:
 
         # Find or create player, and record that they took part in this game
-        if not user in self.players.playermap:
-          self.players.playermap[user] = Player(user)
-
-        player = self.players.playermap[user]
+        self.players.getOrCreatePlayer(user)
         player.recordGame(self.current_mystery.ident)
 
         # Evaluate player's guess
@@ -714,7 +739,7 @@ class ImpostorBot(irc.IRCClient):
           output_message = ImpostorBot.MYSTERY_SOLVE_WITH_WINNER % (real_author, aka, user)
           self.current_mystery = None
 
-      self.updateChanges()
+      self.players.updateChanges()
 
     return [output_message]
 
@@ -793,18 +818,6 @@ class ImpostorBot(irc.IRCClient):
       output_message = self.players.playermap[nick].getScoreMessage(nick_formatted)
 
     return [output_message]
-
-  def updateChanges(self):
-    self.changes += 1
-    if self.changes >= Config.CHANGES_BETWEEN_STATS_PERSISTENCE:
-      self.writeOut()
-      self.changes = 0
-
-  def writeOut(self):
-    data = {}
-    for (nick, player) in self.players.playermap.iteritems():
-      data[nick] = player.getStatisticsToPersist()
-    pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
