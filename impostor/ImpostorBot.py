@@ -209,6 +209,40 @@ class PlayerCollection:
 
     pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
 
+  def getGenericScore(self):
+
+    if not self.playermap.values():
+      return None
+
+    top_players = {}
+    all_players = self.playermap.values()
+
+    for score_type in PlayerScoreType.ALL_TYPES:
+      top_players[score_type] = all_players[0]
+
+    for player in all_players[1:]:
+      for score_type in PlayerScoreType.ALL_TYPES:
+        if player.scores[score_type] > top_players[score_type].scores[score_type]:
+          top_players[score_type] = player
+
+    most_games_player = top_players[PlayerScoreType.GAMES_PLAYED]
+    most_incorrect_player = top_players[PlayerScoreType.GUESSES_INCORRECT];
+    most_correct_player = top_players[PlayerScoreType.GUESSES_CORRECT];
+
+    return (most_games_player.nick, \
+            most_games_player.scores[PlayerScoreType.GAMES_PLAYED], \
+            most_incorrect_player.nick, \
+            most_incorrect_player.scores[PlayerScoreType.GUESSES_INCORRECT], \
+            most_correct_player.nick, \
+            most_correct_player.scores[PlayerScoreType.GUESSES_CORRECT])
+
+  def getPlayerScore(self, nick):
+
+    if not nick in self.playermap:
+      return None
+
+    return self.playermap[nick].getScore()
+
 
 class MessageLogger:
   """
@@ -280,6 +314,11 @@ class ImpostorBot(irc.IRCClient):
   NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
   MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s%s. Congratulations, %s! "
+
+  GENERIC_SCORE_MESSAGE_UNKNOWN = "No-one has participated in any games since I was last started."
+  GENERIC_SCORE_MESSAGE_KNOWN = "The player who has played the most games is %s with %d game(s). " \
+                       "The player with the most incorrect guesses is %s with %d. " \
+                       "The player with the most correct guesses is %s with %d. "
 
   PLAYER_SCORE_MESSAGE_KNOWN = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
   PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I was last started. "
@@ -781,31 +820,11 @@ class ImpostorBot(irc.IRCClient):
 
   def makeGenericScore(self):
 
-    output_message = "No-one has participated in any games since I was last started."
+    output_message = ImpostorBot.GENERIC_SCORE_MESSAGE_UNKNOWN
 
-    if self.players.playermap:
-
-      top_players = {}
-      all_players = self.players.playermap.values()
-
-      for score_type in PlayerScoreType.ALL_TYPES:
-        top_players[score_type] = all_players[0]
-
-      for player in all_players[1:]:
-        for score_type in PlayerScoreType.ALL_TYPES:
-          if player.scores[score_type] > top_players[score_type].scores[score_type]:
-            top_players[score_type] = player
-
-      most_games_player = top_players[PlayerScoreType.GAMES_PLAYED]
-      most_incorrect_player = top_players[PlayerScoreType.GUESSES_INCORRECT];
-      most_correct_player = top_players[PlayerScoreType.GUESSES_CORRECT];
-
-      output_message = "The player who has played the most games is %s with %d game(s). " \
-                       "The player with the most incorrect guesses is %s with %d. " \
-                       "The player with the most correct guesses is %s with %d. " \
-                       % (most_games_player.nick, most_games_player.scores[PlayerScoreType.GAMES_PLAYED], \
-                          most_incorrect_player.nick, most_incorrect_player.scores[PlayerScoreType.GUESSES_INCORRECT], \
-                          most_correct_player.nick, most_correct_player.scores[PlayerScoreType.GUESSES_CORRECT])
+    scores = self.players.getGenericScore()
+    if scores:
+      output_message = ImpostorBot.GENERIC_SCORE_MESSAGE_KNOWN % scores
 
     return [output_message]
 
@@ -814,9 +833,9 @@ class ImpostorBot(irc.IRCClient):
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
     output_message = ImpostorBot.PLAYER_SCORE_MESSAGE_UNKNOWN % nick_formatted
+    scores = self.players.getPlayerScore(nick)
 
-    if nick in self.players.playermap:
-      scores = self.players.playermap[nick].getScore()
+    if scores:
       score_args = (nick_formatted,) + scores
       output_message = ImpostorBot.PLAYER_SCORE_MESSAGE_KNOWN % score_args
 
