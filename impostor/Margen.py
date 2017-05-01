@@ -196,14 +196,21 @@ class UserCollection:
 
   def loadUserStats(self):
 
-    if not os.path.isfile(GeneratorConfig.STATS_FILE_NAME):
+    filename = GeneratorConfig.STATS_FILE_NAME
+
+    if not os.path.isfile(filename):
       return
 
-    data = pickle.load(open(GeneratorConfig.STATS_FILE_NAME, "rb"))
+    try:
+      data = pickle.load(open(filename, "rb"))
 
-    for (nick, stats) in data.iteritems():
-      if nick in self.usermap:
-        self.usermap[nick].quotes_requested = stats.quotes_requested
+      for (nick, stats) in data.iteritems():
+        if nick in self.usermap:
+          self.usermap[nick].quotes_requested = stats.quotes_requested
+
+    except:
+      print "Error reading or parsing user stats file %s. Generator will start, but previous stats may not be correctly loaded. " \
+             % filename
 
 
   def empty(self):

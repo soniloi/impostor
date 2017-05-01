@@ -168,14 +168,21 @@ class PlayerCollection:
 
   def loadPlayerScores(self):
 
-    if not os.path.isfile(Config.STATS_FILE_NAME):
+    filename = Config.STATS_FILE_NAME
+
+    if not os.path.isfile(filename):
       return
 
-    data = pickle.load(open(Config.STATS_FILE_NAME))
+    try:
+      data = pickle.load(open(filename, "rb"))
 
-    for (nick, scores) in data.iteritems():
-      self.playermap[nick] = Player(nick)
-      self.playermap[nick].setScores(scores)
+      for (nick, scores) in data.iteritems():
+        self.playermap[nick] = Player(nick)
+        self.playermap[nick].setScores(scores)
+
+    except:
+      print "Error reading or parsing player scores file %s. Bot will start, but previous scores may not be correctly loaded. " \
+             % filename
 
   def updateNick(self, old_nick, new_nick):
 
