@@ -123,8 +123,6 @@ class PlayerScoreType:
 
 class Player:
 
-  SCORE_MESSAGE = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
-
   def __init__(self, nick):
 
     self.nick = nick
@@ -142,12 +140,12 @@ class Player:
       self.scores[PlayerScoreType.GAMES_PLAYED] += 1
       self.last_played_ident = ident
 
-  def getScoreMessage(self, nick_formatted):
-    return Player.SCORE_MESSAGE % \
-      (nick_formatted, \
+  def getScore(self):
+    return( \
        self.scores[PlayerScoreType.GAMES_PLAYED], \
        self.scores[PlayerScoreType.GUESSES_INCORRECT], \
-       self.scores[PlayerScoreType.GUESSES_CORRECT])
+       self.scores[PlayerScoreType.GUESSES_CORRECT]
+    )
 
   def getStatisticsToPersist(self):
     return PlayerScoresToPersist( \
@@ -189,10 +187,10 @@ class PlayerCollection:
 
   def getOrCreatePlayer(self, nick):
 
-    if not user in self.playermap:
+    if not nick in self.playermap:
       self.playermap[nick] = Player(nick)
 
-    player = self.playermap[nick]
+    return self.playermap[nick]
 
   def updateChanges(self):
 
@@ -282,6 +280,9 @@ class ImpostorBot(irc.IRCClient):
   NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
   MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s%s. Congratulations, %s! "
+
+  PLAYER_SCORE_MESSAGE_KNOWN = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
+  PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I was last started. "
 
   nickname = Config.BOT_NICK
 
@@ -721,7 +722,7 @@ class ImpostorBot(irc.IRCClient):
       if len(tokens) == 2:
 
         # Find or create player, and record that they took part in this game
-        self.players.getOrCreatePlayer(user)
+        player = self.players.getOrCreatePlayer(user)
         player.recordGame(self.current_mystery.ident)
 
         # Evaluate player's guess
@@ -812,10 +813,12 @@ class ImpostorBot(irc.IRCClient):
 
     nick_formatted = ImpostorBot.formatStatsDisplayBold(nick)
 
-    output_message = "If there is someone currently called %s, then they have not played since I was last started." % nick_formatted
+    output_message = ImpostorBot.PLAYER_SCORE_MESSAGE_UNKNOWN % nick_formatted
 
     if nick in self.players.playermap:
-      output_message = self.players.playermap[nick].getScoreMessage(nick_formatted)
+      scores = self.players.playermap[nick].getScore()
+      score_args = (nick_formatted,) + scores
+      output_message = ImpostorBot.PLAYER_SCORE_MESSAGE_KNOWN % score_args
 
     return [output_message]
 
