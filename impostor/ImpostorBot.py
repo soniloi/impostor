@@ -290,6 +290,12 @@ class ImpostorBot(irc.IRCClient):
   META_STATS = STATS_TRIGGER + Config.META_STATS + Style.CLEAR
   META_STATS_USER = STATS_TRIGGER + Config.META_STATS + " <nick>" + Style.CLEAR
 
+  HELP_ABBR_GENERATOR = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.META_HELP_GENERATOR + Style.CLEAR
+  HELP_ABBR_MYSTERY = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.MYSTERY_START + Style.CLEAR
+  HELP_ABBR_STATS = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.META_STATS + Style.CLEAR
+  HELP_ABBR_SCORE = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.MYSTERY_SCORE + Style.CLEAR
+  HELP_ABBRS = [HELP_ABBR_GENERATOR, HELP_ABBR_MYSTERY, HELP_ABBR_STATS, HELP_ABBR_SCORE]
+
   MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
   MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
   MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
@@ -298,25 +304,36 @@ class ImpostorBot(irc.IRCClient):
   MYSTERY_SCORE_NICK = MYSTERY_TRIGGER + Config.MYSTERY_SCORE + " <player-nick>" + Style.CLEAR
 
   BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
+    + GENERATE_SINGLE + " to see a line generated for a someone. Type " \
+    + ", ".join(HELP_ABBRS[:-1]) + ", or " + HELP_ABBRS[-1] \
+    + " for help with other commands. See " \
+    + Config.REPOSITORY + " for (slightly) more information. "
+
+  HELP_GENERATOR = "Type " \
     + GENERATE_SINGLE + " to see a line generated for a single user, " \
     + GENERATE_RANDOM + " for a line generated for a random user, or " \
     + GENERATE_MERGED + " to see a line generated from two users merged. "
-  if Config.ALL_USED:
-    BOT_DESC_BASIC += "You may also type '" \
-    + GENERATE_ALL + " to see a line generated from all channel users combined. "
 
-  BOT_DESC_MYSTERY = "Type " \
-    + MYSTERY_START + " to generate a mystery line. Then type " \
+  HELP_MYSTERY = "Type " \
+    + MYSTERY_START + " to generate a line from a mystery author. Then type " \
     + MYSTERY_GUESS + " to guess the nick of the mystery line's author, " \
-    + MYSTERY_HINT + " for a hint, " \
-    + MYSTERY_SOLVE + " to see the solution, " \
-    + MYSTERY_SCORE + " to see some high scores, or " \
-    + MYSTERY_SCORE_NICK + " to see the score of a specific player."
+    + MYSTERY_HINT + " for a hint, or " \
+    + MYSTERY_SOLVE + " to see the solution. "
 
-  BOT_DESC_ADDITIONAL = "Type " \
+  HELP_STATS = "Type " \
     + META_STATS + " for basic generic statistics, or " \
-    + META_STATS_USER + " for statistics on a specific user. See " \
-    + Config.REPOSITORY + " for (slightly) more information. "
+    + META_STATS_USER + " for statistics on a specific user. "
+
+  HELP_SCORE = "Type " \
+    + MYSTERY_SCORE + " to see some high scores, or " \
+    + MYSTERY_SCORE_NICK + " to see the score of a specific player. "
+
+  HELP_SPECIFIC = {
+    Config.META_HELP_GENERATOR : HELP_GENERATOR,
+    Config.MYSTERY_START : HELP_MYSTERY,
+    Config.META_STATS : HELP_STATS,
+    Config.MYSTERY_SCORE : HELP_SCORE,
+  }
 
   NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
@@ -353,7 +370,7 @@ class ImpostorBot(irc.IRCClient):
       Config.MYSTERY_SCORE: ImpostorBot.scoreMystery,
     }
 
-    for help_string in Config.META_HELP:
+    for help_string in Config.META_HELP_ALL:
       self.commands[help_string] = ImpostorBot.makeHelp
 
   def initStatisticFormatters(self):
@@ -443,14 +460,32 @@ class ImpostorBot(irc.IRCClient):
     return nickname + '^'
 
   def makeHelp(self, user, raw_tokens):
-    return [ImpostorBot.BOT_DESC_BASIC, ImpostorBot.BOT_DESC_MYSTERY + ImpostorBot.BOT_DESC_ADDITIONAL]
+
+    specifics = raw_tokens[1:]
+    output_messages = []
+
+    if not specifics:
+      output_messages.append(self.makeGenericHelp())
+
+    else:
+      specific_help = self.makeSpecificHelp(specifics[0])
+      if specific_help:
+        output_messages.append(specific_help)
+
+    return output_messages
+
+  def makeGenericHelp(self):
+    return ImpostorBot.BOT_DESC_BASIC
+
+  def makeSpecificHelp(self, query):
+    return ImpostorBot.HELP_SPECIFIC.get(query)
 
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
     return []
 
   def directedAtMe(self, user, input_message):
-    return self.makeHelp(user, input_message.split())
+    return self.makeGenericHelp(user, input_message.split())
 
   def triggerGenerateQuote(self, user, input_message):
 

@@ -1,7 +1,9 @@
 GENERATE_TRIGGER = '!'
 META_TRIGGER = '@'
 
-META_HELP = ['?', 'help', 'impostor']
+META_HELP_PRIMARY = 'help'
+META_HELP_GENERATOR = 'generator'
+META_HELP_ALL = [META_HELP_PRIMARY, '?', 'impostor']
 
 META_STATS = 'stats'
 
