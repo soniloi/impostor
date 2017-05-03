@@ -284,7 +284,7 @@ class UserCollection:
       if real_alias and real_alias in self.usermap:
 
         # Only increment this if the user was directly requested
-        if increment_quote_count:
+        if increment_quote_count and nick_tuple[0] != NickType.RANDOM:
           self.usermap[real_alias].quotes_requested += 1
           self.updateChanges()
 
