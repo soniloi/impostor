@@ -156,18 +156,24 @@ To see a help message, type:
 ```
 @help
 ```
-
+It is also possible to ask for help with something specific. Currently, the following are supported.
+```
+@help generator
+@help mystery
+@help stats
+@help score
+```
 #### Statistics
 
-To see some channel statistics (and other, non-statistical, information), type:
+To see some generic statistics (and other, non-statistical, information), type:
 ```
 @stats
 ```
-
 To see some statistics pertaining to a specific user, type:
 ```
 @stats <nick>
 ```
+Statistics are persisted across restarts of the bot. By default, they are persisted to a file called ``users.p``.
 
 #### Mystery game
 
@@ -183,12 +189,12 @@ Players then attempt to guess the identity of the author, by typing:
 ```
 @guess <nick>
 ```
-Players can guess as many times as they like. Score is kept for a given run of the bot. To see some information on scores, type:
+Players can guess as many times as they like. To see some information on scores, type:
 ```
 @score
 @score <player-nick>
 ```
-The first prints high scores. The second prints the score for a given player. Note that the player nick set is entirely separate from the user nick set.
+The first prints high scores. The second prints the score for a given player. Note that the player nick set is entirely separate from the user nick set. Like user statistics, player scores are persisted, by default to a file called ``players.p``.
 
 It is also possible to request hints:
 ```
