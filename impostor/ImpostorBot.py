@@ -339,13 +339,13 @@ class ImpostorBot(irc.IRCClient):
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
   MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s%s. Congratulations, %s! "
 
-  GENERIC_SCORE_MESSAGE_UNKNOWN = "No-one has participated in any games since I was last started."
+  GENERIC_SCORE_MESSAGE_UNKNOWN = "No-one has participated in any games since I started keeping records."
   GENERIC_SCORE_MESSAGE_KNOWN = "The player who has played the most games is %s with %d game(s). " \
                        "The player with the most incorrect guesses is %s with %d. " \
                        "The player with the most correct guesses is %s with %d. "
 
   PLAYER_SCORE_MESSAGE_KNOWN = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
-  PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I was last started. "
+  PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I started keeping records. "
 
   nickname = Config.BOT_NICK
 
@@ -381,7 +381,7 @@ class ImpostorBot(irc.IRCClient):
       GenericStatisticType.DATE_GENERATED: StatisticFormat(ImpostorBot.formatGenericDate, "My source material was generated on %s. "),
       GenericStatisticType.SOURCE_CHANNELS: StatisticFormat(ImpostorBot.formatGenericChannels, "Its primary source channel was %s, and additional material was drawn from %s. "),
       GenericStatisticType.BIGGEST_USERS: StatisticFormat(ImpostorBot.formatGenericBiggestUsers, "The %d users with the most source material are: %s. "),
-      GenericStatisticType.MOST_QUOTED_USERS: StatisticFormat(ImpostorBot.formatGenericMostQuotedUsers, "Since the last time I was started, the user prompted for quotes most often is: %s. "),
+      GenericStatisticType.MOST_QUOTED_USERS: StatisticFormat(ImpostorBot.formatGenericMostQuotedUsers, "Since I started keeping records, the user prompted for quotes most often is: %s. "),
     }
 
     self.user_statistic_formatters = {
