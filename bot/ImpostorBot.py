@@ -6,9 +6,9 @@ import random
 import re
 
 import Config
-import Margen
-from Margen import GenericStatisticType
-from Margen import UserStatisticType
+from generator import Margen
+from generator.Margen import GenericStatisticType
+from generator.Margen import UserStatisticType
 
 #
 # IRC bot to be used with per-user Markov generator
