@@ -12,7 +12,8 @@ from Players import PlayerScoreType
 
 from generator import Margen
 from generator.Margen import GenericStatisticType
-from generator.Margen import UserStatisticType
+from generator.Users import NickType
+from generator.Users import UserStatisticType
 
 #
 # IRC bot to be used with per-user Markov generator
@@ -320,11 +321,11 @@ class ImpostorBot(irc.IRCClient):
   @staticmethod
   def makeNickTuple(raw_nick):
 
-    nick_type = Margen.NickType.NONRANDOM
+    nick_type = NickType.NONRANDOM
     nick_name = raw_nick
 
     if raw_nick == Config.RANDOM_NICK:
-      nick_type = Margen.NickType.RANDOM
+      nick_type = NickType.RANDOM
       nick_name = ""
 
     return (nick_type, nick_name)
@@ -544,7 +545,7 @@ class ImpostorBot(irc.IRCClient):
       return [output_message]
 
     if not output_message:
-      nick_tuple = (Margen.NickType.RANDOM, "")
+      nick_tuple = (NickType.RANDOM, "")
       output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS, False)
 
       if output_nicks:
