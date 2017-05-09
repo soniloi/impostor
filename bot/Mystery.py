@@ -17,7 +17,8 @@ class Mystery:
     self.future_hints = hints
     self.already_guessed = set()
 
-  def describe(self):
+
+  def getDescription(self):
 
     description = "The mystery author says: [" + self.quotes[0] + "]"
     for quote in self.quotes[1:]:
@@ -35,6 +36,7 @@ class Mystery:
       description += "]. "
 
     return description
+
 
   def getHint(self):
 
@@ -57,6 +59,7 @@ class Mystery:
         hint_message = "The mystery author also says: [" + hint + "]"
 
     return hint_message
+
 
   # Evaluate a guess, with aliasing
   # Return the original (real) nick if correct, or None if incorrect

@@ -21,7 +21,7 @@ class GenericStatisticType:
   MOST_QUOTED_USERS = 5
 
 
-class Margen:
+class Generator:
 
   def __init__(self, source_dir):
     self.users = UserCollection(source_dir)
@@ -69,7 +69,7 @@ class Margen:
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
 
-    channel_primary = Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
+    channel_primary = Generator.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
     channel_additionals = tuple()
     if GeneratorConfig.META_ADDITIONAL in self.meta:
       channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
@@ -77,7 +77,7 @@ class Margen:
     return {
       GenericStatisticType.USER_COUNT: self.users.countUsers(),
       GenericStatisticType.DATE_STARTED: self.date_started,
-      GenericStatisticType.DATE_GENERATED: Margen.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
+      GenericStatisticType.DATE_GENERATED: Generator.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
       GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
       GenericStatisticType.BIGGEST_USERS: self.users.getBiggestUsers(),
       GenericStatisticType.MOST_QUOTED_USERS: self.users.getMostQuoted()

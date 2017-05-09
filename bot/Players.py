@@ -26,13 +26,16 @@ class Player:
     for score_type in PlayerScoreType.ALL_TYPES:
       self.scores[score_type] = 0
 
+
   def incrementScore(self, score_type):
     self.scores[score_type] += 1
+
 
   def recordGame(self, ident):
     if ident != self.last_played_ident:
       self.scores[PlayerScoreType.GAMES_PLAYED] += 1
       self.last_played_ident = ident
+
 
   def getScore(self):
     return( \
@@ -41,11 +44,13 @@ class Player:
        self.scores[PlayerScoreType.GUESSES_CORRECT]
     )
 
+
   def getStatisticsToPersist(self):
     return PlayerScoresToPersist( \
       self.scores[PlayerScoreType.GAMES_PLAYED], \
       self.scores[PlayerScoreType.GUESSES_INCORRECT], \
       self.scores[PlayerScoreType.GUESSES_CORRECT])
+
 
   def setScores(self, scores):
     self.scores[PlayerScoreType.GAMES_PLAYED] = scores.games_played
@@ -60,6 +65,7 @@ class PlayerCollection:
     self.changes = 0
     self.loadPlayerScores()
 
+
   def loadPlayerScores(self):
 
     filename = Config.STATS_FILE_NAME
@@ -70,6 +76,7 @@ class PlayerCollection:
     data = pickle.load(open(filename, "rb"))
 
     try:
+
       data = pickle.load(open(filename, "rb"))
 
       for (nick, scores) in data.iteritems():
@@ -77,8 +84,10 @@ class PlayerCollection:
         self.playermap[nick].setScores(scores)
 
     except:
+
       print "Error reading or parsing player scores file %s. Bot will start, but previous scores may not be correctly loaded. " \
              % filename
+
 
   def updateNick(self, old_nick, new_nick):
 
@@ -88,12 +97,14 @@ class PlayerCollection:
       self.playermap[new_nick] = player
       del self.playermap[old_nick]
 
+
   def getOrCreatePlayer(self, nick):
 
     if not nick in self.playermap:
       self.playermap[nick] = Player(nick)
 
     return self.playermap[nick]
+
 
   def updateChanges(self):
 
@@ -103,6 +114,7 @@ class PlayerCollection:
       self.savePlayerScores()
       self.changes = 0
 
+
   def savePlayerScores(self):
 
     data = {}
@@ -111,6 +123,7 @@ class PlayerCollection:
       data[nick] = player.getStatisticsToPersist()
 
     pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
+
 
   def getGenericScore(self):
 
@@ -138,6 +151,7 @@ class PlayerCollection:
             most_incorrect_player.scores[PlayerScoreType.GUESSES_INCORRECT], \
             most_correct_player.nick, \
             most_correct_player.scores[PlayerScoreType.GUESSES_CORRECT])
+
 
   def getPlayerScore(self, nick):
 

@@ -10,8 +10,8 @@ from Mystery import Mystery
 from Players import PlayerCollection
 from Players import PlayerScoreType
 
-from generator import Margen
-from generator.Margen import GenericStatisticType
+from generator import Generator
+from generator.Generator import GenericStatisticType
 from generator.Users import NickType
 from generator.Users import UserStatisticType
 
@@ -57,6 +57,7 @@ class Colour:
 
 
 class MessageLogger:
+
   """
   An independent logger class (because separation of application
   and protocol logic is a good thing).
@@ -64,11 +65,13 @@ class MessageLogger:
   def __init__(self, file):
     self.file = file
 
+
   def log(self, message):
     """Write a message to the file."""
     timestamp = time.strftime("[%H:%M:%S]", time.localtime(time.time()))
     self.file.write('%s %s\n' % (timestamp, message))
     self.file.flush()
+
 
   def close(self):
     self.file.close()
@@ -150,8 +153,9 @@ class ImpostorBot(irc.IRCClient):
 
   nickname = Config.BOT_NICK
 
+
   def __init__(self, source_dir):
-    self.generator = Margen.Margen(source_dir)
+    self.generator = Generator.Generator(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.players = PlayerCollection()
@@ -159,6 +163,7 @@ class ImpostorBot(irc.IRCClient):
     self.initStatisticFormatters()
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
+
 
   def initCommandMap(self):
 
@@ -173,6 +178,7 @@ class ImpostorBot(irc.IRCClient):
 
     for help_string in Config.META_HELP_ALL:
       self.commands[help_string] = ImpostorBot.makeHelp
+
 
   def initStatisticFormatters(self):
 
@@ -192,11 +198,13 @@ class ImpostorBot(irc.IRCClient):
       UserStatisticType.QUOTES_REQUESTED: StatisticFormat(ImpostorBot.formatUserSimpleCount, "%d quote(s) have been requested of them. "),
     }
 
+
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
     self.logger = MessageLogger(open(self.factory.filename, "a"))
     self.logger.log("[connected at %s]" % 
             time.asctime(time.localtime(time.time())))
+
 
   def connectionLost(self, reason):
     irc.IRCClient.connectionLost(self, reason)
@@ -204,15 +212,18 @@ class ImpostorBot(irc.IRCClient):
             time.asctime(time.localtime(time.time())))
     self.logger.close()
 
+
   # callbacks for events
 
   def signedOn(self):
     """Called when bot has succesfully signed on to server."""
     self.join(self.factory.channel)
 
+
   def joined(self, channel):
     """This will get called when the bot joins the channel."""
     self.logger.log("[I have joined %s]" % channel)
+
 
   def privmsg(self, user, channel, input_message_raw):
     """This will get called when the bot receives a message."""
@@ -237,10 +248,12 @@ class ImpostorBot(irc.IRCClient):
     for output_message in output_messages:
       self.msg(channel, output_message)
 
+
   def action(self, user, channel, input_message):
     """This will get called when the bot sees someone do an action."""
     user = user.split('!', 1)[0]
     self.logger.log("* %s %s" % (user, input_message))
+
 
   # irc callbacks
 
@@ -251,6 +264,7 @@ class ImpostorBot(irc.IRCClient):
 
     self.players.updateNick(old_nick, new_nick)
 
+
   # For fun, override the method that determines how a nickname is changed on
   # collisions. The default method appends an underscore.
   def alterCollidedNick(self, nickname):
@@ -259,6 +273,7 @@ class ImpostorBot(irc.IRCClient):
     effort to create an unused related name for subsequent registration.
     """
     return nickname + '^'
+
 
   def makeHelp(self, user, raw_tokens):
 
@@ -275,18 +290,23 @@ class ImpostorBot(irc.IRCClient):
 
     return output_messages
 
+
   def makeGenericHelp(self):
     return ImpostorBot.BOT_DESC_BASIC
 
+
   def makeSpecificHelp(self, query):
     return ImpostorBot.HELP_SPECIFIC.get(query)
+
 
   def pmdToMe(self, user, input_message):
     self.logger.log("[PM] <%s> %s" % (user, input_message))
     return []
 
+
   def directedAtMe(self, user, input_message):
     return self.makeGenericHelp(user, input_message.split())
+
 
   def triggerGenerateQuote(self, user, input_message):
 
@@ -318,6 +338,7 @@ class ImpostorBot(irc.IRCClient):
         return [output_message]
       return []
 
+
   @staticmethod
   def makeNickTuple(raw_nick):
 
@@ -329,6 +350,7 @@ class ImpostorBot(irc.IRCClient):
       nick_name = ""
 
     return (nick_type, nick_name)
+
 
   def triggerMeta(self, user, input_message):
 
@@ -346,6 +368,7 @@ class ImpostorBot(irc.IRCClient):
 
     return output_messages
 
+
   def makeStats(self, user, raw_tokens):
 
     nicks = raw_tokens[1:]
@@ -358,6 +381,7 @@ class ImpostorBot(irc.IRCClient):
       output_messages = self.makeUserStats(nicks[0])
 
     return output_messages
+
 
   @staticmethod
   def formatStats(stats, statistic_formatters, default):
@@ -373,13 +397,16 @@ class ImpostorBot(irc.IRCClient):
 
     return ["".join(stats_formatted)]
 
+
   def makeGenericStats(self):
     stats = self.generator.getGenericStatistics()
     return ImpostorBot.formatStats(stats, self.generic_statistic_formatters, [])
 
+
   @staticmethod
   def formatGenericUserCount(count_raw):
     return count_raw
+
 
   @staticmethod
   def formatGenericDate(date_raw):
@@ -392,6 +419,7 @@ class ImpostorBot(irc.IRCClient):
       ).strftime("%Y-%m-%d at %H.%M.%S")
 
     return date
+
 
   @staticmethod
   def formatGenericChannels(channels_raw):
@@ -424,6 +452,7 @@ class ImpostorBot(irc.IRCClient):
 
     return (primary, additionals)
 
+
   @staticmethod
   def formatGenericBiggestUsers(biggest_users_raw):
 
@@ -441,6 +470,7 @@ class ImpostorBot(irc.IRCClient):
     biggest_users += " and " + biggest_users_formatted[-1]
 
     return (biggest_user_count, biggest_users)
+
 
   @staticmethod
   def formatGenericMostQuotedUsers(most_quoted_raw):
@@ -475,22 +505,27 @@ class ImpostorBot(irc.IRCClient):
 
     return most_quoted
 
+
   @staticmethod
   def formatStatsDisplayBold(nick):
     return ImpostorBot.BOLD_DEFAULT % nick
+
 
   def makeUserStats(self, nick):
     stats = self.generator.getUserStatistics(nick)
     no_such = "I know of no such user %s. " % ImpostorBot.formatStatsDisplayBold(nick)
     return ImpostorBot.formatStats(stats, self.user_statistic_formatters, [no_such])
 
+
   @staticmethod
   def formatUserRealNick(nick_raw):
     return ImpostorBot.formatStatsDisplayBold(nick_raw)
 
+
   @staticmethod
   def getAliasDisplayCount(total_alias_count):
     return min(total_alias_count, Config.MERGEINFO_ALIASES_MAX)
+
 
   @staticmethod
   def formatUserAliases(aliases_raw):
@@ -531,9 +566,11 @@ class ImpostorBot(irc.IRCClient):
 
     return result
 
+
   @staticmethod
   def formatUserSimpleCount(count_raw):
     return count_raw
+
 
   # Attempt to start a mystery sequence; return response string
   def startMystery(self, user, raw_tokens):
@@ -541,10 +578,9 @@ class ImpostorBot(irc.IRCClient):
     output_message = ""
 
     if self.current_mystery:
-      output_message += self.current_mystery.describe()
-      return [output_message]
+      output_message += self.current_mystery.getDescription()
 
-    if not output_message:
+    else:
       nick_tuple = (NickType.RANDOM, "")
       output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS, False)
 
@@ -556,9 +592,10 @@ class ImpostorBot(irc.IRCClient):
         author_aliases = self.generator.getUserAliases(author)
         self.current_mystery = Mystery(self.next_mystery_ident, author, author_aliases, output_quote, hints)
         self.next_mystery_ident += 1
-        output_message += self.current_mystery.describe()
+        output_message += self.current_mystery.getDescription()
 
     return [output_message]
+
 
   # Return the appropriate number of hints for a nick length
   @staticmethod
@@ -568,6 +605,7 @@ class ImpostorBot(irc.IRCClient):
       return 1
 
     return Config.MYSTERY_CHARACTER_HINTS_MAX
+
 
   def makeHints(self, author, first_hint_len):
 
@@ -589,6 +627,7 @@ class ImpostorBot(irc.IRCClient):
         hints.append(additional_quote_hint)
 
     return hints
+
 
   # Process user guess of author; return response string, which may be empty
   def guessMystery(self, user, tokens):
@@ -626,6 +665,7 @@ class ImpostorBot(irc.IRCClient):
 
     return [output_message]
 
+
   # Give hint about mystery by printing a random character from the author's nick
   def hintMystery(self, user, raw_tokens):
 
@@ -635,6 +675,7 @@ class ImpostorBot(irc.IRCClient):
       output_message = self.current_mystery.getHint()
 
     return [output_message]
+
 
   # End a mystery sequence, revealing the author; return response string
   def solveMystery(self, user, raw_tokens):
@@ -646,6 +687,7 @@ class ImpostorBot(irc.IRCClient):
       self.current_mystery = None
 
     return [output_message]
+
 
   # Return information about mystery game scores
   def scoreMystery(self, user, raw_tokens):
@@ -661,6 +703,7 @@ class ImpostorBot(irc.IRCClient):
 
     return output_messages
 
+
   def makeGenericScore(self):
 
     output_message = ImpostorBot.GENERIC_SCORE_MESSAGE_UNKNOWN
@@ -670,6 +713,7 @@ class ImpostorBot(irc.IRCClient):
       output_message = ImpostorBot.GENERIC_SCORE_MESSAGE_KNOWN % scores
 
     return [output_message]
+
 
   def makePlayerScore(self, nick):
 
@@ -692,13 +736,16 @@ class ImpostorBotFactory(protocol.ClientFactory):
     self.filename = filename
     self.source_dir = source_dir
 
+
   def buildProtocol(self, addr):
     p = ImpostorBot(self.source_dir)
     p.factory = self
     return p
 
+
   def clientConnectionLost(self, connector, reason):
     connector.connect()
+
 
   def clientConnectionFailed(self, connector, reason):
     print "connection failed:", reason
