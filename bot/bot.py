@@ -4,11 +4,11 @@ import os
 import random
 import re
 
-import Config
-from Mystery import HintType
-from Mystery import Mystery
-from Players import PlayerCollection
-from Players import PlayerScoreType
+import config
+from mystery import HintType
+from mystery import Mystery
+from players import PlayerCollection
+from players import PlayerScoreType
 
 from generator import generator
 from generator.generator import GenericStatisticType
@@ -78,40 +78,40 @@ class MessageLogger:
 
 
 class ImpostorBot(irc.IRCClient):
-  
+
   BOLD_DEFAULT = Style.BOLD + "%s" + Style.CLEAR
 
-  GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + Config.GENERATE_TRIGGER
-  STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + Config.META_TRIGGER
-  MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + Config.META_TRIGGER
+  GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + config.GENERATE_TRIGGER
+  STATS_TRIGGER = Style.BOLD + Style.COLOUR + Colour.GREEN + config.META_TRIGGER
+  MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + config.META_TRIGGER
 
-  BOT_NICK = BOLD_DEFAULT % Config.BOT_NICK
+  BOT_NICK = BOLD_DEFAULT % config.BOT_NICK
   GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
-  GENERATE_RANDOM = GENERATE_TRIGGER + Config.RANDOM_NICK + Style.CLEAR
-  GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + Config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
-  GENERATE_ALL = GENERATE_TRIGGER + Config.ALL_NICK + Style.CLEAR
+  GENERATE_RANDOM = GENERATE_TRIGGER + config.RANDOM_NICK + Style.CLEAR
+  GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
+  GENERATE_ALL = GENERATE_TRIGGER + config.ALL_NICK + Style.CLEAR
 
-  META_STATS = STATS_TRIGGER + Config.META_STATS + Style.CLEAR
-  META_STATS_USER = STATS_TRIGGER + Config.META_STATS + " <nick>" + Style.CLEAR
+  META_STATS = STATS_TRIGGER + config.META_STATS + Style.CLEAR
+  META_STATS_USER = STATS_TRIGGER + config.META_STATS + " <nick>" + Style.CLEAR
 
-  HELP_ABBR_GENERATOR = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.META_HELP_GENERATOR + Style.CLEAR
-  HELP_ABBR_MYSTERY = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.MYSTERY_START + Style.CLEAR
-  HELP_ABBR_STATS = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.META_STATS + Style.CLEAR
-  HELP_ABBR_SCORE = MYSTERY_TRIGGER + Config.META_HELP_PRIMARY + " " + Config.MYSTERY_SCORE + Style.CLEAR
+  HELP_ABBR_GENERATOR = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.META_HELP_GENERATOR + Style.CLEAR
+  HELP_ABBR_MYSTERY = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.MYSTERY_START + Style.CLEAR
+  HELP_ABBR_STATS = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.META_STATS + Style.CLEAR
+  HELP_ABBR_SCORE = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.MYSTERY_SCORE + Style.CLEAR
   HELP_ABBRS = [HELP_ABBR_GENERATOR, HELP_ABBR_MYSTERY, HELP_ABBR_STATS, HELP_ABBR_SCORE]
 
-  MYSTERY_START = MYSTERY_TRIGGER + Config.MYSTERY_START + Style.CLEAR
-  MYSTERY_GUESS = MYSTERY_TRIGGER + Config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
-  MYSTERY_HINT = MYSTERY_TRIGGER + Config.MYSTERY_HINT + Style.CLEAR
-  MYSTERY_SOLVE = MYSTERY_TRIGGER + Config.MYSTERY_SOLVE + Style.CLEAR
-  MYSTERY_SCORE = MYSTERY_TRIGGER + Config.MYSTERY_SCORE + Style.CLEAR
-  MYSTERY_SCORE_NICK = MYSTERY_TRIGGER + Config.MYSTERY_SCORE + " <player-nick>" + Style.CLEAR
+  MYSTERY_START = MYSTERY_TRIGGER + config.MYSTERY_START + Style.CLEAR
+  MYSTERY_GUESS = MYSTERY_TRIGGER + config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
+  MYSTERY_HINT = MYSTERY_TRIGGER + config.MYSTERY_HINT + Style.CLEAR
+  MYSTERY_SOLVE = MYSTERY_TRIGGER + config.MYSTERY_SOLVE + Style.CLEAR
+  MYSTERY_SCORE = MYSTERY_TRIGGER + config.MYSTERY_SCORE + Style.CLEAR
+  MYSTERY_SCORE_NICK = MYSTERY_TRIGGER + config.MYSTERY_SCORE + " <player-nick>" + Style.CLEAR
 
   BOT_DESC_BASIC = BOT_NICK + " is a bot that impersonates people based on their history. Type " \
     + GENERATE_SINGLE + " to see a line generated for a someone. Type " \
     + ", ".join(HELP_ABBRS[:-1]) + ", or " + HELP_ABBRS[-1] \
     + " for help with other commands. See " \
-    + Config.REPOSITORY + " for (slightly) more information. "
+    + config.REPOSITORY + " for (slightly) more information. "
 
   HELP_GENERATOR = "Type " \
     + GENERATE_SINGLE + " to see a line generated for a single user, " \
@@ -133,10 +133,10 @@ class ImpostorBot(irc.IRCClient):
     + MYSTERY_SCORE_NICK + " to see the score of a specific player. "
 
   HELP_SPECIFIC = {
-    Config.META_HELP_GENERATOR : HELP_GENERATOR,
-    Config.MYSTERY_START : HELP_MYSTERY,
-    Config.META_STATS : HELP_STATS,
-    Config.MYSTERY_SCORE : HELP_SCORE,
+    config.META_HELP_GENERATOR : HELP_GENERATOR,
+    config.MYSTERY_START : HELP_MYSTERY,
+    config.META_STATS : HELP_STATS,
+    config.MYSTERY_SCORE : HELP_SCORE,
   }
 
   NO_MYSTERY = "There is currently no unsolved mystery. Type %s to start one. " % MYSTERY_START
@@ -151,7 +151,7 @@ class ImpostorBot(irc.IRCClient):
   PLAYER_SCORE_MESSAGE_KNOWN = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
   PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I started keeping records. "
 
-  nickname = Config.BOT_NICK
+  nickname = config.BOT_NICK
 
 
   def __init__(self, source_dir):
@@ -168,15 +168,15 @@ class ImpostorBot(irc.IRCClient):
   def initCommandMap(self):
 
     self.commands = {
-      Config.META_STATS: ImpostorBot.makeStats,
-      Config.MYSTERY_START: ImpostorBot.startMystery,
-      Config.MYSTERY_GUESS: ImpostorBot.guessMystery,
-      Config.MYSTERY_HINT: ImpostorBot.hintMystery,
-      Config.MYSTERY_SOLVE: ImpostorBot.solveMystery,
-      Config.MYSTERY_SCORE: ImpostorBot.scoreMystery,
+      config.META_STATS: ImpostorBot.makeStats,
+      config.MYSTERY_START: ImpostorBot.startMystery,
+      config.MYSTERY_GUESS: ImpostorBot.guessMystery,
+      config.MYSTERY_HINT: ImpostorBot.hintMystery,
+      config.MYSTERY_SOLVE: ImpostorBot.solveMystery,
+      config.MYSTERY_SCORE: ImpostorBot.scoreMystery,
     }
 
-    for help_string in Config.META_HELP_ALL:
+    for help_string in config.META_HELP_ALL:
       self.commands[help_string] = ImpostorBot.makeHelp
 
 
@@ -202,14 +202,12 @@ class ImpostorBot(irc.IRCClient):
   def connectionMade(self):
     irc.IRCClient.connectionMade(self)
     self.logger = MessageLogger(open(self.factory.filename, "a"))
-    self.logger.log("[connected at %s]" % 
-            time.asctime(time.localtime(time.time())))
+    self.logger.log("[connected at %s]" % time.asctime(time.localtime(time.time())))
 
 
   def connectionLost(self, reason):
     irc.IRCClient.connectionLost(self, reason)
-    self.logger.log("[disconnected at %s]" % 
-            time.asctime(time.localtime(time.time())))
+    self.logger.log("[disconnected at %s]" % time.asctime(time.localtime(time.time())))
     self.logger.close()
 
 
@@ -232,17 +230,17 @@ class ImpostorBot(irc.IRCClient):
 
     input_message = input_message_raw.strip().lower()
     output_messages = []
-    
+
     if channel == self.nickname:
       output_messages = self.pmdToMe(user, input_message)
 
     elif input_message.startswith(self.nickname + ":"):
       output_messages = self.directedAtMe(user, input_message)
 
-    elif input_message.startswith(Config.GENERATE_TRIGGER):
+    elif input_message.startswith(config.GENERATE_TRIGGER):
       output_messages = self.triggerGenerateQuote(user, input_message)
 
-    elif input_message.startswith(Config.META_TRIGGER):
+    elif input_message.startswith(config.META_TRIGGER):
       output_messages = self.triggerMeta(user, input_message)
 
     for output_message in output_messages:
@@ -311,10 +309,10 @@ class ImpostorBot(irc.IRCClient):
   def triggerGenerateQuote(self, user, input_message):
 
       raw_tokens = re.split(' *', input_message)
-      raw_nicks = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.GENERATE_TRIGGER):])[:Config.INPUT_NICKS_MAX]
+      raw_nicks = re.split(config.INPUT_NICKS_SEP, raw_tokens[0][len(config.GENERATE_TRIGGER):])[:config.INPUT_NICKS_MAX]
 
-      if Config.ALL_USED and Config.ALL_NICK in raw_nicks:
-        raw_nicks = [Config.ALL_NICK] # All subsumes all
+      if config.ALL_USED and config.ALL_NICK in raw_nicks:
+        raw_nicks = [config.ALL_NICK] # All subsumes all
 
       nick_tuples = []
       for raw_nick in raw_nicks:
@@ -327,12 +325,12 @@ class ImpostorBot(irc.IRCClient):
 
       if output_quote:
 
-        output_message = Config.OUTPUT_NICKS_OPEN + output_nicks[0]
+        output_message = config.OUTPUT_NICKS_OPEN + output_nicks[0]
 
         for output_nick in output_nicks[1:]:
-          output_message += Config.OUTPUT_NICKS_SEP + output_nick
+          output_message += config.OUTPUT_NICKS_SEP + output_nick
 
-        output_message += Config.OUTPUT_NICKS_CLOSE + output_quote
+        output_message += config.OUTPUT_NICKS_CLOSE + output_quote
 
       if output_message:
         return [output_message]
@@ -345,7 +343,7 @@ class ImpostorBot(irc.IRCClient):
     nick_type = NickType.NONRANDOM
     nick_name = raw_nick
 
-    if raw_nick == Config.RANDOM_NICK:
+    if raw_nick == config.RANDOM_NICK:
       nick_type = NickType.RANDOM
       nick_name = ""
 
@@ -355,7 +353,7 @@ class ImpostorBot(irc.IRCClient):
   def triggerMeta(self, user, input_message):
 
     raw_tokens = re.split(' *', input_message)
-    raw_commands = re.split(Config.INPUT_NICKS_SEP, raw_tokens[0][len(Config.META_TRIGGER):])
+    raw_commands = re.split(config.INPUT_NICKS_SEP, raw_tokens[0][len(config.META_TRIGGER):])
 
     if not raw_commands:
       return
@@ -524,7 +522,7 @@ class ImpostorBot(irc.IRCClient):
 
   @staticmethod
   def getAliasDisplayCount(total_alias_count):
-    return min(total_alias_count, Config.MERGEINFO_ALIASES_MAX)
+    return min(total_alias_count, config.MERGEINFO_ALIASES_MAX)
 
 
   @staticmethod
@@ -582,7 +580,7 @@ class ImpostorBot(irc.IRCClient):
 
     else:
       nick_tuple = (NickType.RANDOM, "")
-      output_nicks, output_quote = self.generator.generate([nick_tuple], Config.MYSTERY_MIN_STARTERS, False)
+      output_nicks, output_quote = self.generator.generate([nick_tuple], config.MYSTERY_MIN_STARTERS, False)
 
       if output_nicks:
 
@@ -601,10 +599,10 @@ class ImpostorBot(irc.IRCClient):
   @staticmethod
   def getHintCount(len_nick):
 
-    if len_nick <= (Config.MYSTERY_CHARACTER_HINTS_MAX + 1):
+    if len_nick <= (config.MYSTERY_CHARACTER_HINTS_MAX + 1):
       return 1
 
-    return Config.MYSTERY_CHARACTER_HINTS_MAX
+    return config.MYSTERY_CHARACTER_HINTS_MAX
 
 
   def makeHints(self, author, first_hint_len):
@@ -619,7 +617,7 @@ class ImpostorBot(irc.IRCClient):
       hints.append(hint)
 
     # Create another quote by the mystery author as an additional hint
-    if first_hint_len <= Config.MYSTERY_WORDS_MAX_FOR_SECOND:
+    if first_hint_len <= config.MYSTERY_WORDS_MAX_FOR_SECOND:
       nick_tuple = ImpostorBot.makeNickTuple(author)
       (_, additional_quote) = self.generator.generate([nick_tuple], 0, False)
       if additional_quote:
@@ -755,7 +753,7 @@ class ImpostorBotFactory(protocol.ClientFactory):
 if __name__ == '__main__':
   # initialize logging
   log.startLogging(sys.stdout)
-  
+
   if len(sys.argv) < 5:
     print "Usage: " + sys.argv[0] + " <network> <channel> <logfile> <sourcedir>"
 
@@ -767,4 +765,4 @@ if __name__ == '__main__':
 
   # run bot
   reactor.run()
-  
+

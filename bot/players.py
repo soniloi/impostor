@@ -2,7 +2,7 @@ from collections import namedtuple
 import os
 import pickle
 
-import Config
+import config
 
 
 PlayerScoresToPersist = namedtuple("PlayerScoresToPersist", "games_played, guesses_incorrect, guesses_correct")
@@ -68,7 +68,7 @@ class PlayerCollection:
 
   def loadPlayerScores(self):
 
-    filename = Config.STATS_FILE_NAME
+    filename = config.STATS_FILE_NAME
 
     if not os.path.isfile(filename):
       return
@@ -110,7 +110,7 @@ class PlayerCollection:
 
     self.changes += 1
 
-    if self.changes >= Config.CHANGES_BETWEEN_STATS_PERSISTENCE:
+    if self.changes >= config.CHANGES_BETWEEN_STATS_PERSISTENCE:
       self.savePlayerScores()
       self.changes = 0
 
@@ -122,7 +122,7 @@ class PlayerCollection:
     for (nick, player) in self.playermap.iteritems():
       data[nick] = player.getStatisticsToPersist()
 
-    pickle.dump(data, open(Config.STATS_FILE_NAME, "wb"))
+    pickle.dump(data, open(config.STATS_FILE_NAME, "wb"))
 
 
   def getGenericScore(self):
