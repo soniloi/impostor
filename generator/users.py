@@ -3,7 +3,7 @@ import os
 import pickle
 import random
 
-import GeneratorConfig
+import config
 
 
 AliasInfo = namedtuple("AliasInfo", "aliases, requested_nick")
@@ -68,7 +68,7 @@ class User:
 
 class UserCollection:
 
-  SOURCEFILE_EXTLEN = len(GeneratorConfig.SOURCEFILE_EXT) # Length of the source file extension
+  SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
 
   def __init__(self, source_dir):
     self.usermap = {} # Map of nick to User objects
@@ -88,7 +88,7 @@ class UserCollection:
 
     source_filenames = os.listdir(source_dir)
     for source_filename in source_filenames:
-      if source_filename.endswith(GeneratorConfig.SOURCEFILE_EXT):
+      if source_filename.endswith(config.SOURCEFILE_EXT):
         self.buildSource(source_dir, source_filename)
 
 
@@ -112,7 +112,7 @@ class UserCollection:
 
     for line in infile:
       words = line.split()
-      if len(words) >= (GeneratorConfig.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
+      if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
         self.processLineWords(words, nick, starters, lookbackmap)
 
     infile.close()
@@ -123,7 +123,7 @@ class UserCollection:
     starter = (words[0], words[1])
     starters.append(starter)
 
-    bound = len(words) - GeneratorConfig.LOOKBACK_LEN
+    bound = len(words) - config.LOOKBACK_LEN
     for i in range(0, bound):
 
       first = words[i]
@@ -144,7 +144,7 @@ class UserCollection:
 
     users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []
-    for user in users_ordered[:GeneratorConfig.BIGGEST_USERS_COUNT]:
+    for user in users_ordered[:config.BIGGEST_USERS_COUNT]:
       big_user = NickAndCount(user.nick, user.production_count)
       biggest_users.append(big_user)
     self.biggest_users = tuple(biggest_users)
@@ -152,7 +152,7 @@ class UserCollection:
 
   def buildMergeInfo(self, source_dir):
 
-    mergeinfo_filename = source_dir + GeneratorConfig.MERGEINFO_FILE_NAME
+    mergeinfo_filename = source_dir + config.MERGEINFO_FILE_NAME
     if not os.path.isfile(mergeinfo_filename):
       return
 
@@ -181,7 +181,7 @@ class UserCollection:
 
   def loadUserStats(self):
 
-    filename = GeneratorConfig.STATS_FILE_NAME
+    filename = config.STATS_FILE_NAME
 
     if not os.path.isfile(filename):
       return
@@ -217,7 +217,7 @@ class UserCollection:
 
   def getMostQuoted(self):
 
-    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:GeneratorConfig.MOST_QUOTED_COUNT]
+    most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:config.MOST_QUOTED_COUNT]
     most_quoted_tuples = []
 
     for user in most_quoted_list:
@@ -288,7 +288,7 @@ class UserCollection:
 
   def updateChanges(self):
     self.changes += 1
-    if self.changes >= GeneratorConfig.CHANGES_BETWEEN_STATS_PERSISTENCE:
+    if self.changes >= config.CHANGES_BETWEEN_STATS_PERSISTENCE:
       self.writeOut()
       self.changes = 0
 
@@ -297,5 +297,5 @@ class UserCollection:
     data = {}
     for user in self.userset:
       data[user.nick] = user.getStatisticsToPersist()
-    pickle.dump(data, open(GeneratorConfig.STATS_FILE_NAME, "wb"))
+    pickle.dump(data, open(config.STATS_FILE_NAME, "wb"))
 

@@ -10,10 +10,10 @@ from Mystery import Mystery
 from Players import PlayerCollection
 from Players import PlayerScoreType
 
-from generator import Generator
-from generator.Generator import GenericStatisticType
-from generator.Users import NickType
-from generator.Users import UserStatisticType
+from generator import generator
+from generator.generator import GenericStatisticType
+from generator.users import NickType
+from generator.users import UserStatisticType
 
 #
 # IRC bot to be used with per-user Markov generator
@@ -155,7 +155,7 @@ class ImpostorBot(irc.IRCClient):
 
 
   def __init__(self, source_dir):
-    self.generator = Generator.Generator(source_dir)
+    self.generator = generator.Generator(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.players = PlayerCollection()

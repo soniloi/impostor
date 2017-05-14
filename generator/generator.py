@@ -5,9 +5,9 @@ import os
 import random
 import time
 
-import GeneratorConfig
-from Users import User
-from Users import UserCollection
+import config
+from users import User
+from users import UserCollection
 
 SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
 
@@ -32,7 +32,7 @@ class Generator:
 
   def buildMeta(self, source_dir):
 
-    meta_filename = source_dir + GeneratorConfig.META_FILE_NAME
+    meta_filename = source_dir + config.META_FILE_NAME
     if not os.path.isfile(meta_filename):
       return
 
@@ -69,15 +69,15 @@ class Generator:
   # Return a tuple consisting of generic statistics
   def getGenericStatistics(self):
 
-    channel_primary = Generator.getFirstOrNone(self.meta.get(GeneratorConfig.META_PRIMARY))
+    channel_primary = Generator.getFirstOrNone(self.meta.get(config.META_PRIMARY))
     channel_additionals = tuple()
-    if GeneratorConfig.META_ADDITIONAL in self.meta:
-      channel_additionals = tuple(self.meta[GeneratorConfig.META_ADDITIONAL])
+    if config.META_ADDITIONAL in self.meta:
+      channel_additionals = tuple(self.meta[config.META_ADDITIONAL])
 
     return {
       GenericStatisticType.USER_COUNT: self.users.countUsers(),
       GenericStatisticType.DATE_STARTED: self.date_started,
-      GenericStatisticType.DATE_GENERATED: Generator.getFirstOrNone(self.meta.get(GeneratorConfig.META_DATE)),
+      GenericStatisticType.DATE_GENERATED: Generator.getFirstOrNone(self.meta.get(config.META_DATE)),
       GenericStatisticType.SOURCE_CHANNELS: SourceChannelNames(channel_primary, channel_additionals),
       GenericStatisticType.BIGGEST_USERS: self.users.getBiggestUsers(),
       GenericStatisticType.MOST_QUOTED_USERS: self.users.getMostQuoted()
@@ -116,7 +116,7 @@ class Generator:
       return line
 
     i = 0
-    while current in lookbacks and i < GeneratorConfig.OUTPUT_WORDS_MAX:
+    while current in lookbacks and i < config.OUTPUT_WORDS_MAX:
       next = random.choice(lookbacks[current])
       line += ' ' + next
       current = (current[1], next)
