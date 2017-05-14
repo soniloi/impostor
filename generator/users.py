@@ -46,6 +46,10 @@ class User:
     return production_count
 
 
+  def setPersistedStatistics(self, stats):
+    self.quotes_requested = stats.quotes_requested
+
+
   def getStatistics(self, requested_nick):
 
     aliases = None
@@ -191,7 +195,7 @@ class UserCollection:
 
       for (nick, stats) in data.iteritems():
         if nick in self.usermap:
-          self.usermap[nick].quotes_requested = stats.quotes_requested
+          self.usermap[nick].setPersistedStatistics(stats)
 
     except:
       print "Error reading or parsing user stats file %s. Generator will start, but previous stats may not be correctly loaded. " \
