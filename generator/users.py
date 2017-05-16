@@ -33,7 +33,7 @@ class User:
     self.production_count = self.countProductions() # This is not going to change after initialization
 
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
-    self.aliases = []
+    self.aliases = None
 
 
   def countProductions(self):
@@ -48,6 +48,14 @@ class User:
 
   def setPersistedStatistics(self, stats):
     self.quotes_requested = stats.quotes_requested
+
+
+  def initAliases(self, aliases):
+    self.aliases = set(aliases)
+
+
+  def incrementQuotesRequested(self):
+    self.quotes_requested += 1
 
 
   def getStatistics(self, requested_nick):
@@ -65,6 +73,7 @@ class User:
       UserStatisticType.PRODUCTION_COUNT: self.production_count,
       UserStatisticType.QUOTES_REQUESTED: self.quotes_requested,
     }
+
 
   def getStatisticsToPersist(self):
     return UserStatsToPersist(self.quotes_requested)
@@ -175,7 +184,7 @@ class UserCollection:
       secondaries = mergeinfo_words[1:]
 
       user = self.usermap[primary]
-      user.aliases = secondaries
+      user.initAliases(secondaries)
 
       for alias in secondaries:
         self.usermap[alias] = user
@@ -274,7 +283,7 @@ class UserCollection:
 
         # Only increment this if the user was directly requested
         if increment_quote_count and nick_tuple[0] != NickType.RANDOM:
-          self.usermap[real_alias].quotes_requested += 1
+          self.usermap[real_alias].incrementQuotesRequested()
           self.updateChanges()
 
         real_nick = self.usermap[real_alias].nick
