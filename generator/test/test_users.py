@@ -91,6 +91,19 @@ class TestUser(unittest.TestCase):
     self.assertEqual(quotes_requested, 7)
 
 
+  def test_get_statistics_alias(self):
+
+    stats = self.user.getStatistics("limpet")
+    real_nick = stats[users.UserStatisticType.REAL_NICK]
+    alias_info = stats[users.UserStatisticType.ALIASES]
+    production_count = stats[users.UserStatisticType.PRODUCTION_COUNT]
+    quotes_requested = stats[users.UserStatisticType.QUOTES_REQUESTED]
+    aliases = alias_info.aliases
+    requested_nick = alias_info.requested_nick
+
+    self.assertEqual(requested_nick, "limpet")
+
+
 if __name__ == "__main__":
   unittest.main()
 

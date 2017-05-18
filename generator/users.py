@@ -81,15 +81,22 @@ class User:
 
 class UserCollection:
 
+  SEP = "/"
   SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
 
   def __init__(self, source_dir):
+    source_filenames = os.listdir(source_dir)
+    self.init(source_dir, source_filenames)
+
+
+  def init(self, source_dir, source_filenames):
+
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
     self.changes = 0
 
-    self.buildSources(source_dir)
+    self.buildSources(source_dir, source_filenames)
     self.userset = set(self.usermap.values())
 
     self.buildStaticStats()
@@ -97,21 +104,20 @@ class UserCollection:
     self.loadUserStats()
 
 
-  def buildSources(self, source_dir):
+  def buildSources(self, base_dir, source_filenames):
 
-    source_filenames = os.listdir(source_dir)
     for source_filename in source_filenames:
       if source_filename.endswith(config.SOURCEFILE_EXT):
-        self.buildSource(source_dir, source_filename)
+        self.buildSource(base_dir, source_filename)
 
 
-  def buildSource(self, source_dir, source_filename):
+  def buildSource(self, base_dir, source_filename):
 
     nick = source_filename[:-UserCollection.SOURCEFILE_EXTLEN]
     starters = []
     lookbackmap = {}
 
-    source_filepath = source_dir + os.sep + source_filename
+    source_filepath = base_dir + UserCollection.SEP + source_filename
     self.processSourceFile(source_filepath, nick, starters, lookbackmap)
 
     # Only add nick to sources if any material actually found in file
