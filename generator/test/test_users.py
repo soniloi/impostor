@@ -104,6 +104,24 @@ class TestUser(unittest.TestCase):
     self.assertEqual(requested_nick, "limpet")
 
 
+  def test_process_source_material(self):
+
+    nick = "pirate"
+    source_material = [
+      "yo ho ho and a bottle of rum!",
+      "ho ho ho",
+      "walk the plank!",
+      "shiver me timbers"
+    ]
+    starters = []
+    lookbackmap = {}
+
+    user_collection = users.UserCollection()
+    user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
+
+    self.assertEqual(len(user_collection.usermap), 1)
+
+
 if __name__ == "__main__":
   unittest.main()
 

@@ -89,6 +89,7 @@ class UserCollection:
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
+    self.userset = None
     self.changes = 0
 
 
@@ -116,23 +117,21 @@ class UserCollection:
     lookbackmap = {}
 
     source_filepath = base_dir + UserCollection.SEP + source_filename
-    self.processSourceFile(source_filepath, nick, starters, lookbackmap)
-
-    # Only add nick to sources if any material actually found in file
-    if lookbackmap:
-      self.usermap[nick] = User(nick, starters, lookbackmap)
+    infile = open(source_filepath, 'r')
+    self.processSourceMaterial(infile, nick, starters, lookbackmap)
+    infile.close()
 
 
-  def processSourceFile(self, filepath, nick, starters, lookbackmap):
+  def processSourceMaterial(self, source_material, nick, starters, lookbackmap):
 
-    infile = open(filepath, 'r')
-
-    for line in infile:
+    for line in source_material:
       words = line.split()
       if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
         self.processLineWords(words, nick, starters, lookbackmap)
 
-    infile.close()
+    # Only add nick to sources if any material actually found in file
+    if lookbackmap:
+      self.usermap[nick] = User(nick, starters, lookbackmap)
 
 
   def processLineWords(self, words, nick, starters, lookbackmap):
