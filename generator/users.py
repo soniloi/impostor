@@ -84,31 +84,29 @@ class UserCollection:
   SEP = "/"
   SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
 
-  def __init__(self, source_dir):
-    source_filenames = os.listdir(source_dir)
-    self.init(source_dir, source_filenames)
-
-
-  def init(self, source_dir, source_filenames):
+  def __init__(self):
 
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
     self.changes = 0
 
-    self.buildSources(source_dir, source_filenames)
-    self.userset = set(self.usermap.values())
 
+  def init(self, source_dir):
+
+    self.buildSources(source_dir)
+    self.userset = set(self.usermap.values())
     self.buildStaticStats()
     self.buildMergeInfo(source_dir)
     self.loadUserStats()
 
 
-  def buildSources(self, base_dir, source_filenames):
+  def buildSources(self, source_dir):
 
+    source_filenames = os.listdir(source_dir)
     for source_filename in source_filenames:
       if source_filename.endswith(config.SOURCEFILE_EXT):
-        self.buildSource(base_dir, source_filename)
+        self.buildSource(source_dir, source_filename)
 
 
   def buildSource(self, base_dir, source_filename):

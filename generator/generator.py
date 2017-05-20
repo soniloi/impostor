@@ -24,7 +24,8 @@ class GenericStatisticType:
 class Generator:
 
   def __init__(self, source_dir):
-    self.users = UserCollection(source_dir)
+    self.users = UserCollection()
+    self.users.init(source_dir)
     self.meta = {}
     self.date_started = int(time.time())
     self.buildMeta(source_dir)
