@@ -36,6 +36,8 @@ class TestUser(unittest.TestCase):
     for i in range(0, requested):
       self.user.incrementQuotesRequested()
 
+    self.user_collection = users.UserCollection()
+
 
   def test_init_empty(self):
 
@@ -104,22 +106,53 @@ class TestUser(unittest.TestCase):
     self.assertEqual(requested_nick, "limpet")
 
 
-  def test_process_source_material(self):
+  def test_init_user_collection_empty(self):
 
-    nick = "pirate"
+    self.assertEqual(len(self.user_collection.usermap), 0)
+    self.assertEqual(self.user_collection.count, 0)
+    self.assertEqual(self.user_collection.biggest_users, None)
+    self.assertEqual(self.user_collection.userset, None)
+    self.assertEqual(self.user_collection.changes, 0)
+
+
+  def test_process_source_material_empty(self):
+
+    nick = "ash"
+    source_material = []
+    starters = []
+    lookbackmap = {}
+
+    self.user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
+
+    self.assertEqual(len(self.user_collection.usermap), 0)
+
+
+  def test_process_source_material_nonempty(self):
+
+    nick = "birch"
     source_material = [
-      "yo ho ho and a bottle of rum!",
-      "ho ho ho",
-      "walk the plank!",
-      "shiver me timbers"
+      "a b c d",
+      "a b c e f g",
+      "h i j k"
     ]
     starters = []
     lookbackmap = {}
 
-    user_collection = users.UserCollection()
-    user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
+    self.user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
 
-    self.assertEqual(len(user_collection.usermap), 1)
+    self.assertEqual(len(self.user_collection.usermap), 1)
+    self.assertTrue(self.user_collection.containsByAlias(nick))
+
+    pirate = self.user_collection.getByAlias(nick)
+    self.assertEqual(pirate.nick, nick)
+    self.assertEqual(len(pirate.starters), 3)
+    self.assertTrue(("a", "b") in pirate.starters)
+    self.assertTrue(("h", "i") in pirate.starters)
+    self.assertEqual(pirate.production_count, 8)
+    self.assertEqual(len(pirate.lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(pirate.lookbacks[("b", "c")]), 2)
+    self.assertFalse(("c", "d") in pirate.lookbacks)
+    self.assertEqual(len(pirate.lookbacks[("c", "e")]), 1)
 
 
 if __name__ == "__main__":

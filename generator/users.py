@@ -218,6 +218,10 @@ class UserCollection:
     return not self.usermap
 
 
+  def containsByAlias(self, nick):
+    return nick in self.usermap
+
+
   # Get user object from alias or real nick, when known to be in the set
   def getByAlias(self, nick):
     return self.usermap[nick]
