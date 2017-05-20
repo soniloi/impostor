@@ -96,7 +96,7 @@ class UserCollection:
   def init(self, source_dir):
 
     self.buildSources(source_dir)
-    self.userset = set(self.usermap.values())
+    self.initUserset()
     self.buildStaticStats()
     self.buildMergeInfo(source_dir)
     self.loadUserStats()
@@ -153,10 +153,14 @@ class UserCollection:
       lookbackmap[lookback].append(follow)
 
 
+  def initUserset(self):
+    self.userset = set(self.usermap.values())
+
+
   # Assemble any counts etc. that will not change after startup
   def buildStaticStats(self):
 
-    self.count = len(self.usermap)
+    self.count = len(self.userset)
 
     users_ordered = sorted(self.userset, key=lambda x:x.production_count, reverse=True)
     biggest_users = []

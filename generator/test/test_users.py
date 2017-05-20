@@ -155,6 +155,37 @@ class TestUser(unittest.TestCase):
     self.assertEqual(len(pirate.lookbacks[("c", "e")]), 1)
 
 
+  def test_build_static_stats(self):
+
+    coll_nick = "coll"
+    coll_source_material = [
+      "a b c"
+    ]
+
+    dair_nick = "dair"
+    dair_source_material = [
+      "d e f g"
+    ]
+
+    self.user_collection.processSourceMaterial(coll_source_material, coll_nick, [], {})
+    self.user_collection.processSourceMaterial(dair_source_material, dair_nick, [], {})
+    self.user_collection.initUserset()
+    self.user_collection.buildStaticStats()
+
+    self.assertTrue(self.user_collection.containsByAlias(coll_nick))
+    self.assertTrue(self.user_collection.containsByAlias(dair_nick))
+
+    biggest_users = self.user_collection.getBiggestUsers()
+    self.assertEqual(self.user_collection.countUsers(), 2)
+    self.assertNotEqual(biggest_users, None)
+    self.assertEqual(len(biggest_users), 2)
+
+    self.assertEqual(biggest_users[0].nick, dair_nick)
+    self.assertEqual(biggest_users[0].count, 2)
+    self.assertEqual(biggest_users[1].nick, coll_nick)
+    self.assertEqual(biggest_users[1].count, 1)
+
+
 if __name__ == "__main__":
   unittest.main()
 
