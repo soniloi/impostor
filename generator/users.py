@@ -98,7 +98,7 @@ class UserCollection:
     self.buildSources(source_dir)
     self.initUserset()
     self.buildStaticStats()
-    self.buildMergeInfo(source_dir)
+    self.readMergeInfo(source_dir)
     self.loadUserStats()
 
 
@@ -170,15 +170,20 @@ class UserCollection:
     self.biggest_users = tuple(biggest_users)
 
 
-  def buildMergeInfo(self, source_dir):
+  def readMergeInfo(self, source_dir):
 
     mergeinfo_filename = source_dir + config.MERGEINFO_FILE_NAME
     if not os.path.isfile(mergeinfo_filename):
       return
 
     mergeinfo_file = open(mergeinfo_filename, 'r')
+    self.buildMergeInfo(mergeinfo_data)
+    mergeinfo_file.close()
 
-    for mergeinfo_line in mergeinfo_file:
+
+  def buildMergeInfo(self, mergeinfo_data):
+
+    for mergeinfo_line in mergeinfo_data:
 
       mergeinfo_words = mergeinfo_line.strip().split()
       if len(mergeinfo_words) < 2:
@@ -195,8 +200,6 @@ class UserCollection:
 
       for alias in secondaries:
         self.usermap[alias] = user
-
-    mergeinfo_file.close()
 
 
   def loadUserStats(self):

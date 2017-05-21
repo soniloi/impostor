@@ -186,6 +186,26 @@ class TestUser(unittest.TestCase):
     self.assertEqual(biggest_users[1].count, 1)
 
 
+  def test_build_merge_info(self):
+
+    nick = "elm"
+    source_material = ["a b c d e"]
+    merge_info = [
+      "elm\telm_\tleamhán",
+      "fir\tfiralias",
+    ]
+
+    self.user_collection.processSourceMaterial(source_material, nick, [], {})
+    self.user_collection.buildMergeInfo(merge_info)
+
+    elm = self.user_collection.getByAlias(nick)
+    self.assertTrue(len(elm.aliases), 2)
+    self.assertTrue("elm_" in elm.aliases)
+    self.assertTrue("leamhán" in elm.aliases)
+
+    self.assertFalse(self.user_collection.containsByAlias("fir"))
+
+
 if __name__ == "__main__":
   unittest.main()
 
