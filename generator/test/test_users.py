@@ -180,23 +180,31 @@ class TestUser(unittest.TestCase):
 
   def test_build_merge_info(self):
 
-    nick = "elm"
-    source_filename = nick + ".src"
-    source_material = ["a b c d e"]
+    elm_nick = "elm"
+    elm_source_filename = elm_nick + ".src"
+    elm_source_material = ["a b c d e"]
+    fir_nick = "fir"
+    fir_source_filename = fir_nick + ".src"
+    fir_source_material = ["f g h i j"]
     merge_info = [
       "elm\telm_\tleamhán",
-      "fir\tfiralias",
+      "fir",
+      "grape\tgrapealias",
     ]
 
-    self.user_collection.buildSource(source_filename, source_material)
+    self.user_collection.buildSource(elm_source_filename, elm_source_material)
+    self.user_collection.buildSource(fir_source_filename, fir_source_material)
     self.user_collection.buildMergeInfo(merge_info)
 
-    elm = self.user_collection.getByAlias(nick)
-    self.assertTrue(len(elm.aliases), 2)
+    elm = self.user_collection.getByAlias(elm_nick)
+    self.assertEqual(len(elm.aliases), 2)
     self.assertTrue("elm_" in elm.aliases)
     self.assertTrue("leamhán" in elm.aliases)
 
-    self.assertFalse(self.user_collection.containsByAlias("fir"))
+    fir = self.user_collection.getByAlias(fir_nick)
+    self.assertEqual(len(fir.aliases), 0)
+
+    self.assertFalse(self.user_collection.containsByAlias("grape"))
 
 
 if __name__ == "__main__":
