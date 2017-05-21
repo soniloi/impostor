@@ -33,7 +33,7 @@ class User:
     self.production_count = self.countProductions() # This is not going to change after initialization
 
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
-    self.aliases = None
+    self.aliases = set()
 
 
   def countProductions(self):
@@ -95,46 +95,44 @@ class UserCollection:
 
   def init(self, source_dir):
 
-    self.buildSources(source_dir)
+    self.readSources(source_dir)
     self.initUserset()
     self.buildStaticStats()
     self.readMergeInfo(source_dir)
-    self.loadUserStats()
+    self.readUserStats()
 
 
-  def buildSources(self, source_dir):
+  def readSources(self, source_dir):
 
     source_filenames = os.listdir(source_dir)
+
     for source_filename in source_filenames:
+
       if source_filename.endswith(config.SOURCEFILE_EXT):
-        self.buildSource(source_dir, source_filename)
+
+        source_filepath = source_dir + UserCollection.SEP + source_filename
+        infile = open(source_filepath, 'r')
+        self.buildSource(source_filename, infile)
+        infile.close()
 
 
-  def buildSource(self, base_dir, source_filename):
+  def buildSource(self, source_filename, source_data):
 
     nick = source_filename[:-UserCollection.SOURCEFILE_EXTLEN]
     starters = []
     lookbackmap = {}
 
-    source_filepath = base_dir + UserCollection.SEP + source_filename
-    infile = open(source_filepath, 'r')
-    self.processSourceMaterial(infile, nick, starters, lookbackmap)
-    infile.close()
-
-
-  def processSourceMaterial(self, source_material, nick, starters, lookbackmap):
-
-    for line in source_material:
+    for line in source_data:
       words = line.split()
       if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
-        self.processLineWords(words, nick, starters, lookbackmap)
+        self.processLineWords(words, starters, lookbackmap)
 
     # Only add nick to sources if any material actually found in file
     if lookbackmap:
       self.usermap[nick] = User(nick, starters, lookbackmap)
 
 
-  def processLineWords(self, words, nick, starters, lookbackmap):
+  def processLineWords(self, words, starters, lookbackmap):
 
     starter = (words[0], words[1])
     starters.append(starter)
@@ -177,7 +175,7 @@ class UserCollection:
       return
 
     mergeinfo_file = open(mergeinfo_filename, 'r')
-    self.buildMergeInfo(mergeinfo_data)
+    self.buildMergeInfo(mergeinfo_file)
     mergeinfo_file.close()
 
 
@@ -202,7 +200,7 @@ class UserCollection:
         self.usermap[alias] = user
 
 
-  def loadUserStats(self):
+  def readUserStats(self):
 
     filename = config.STATS_FILE_NAME
 

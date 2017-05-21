@@ -49,7 +49,7 @@ class TestUser(unittest.TestCase):
 
     self.assertEqual(local_user.nick, local_nick)
     self.assertEquals(local_user.production_count, 0)
-    self.assertEquals(local_user.aliases, None)
+    self.assertEquals(len(local_user.aliases), 0)
     self.assertEqual(local_user.production_count, 0)
     self.assertEqual(local_user.quotes_requested, 0)
 
@@ -96,14 +96,9 @@ class TestUser(unittest.TestCase):
   def test_get_statistics_alias(self):
 
     stats = self.user.getStatistics("limpet")
-    real_nick = stats[users.UserStatisticType.REAL_NICK]
-    alias_info = stats[users.UserStatisticType.ALIASES]
-    production_count = stats[users.UserStatisticType.PRODUCTION_COUNT]
-    quotes_requested = stats[users.UserStatisticType.QUOTES_REQUESTED]
-    aliases = alias_info.aliases
-    requested_nick = alias_info.requested_nick
 
-    self.assertEqual(requested_nick, "limpet")
+    alias_info = stats[users.UserStatisticType.ALIASES]
+    self.assertEqual(alias_info.requested_nick, "limpet")
 
 
   def test_init_user_collection_empty(self):
@@ -115,21 +110,20 @@ class TestUser(unittest.TestCase):
     self.assertEqual(self.user_collection.changes, 0)
 
 
-  def test_process_source_material_empty(self):
+  def test_build_source_empty(self):
 
-    nick = "ash"
+    source_filename = "ash.src"
     source_material = []
-    starters = []
-    lookbackmap = {}
 
-    self.user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
+    self.user_collection.buildSource(source_filename, source_material)
 
     self.assertEqual(len(self.user_collection.usermap), 0)
 
 
-  def test_process_source_material_nonempty(self):
+  def test_build_source_nonempty(self):
 
     nick = "birch"
+    source_filename = nick + ".src"
     source_material = [
       "a b c d",
       "a b c e f g",
@@ -138,37 +132,35 @@ class TestUser(unittest.TestCase):
     starters = []
     lookbackmap = {}
 
-    self.user_collection.processSourceMaterial(source_material, nick, starters, lookbackmap)
+    self.user_collection.buildSource(source_filename, source_material)
 
     self.assertEqual(len(self.user_collection.usermap), 1)
     self.assertTrue(self.user_collection.containsByAlias(nick))
 
-    pirate = self.user_collection.getByAlias(nick)
-    self.assertEqual(pirate.nick, nick)
-    self.assertEqual(len(pirate.starters), 3)
-    self.assertTrue(("a", "b") in pirate.starters)
-    self.assertTrue(("h", "i") in pirate.starters)
-    self.assertEqual(pirate.production_count, 8)
-    self.assertEqual(len(pirate.lookbacks[("a", "b")]), 2)
-    self.assertEqual(len(pirate.lookbacks[("b", "c")]), 2)
-    self.assertFalse(("c", "d") in pirate.lookbacks)
-    self.assertEqual(len(pirate.lookbacks[("c", "e")]), 1)
+    birch = self.user_collection.getByAlias(nick)
+    self.assertEqual(birch.nick, nick)
+    self.assertEqual(len(birch.starters), 3)
+    self.assertTrue(("a", "b") in birch.starters)
+    self.assertTrue(("h", "i") in birch.starters)
+    self.assertEqual(birch.production_count, 8)
+    self.assertEqual(len(birch.lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(birch.lookbacks[("b", "c")]), 2)
+    self.assertFalse(("c", "d") in birch.lookbacks)
+    self.assertEqual(len(birch.lookbacks[("c", "e")]), 1)
 
 
   def test_build_static_stats(self):
 
     coll_nick = "coll"
-    coll_source_material = [
-      "a b c"
-    ]
+    coll_source_filename = coll_nick + ".src"
+    coll_source_material = ["a b c"]
 
     dair_nick = "dair"
-    dair_source_material = [
-      "d e f g"
-    ]
+    dair_source_filename = dair_nick + ".src"
+    dair_source_material = ["d e f g"]
 
-    self.user_collection.processSourceMaterial(coll_source_material, coll_nick, [], {})
-    self.user_collection.processSourceMaterial(dair_source_material, dair_nick, [], {})
+    self.user_collection.buildSource(coll_source_filename, coll_source_material)
+    self.user_collection.buildSource(dair_source_filename, dair_source_material)
     self.user_collection.initUserset()
     self.user_collection.buildStaticStats()
 
@@ -189,13 +181,14 @@ class TestUser(unittest.TestCase):
   def test_build_merge_info(self):
 
     nick = "elm"
+    source_filename = nick + ".src"
     source_material = ["a b c d e"]
     merge_info = [
       "elm\telm_\tleamhán",
       "fir\tfiralias",
     ]
 
-    self.user_collection.processSourceMaterial(source_material, nick, [], {})
+    self.user_collection.buildSource(source_filename, source_material)
     self.user_collection.buildMergeInfo(merge_info)
 
     elm = self.user_collection.getByAlias(nick)
