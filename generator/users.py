@@ -207,16 +207,25 @@ class UserCollection:
     if not os.path.isfile(filename):
       return
 
-    try:
-      data = pickle.load(open(filename, "rb"))
+    user_stats_file = open(filename, "rb")
 
-      for (nick, stats) in data.iteritems():
-        if nick in self.usermap:
-          self.usermap[nick].setPersistedStatistics(stats)
+    try:
+
+      data = pickle.load(user_stats_file)
+      self.buildUserStats(data)
 
     except:
       print "Error reading or parsing user stats file %s. Generator will start, but previous stats may not be correctly loaded. " \
              % filename
+
+    user_stats_file.close()
+
+
+  def buildUserStats(self, data):
+
+    for (nick, stats) in data.iteritems():
+      if nick in self.usermap:
+        self.usermap[nick].setPersistedStatistics(stats)
 
 
   def empty(self):

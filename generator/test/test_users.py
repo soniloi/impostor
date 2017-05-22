@@ -112,18 +112,19 @@ class TestUser(unittest.TestCase):
 
   def test_build_source_empty(self):
 
-    source_filename = "ash.src"
+    nick = "ash"
+    source_filename = TestUser.mkSourceFilename(nick)
     source_material = []
 
     self.user_collection.buildSource(source_filename, source_material)
 
-    self.assertEqual(len(self.user_collection.usermap), 0)
+    self.assertTrue(self.user_collection.empty())
 
 
   def test_build_source_nonempty(self):
 
     nick = "birch"
-    source_filename = nick + ".src"
+    source_filename = TestUser.mkSourceFilename(nick)
     source_material = [
       "a b c d",
       "a b c e f g",
@@ -152,11 +153,11 @@ class TestUser(unittest.TestCase):
   def test_build_static_stats(self):
 
     coll_nick = "coll"
-    coll_source_filename = coll_nick + ".src"
+    coll_source_filename = TestUser.mkSourceFilename(coll_nick)
     coll_source_material = ["a b c"]
 
     dair_nick = "dair"
-    dair_source_filename = dair_nick + ".src"
+    dair_source_filename = TestUser.mkSourceFilename(dair_nick)
     dair_source_material = ["d e f g"]
 
     self.user_collection.buildSource(coll_source_filename, coll_source_material)
@@ -181,10 +182,10 @@ class TestUser(unittest.TestCase):
   def test_build_merge_info(self):
 
     elm_nick = "elm"
-    elm_source_filename = elm_nick + ".src"
+    elm_source_filename = TestUser.mkSourceFilename(elm_nick)
     elm_source_material = ["a b c d e"]
     fir_nick = "fir"
-    fir_source_filename = fir_nick + ".src"
+    fir_source_filename = TestUser.mkSourceFilename(fir_nick)
     fir_source_material = ["f g h i j"]
     merge_info = [
       "elm\telm_\tleamhán",
@@ -205,6 +206,51 @@ class TestUser(unittest.TestCase):
     self.assertEqual(len(fir.aliases), 0)
 
     self.assertFalse(self.user_collection.containsByAlias("grape"))
+
+
+  def test_build_user_stats_unknown(self):
+
+    grape_nick = "grape"
+    grape_quotes_requested = 117
+
+    stats_data = {
+      grape_nick : users.UserStatsToPersist(grape_quotes_requested),
+    }
+
+    self.user_collection.buildUserStats(stats_data)
+    self.assertTrue(self.user_collection.empty())
+
+
+  def test_build_user_stats_known(self):
+
+    grape_nick = "grape"
+    grape_quotes_requested = 119
+
+    hazel_nick = "hazel"
+    hazel_source_filename = TestUser.mkSourceFilename(hazel_nick)
+    hazel_source_material = ["k l m n o p q"]
+    hazel_quotes_requested = 711
+
+    stats_data = {
+      grape_nick : users.UserStatsToPersist(grape_quotes_requested),
+      hazel_nick : users.UserStatsToPersist(hazel_quotes_requested),
+    }
+
+    self.user_collection.buildSource(hazel_source_filename, hazel_source_material)
+
+    self.user_collection.buildUserStats(stats_data)
+    self.assertFalse(self.user_collection.containsByAlias(grape_nick))
+    self.assertTrue(self.user_collection.containsByAlias(hazel_nick))
+
+    hazel = self.user_collection.getByAlias(hazel_nick)
+    hazel_stats = hazel.getStatistics(hazel_nick)
+    hazel_quotes_requested = hazel_stats[users.UserStatisticType.QUOTES_REQUESTED]
+    self.assertEqual(hazel_quotes_requested, hazel_quotes_requested)
+
+
+  @staticmethod
+  def mkSourceFilename(nick):
+    return nick + ".src"
 
 
 if __name__ == "__main__":
