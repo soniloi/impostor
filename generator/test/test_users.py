@@ -291,6 +291,39 @@ class TestUser(unittest.TestCase):
     self.assertEqual(most_quoted[1].count, iris_quotes_requested)
 
 
+  def test_get_user_aliases_unknown(self):
+
+    aliases = self.user_collection.getUserAliases("unknown")
+    self.assertFalse(aliases)
+
+
+  def test_get_user_aliases_no_aliases(self):
+
+    larch_nick = "larch"
+    larch_source_filename = TestUser.mkSourceFilename(larch_nick)
+    larch_source_material = ["a b c d e"]
+    self.user_collection.buildSource(larch_source_filename, larch_source_material)
+
+    aliases = self.user_collection.getUserAliases(larch_nick)
+    self.assertFalse(aliases)
+
+
+  def test_get_user_aliases_with_aliases(self):
+
+    maple_nick = "maple"
+    maple_source_filename = TestUser.mkSourceFilename(maple_nick)
+    maple_source_material = ["a b c d e"]
+    merge_info = ["maple\tmaple_\tmaple-\tmailp"]
+    self.user_collection.buildSource(maple_source_filename, maple_source_material)
+    self.user_collection.buildMergeInfo(merge_info)
+
+    aliases = self.user_collection.getUserAliases(maple_nick)
+    self.assertTrue(len(aliases), 3)
+    self.assertTrue("maple_" in aliases)
+    self.assertTrue("maple-" in aliases)
+    self.assertTrue("mailp" in aliases)
+
+
   @staticmethod
   def mkSourceFilename(nick):
     return nick + ".src"
