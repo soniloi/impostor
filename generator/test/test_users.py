@@ -130,8 +130,6 @@ class TestUser(unittest.TestCase):
       "a b c e f g",
       "h i j k"
     ]
-    starters = []
-    lookbackmap = {}
 
     self.user_collection.buildSource(source_filename, source_material)
 
@@ -153,15 +151,10 @@ class TestUser(unittest.TestCase):
   def test_build_static_stats(self):
 
     coll_nick = "coll"
-    coll_source_filename = TestUser.mkSourceFilename(coll_nick)
-    coll_source_material = ["a b c"]
-
+    self.createAndAddUser(coll_nick, ["a b c"])
     dair_nick = "dair"
-    dair_source_filename = TestUser.mkSourceFilename(dair_nick)
-    dair_source_material = ["d e f g"]
+    self.createAndAddUser(dair_nick, ["d e f g"])
 
-    self.user_collection.buildSource(coll_source_filename, coll_source_material)
-    self.user_collection.buildSource(dair_source_filename, dair_source_material)
     self.user_collection.initUserset()
     self.user_collection.buildStaticStats()
 
@@ -182,19 +175,16 @@ class TestUser(unittest.TestCase):
   def test_build_merge_info(self):
 
     elm_nick = "elm"
-    elm_source_filename = TestUser.mkSourceFilename(elm_nick)
-    elm_source_material = ["a b c d e"]
+    self.createAndAddUser(elm_nick)
     fir_nick = "fir"
-    fir_source_filename = TestUser.mkSourceFilename(fir_nick)
-    fir_source_material = ["f g h i j"]
+    self.createAndAddUser(fir_nick)
+
     merge_info = [
       "elm\telm_\tleamhán",
       "fir",
       "grape\tgrapealias",
     ]
 
-    self.user_collection.buildSource(elm_source_filename, elm_source_material)
-    self.user_collection.buildSource(fir_source_filename, fir_source_material)
     self.user_collection.buildMergeInfo(merge_info)
 
     elm = self.user_collection.getByAlias(elm_nick)
@@ -227,16 +217,13 @@ class TestUser(unittest.TestCase):
     grape_quotes_requested = 119
 
     hazel_nick = "hazel"
-    hazel_source_filename = TestUser.mkSourceFilename(hazel_nick)
-    hazel_source_material = ["k l m n o p q"]
+    self.createAndAddUser(hazel_nick)
     hazel_quotes_requested = 711
 
     stats_data = {
       grape_nick : users.UserStatsToPersist(grape_quotes_requested),
       hazel_nick : users.UserStatsToPersist(hazel_quotes_requested),
     }
-
-    self.user_collection.buildSource(hazel_source_filename, hazel_source_material)
 
     self.user_collection.buildUserStats(stats_data)
     self.assertFalse(self.user_collection.containsByAlias(grape_nick))
@@ -257,18 +244,15 @@ class TestUser(unittest.TestCase):
   def test_get_most_quoted_nonempty(self):
 
     iris_nick = "iris"
-    iris_source_filename = TestUser.mkSourceFilename(iris_nick)
-    iris_source_material = ["a b c d e"]
+    self.createAndAddUser(iris_nick)
     iris_quotes_requested = 784
 
     juniper_nick = "juniper"
-    juniper_source_filename = TestUser.mkSourceFilename(juniper_nick)
-    juniper_source_material = ["a b c d e"]
+    self.createAndAddUser(juniper_nick)
     juniper_quotes_requested = 2991
 
     kale_nick = "kale"
-    kale_source_filename = TestUser.mkSourceFilename(kale_nick)
-    kale_source_material = ["a b c d e"]
+    self.createAndAddUser(kale_nick)
     kale_quotes_requested = 0
 
     stats_data = {
@@ -277,9 +261,6 @@ class TestUser(unittest.TestCase):
         kale_nick : users.UserStatsToPersist(kale_quotes_requested),
     }
 
-    self.user_collection.buildSource(iris_source_filename, iris_source_material)
-    self.user_collection.buildSource(juniper_source_filename, juniper_source_material)
-    self.user_collection.buildSource(kale_source_filename, kale_source_material)
     self.user_collection.buildUserStats(stats_data)
     self.user_collection.initUserset()
 
@@ -300,9 +281,7 @@ class TestUser(unittest.TestCase):
   def test_get_user_aliases_no_aliases(self):
 
     larch_nick = "larch"
-    larch_source_filename = TestUser.mkSourceFilename(larch_nick)
-    larch_source_material = ["a b c d e"]
-    self.user_collection.buildSource(larch_source_filename, larch_source_material)
+    self.createAndAddUser(larch_nick)
 
     aliases = self.user_collection.getUserAliases(larch_nick)
     self.assertFalse(aliases)
@@ -311,10 +290,8 @@ class TestUser(unittest.TestCase):
   def test_get_user_aliases_with_aliases(self):
 
     maple_nick = "maple"
-    maple_source_filename = TestUser.mkSourceFilename(maple_nick)
-    maple_source_material = ["a b c d e"]
+    self.createAndAddUser(maple_nick)
     merge_info = ["maple\tmaple_\tmaple-\tmailp"]
-    self.user_collection.buildSource(maple_source_filename, maple_source_material)
     self.user_collection.buildMergeInfo(merge_info)
 
     aliases = self.user_collection.getUserAliases(maple_nick)
@@ -322,6 +299,12 @@ class TestUser(unittest.TestCase):
     self.assertTrue("maple_" in aliases)
     self.assertTrue("maple-" in aliases)
     self.assertTrue("mailp" in aliases)
+
+
+  def createAndAddUser(self, nick, source_material=["a b c d e"]):
+
+    source_filename = TestUser.mkSourceFilename(nick)
+    self.user_collection.buildSource(source_filename, source_material)
 
 
   @staticmethod
