@@ -248,6 +248,49 @@ class TestUser(unittest.TestCase):
     self.assertEqual(hazel_quotes_requested, hazel_quotes_requested)
 
 
+  def test_get_most_quoted_empty(self):
+
+    most_quoted = self.user_collection.getMostQuoted()
+    self.assertFalse(most_quoted)
+
+
+  def test_get_most_quoted_nonempty(self):
+
+    iris_nick = "iris"
+    iris_source_filename = TestUser.mkSourceFilename(iris_nick)
+    iris_source_material = ["a b c d e"]
+    iris_quotes_requested = 784
+
+    juniper_nick = "juniper"
+    juniper_source_filename = TestUser.mkSourceFilename(juniper_nick)
+    juniper_source_material = ["a b c d e"]
+    juniper_quotes_requested = 2991
+
+    kale_nick = "kale"
+    kale_source_filename = TestUser.mkSourceFilename(kale_nick)
+    kale_source_material = ["a b c d e"]
+    kale_quotes_requested = 0
+
+    stats_data = {
+        iris_nick : users.UserStatsToPersist(iris_quotes_requested),
+        juniper_nick : users.UserStatsToPersist(juniper_quotes_requested),
+        kale_nick : users.UserStatsToPersist(kale_quotes_requested),
+    }
+
+    self.user_collection.buildSource(iris_source_filename, iris_source_material)
+    self.user_collection.buildSource(juniper_source_filename, juniper_source_material)
+    self.user_collection.buildSource(kale_source_filename, kale_source_material)
+    self.user_collection.buildUserStats(stats_data)
+    self.user_collection.initUserset()
+
+    most_quoted = self.user_collection.getMostQuoted()
+    self.assertEqual(len(most_quoted), 2)
+    self.assertEqual(most_quoted[0].nick, juniper_nick)
+    self.assertEqual(most_quoted[0].count, juniper_quotes_requested)
+    self.assertEqual(most_quoted[1].nick, iris_nick)
+    self.assertEqual(most_quoted[1].count, iris_quotes_requested)
+
+
   @staticmethod
   def mkSourceFilename(nick):
     return nick + ".src"

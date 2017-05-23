@@ -251,6 +251,9 @@ class UserCollection:
 
   def getMostQuoted(self):
 
+    if not self.userset:
+      return tuple()
+
     most_quoted_list = sorted(self.userset, key=lambda x:x.quotes_requested, reverse=True)[:config.MOST_QUOTED_COUNT]
     most_quoted_tuples = []
 
