@@ -337,6 +337,111 @@ class TestUser(unittest.TestCase):
     self.assertEqual(random_nick, None)
 
 
+  def test_get_real_nicks_no_minimum_starters(self):
+
+    nonexistent_nick = "nonexistent"
+    known_existent_nick = "known"
+    unknown_existent_nick = "unknown"
+
+    self.createAndAddUser(known_existent_nick)
+    self.createAndAddUser(unknown_existent_nick)
+    self.user_collection.initUserset()
+
+    nonexistent_nick_tuple = (users.NickType.NONRANDOM, nonexistent_nick)
+    known_existent_nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
+    unknown_existent_nick_tuple = (users.NickType.RANDOM, "")
+    nick_tuples = [
+      nonexistent_nick_tuple,
+      known_existent_nick_tuple,
+      unknown_existent_nick_tuple,
+    ]
+
+    real_nicks = self.user_collection.getRealNicks(nick_tuples)
+
+    self.assertEqual(len(real_nicks), 2)
+    self.assertFalse(nonexistent_nick in real_nicks)
+    self.assertTrue(known_existent_nick in real_nicks)
+    self.assertTrue(unknown_existent_nick in real_nicks)
+
+    known_user = self.user_collection.getByAlias(known_existent_nick)
+    unknown_user = self.user_collection.getByAlias(unknown_existent_nick)
+
+    self.assertEqual(known_user.quotes_requested, 1)
+    self.assertEqual(unknown_user.quotes_requested, 0)
+
+
+  def test_get_real_nicks_no_known_duplication(self):
+
+    known_existent_nick = "known"
+
+    self.createAndAddUser(known_existent_nick)
+    self.user_collection.initUserset()
+
+    known_existent_nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
+    unknown_existent_nick_tuple = (users.NickType.RANDOM, "")
+    nick_tuples = [
+      known_existent_nick_tuple,
+      unknown_existent_nick_tuple,
+    ]
+
+    real_nicks = self.user_collection.getRealNicks(nick_tuples)
+
+    self.assertEqual(len(real_nicks), 1)
+    self.assertTrue(known_existent_nick in real_nicks)
+
+
+  def test_get_real_nicks_no_unknown_duplication(self):
+
+    unknown_existent_nick = "unknown"
+
+    self.createAndAddUser(unknown_existent_nick)
+    self.user_collection.initUserset()
+
+    unknown_existent_nick_tuple_1 = (users.NickType.RANDOM, "")
+    unknown_existent_nick_tuple_2 = (users.NickType.RANDOM, "")
+    nick_tuples = [
+      unknown_existent_nick_tuple_1,
+      unknown_existent_nick_tuple_2,
+    ]
+
+    real_nicks = self.user_collection.getRealNicks(nick_tuples)
+
+    self.assertEqual(len(real_nicks), 1)
+    self.assertTrue(unknown_existent_nick in real_nicks)
+
+
+  def test_get_real_nicks_insufficient_minimum_starters(self):
+
+    self.createAndAddUser(self.captured_nick)
+    self.user_collection.initUserset()
+
+    nick_tuple = (users.NickType.RANDOM, "")
+    nick_tuples = [nick_tuple]
+
+    real_nicks = self.user_collection.getRealNicks(nick_tuples, 2)
+
+    self.assertFalse(real_nicks)
+
+
+  def test_get_real_nicks_no_increment(self):
+
+    known_existent_nick = "known"
+    self.createAndAddUser(known_existent_nick)
+    self.user_collection.initUserset()
+
+    nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
+    nick_tuples = [nick_tuple]
+
+    real_nicks = self.user_collection.getRealNicks(nick_tuples, 0, False)
+
+    self.assertTrue(real_nicks)
+    self.assertEqual(len(real_nicks), 1)
+    self.assertTrue(known_existent_nick in real_nicks)
+
+    known_user = self.user_collection.getByAlias(known_existent_nick)
+    self.assertEqual(known_user.quotes_requested, 0)
+
+
   def createAndAddUser(self, nick, source_material=["a b c d e"]):
 
     source_filename = TestUser.mkSourceFilename(nick)
