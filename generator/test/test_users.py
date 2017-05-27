@@ -38,6 +38,8 @@ class TestUser(unittest.TestCase):
 
     self.user_collection = users.UserCollection()
 
+    self.captured_nick = "whoever"
+
 
   def test_init_empty(self):
 
@@ -280,21 +282,19 @@ class TestUser(unittest.TestCase):
 
   def test_get_user_aliases_no_aliases(self):
 
-    larch_nick = "larch"
-    self.createAndAddUser(larch_nick)
+    self.createAndAddUser(self.captured_nick)
 
-    aliases = self.user_collection.getUserAliases(larch_nick)
+    aliases = self.user_collection.getUserAliases(self.captured_nick)
     self.assertFalse(aliases)
 
 
   def test_get_user_aliases_with_aliases(self):
 
-    maple_nick = "maple"
-    self.createAndAddUser(maple_nick)
-    merge_info = ["maple\tmaple_\tmaple-\tmailp"]
+    self.createAndAddUser(self.captured_nick)
+    merge_info = [self.captured_nick + "\tmaple_\tmaple-\tmailp"]
     self.user_collection.buildMergeInfo(merge_info)
 
-    aliases = self.user_collection.getUserAliases(maple_nick)
+    aliases = self.user_collection.getUserAliases(self.captured_nick)
     self.assertTrue(len(aliases), 3)
     self.assertTrue("maple_" in aliases)
     self.assertTrue("maple-" in aliases)
@@ -303,27 +303,25 @@ class TestUser(unittest.TestCase):
 
   def test_get_random_nick_no_minimum_starters(self):
 
-    nettle_nick = "nettle"
-    self.createAndAddUser(nettle_nick)
+    self.createAndAddUser(self.captured_nick)
     self.user_collection.initUserset()
 
     random_nick = self.user_collection.getRandomNick([])
-    self.assertEqual(random_nick, nettle_nick)
+    self.assertEqual(random_nick, self.captured_nick)
 
 
   def test_get_random_nick_equal_minimum_starters(self):
 
-    oak_nick = "oak"
-    self.createAndAddUser(oak_nick)
+    self.createAndAddUser(self.captured_nick)
     self.user_collection.initUserset()
 
     random_nick = self.user_collection.getRandomNick([], 1)
-    self.assertEqual(random_nick, oak_nick)
+    self.assertEqual(random_nick, self.captured_nick)
 
 
   def test_get_random_nick_insufficient_minimum_starters(self):
 
-    self.createAndAddUser("any")
+    self.createAndAddUser(self.captured_nick)
     self.user_collection.initUserset()
 
     random_nick = self.user_collection.getRandomNick([], 2)
@@ -332,11 +330,10 @@ class TestUser(unittest.TestCase):
 
   def test_get_random_nick_with_exclude(self):
 
-    palm_nick = "palm"
-    self.createAndAddUser(palm_nick)
+    self.createAndAddUser(self.captured_nick)
     self.user_collection.initUserset()
 
-    random_nick = self.user_collection.getRandomNick([palm_nick])
+    random_nick = self.user_collection.getRandomNick([self.captured_nick])
     self.assertEqual(random_nick, None)
 
 
