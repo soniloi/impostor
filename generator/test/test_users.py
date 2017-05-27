@@ -301,6 +301,45 @@ class TestUser(unittest.TestCase):
     self.assertTrue("mailp" in aliases)
 
 
+  def test_get_random_nick_no_minimum_starters(self):
+
+    nettle_nick = "nettle"
+    self.createAndAddUser(nettle_nick)
+    self.user_collection.initUserset()
+
+    random_nick = self.user_collection.getRandomNick([])
+    self.assertEqual(random_nick, nettle_nick)
+
+
+  def test_get_random_nick_equal_minimum_starters(self):
+
+    oak_nick = "oak"
+    self.createAndAddUser(oak_nick)
+    self.user_collection.initUserset()
+
+    random_nick = self.user_collection.getRandomNick([], 1)
+    self.assertEqual(random_nick, oak_nick)
+
+
+  def test_get_random_nick_insufficient_minimum_starters(self):
+
+    self.createAndAddUser("any")
+    self.user_collection.initUserset()
+
+    random_nick = self.user_collection.getRandomNick([], 2)
+    self.assertEqual(random_nick, None)
+
+
+  def test_get_random_nick_with_exclude(self):
+
+    palm_nick = "palm"
+    self.createAndAddUser(palm_nick)
+    self.user_collection.initUserset()
+
+    random_nick = self.user_collection.getRandomNick([palm_nick])
+    self.assertEqual(random_nick, None)
+
+
   def createAndAddUser(self, nick, source_material=["a b c d e"]):
 
     source_filename = TestUser.mkSourceFilename(nick)

@@ -278,7 +278,7 @@ class UserCollection:
 
     possibles = []
     for user in self.userset:
-      if not user.nick in excludes and len(user.starters) > min_starters:
+      if not user.nick in excludes and len(user.starters) >= min_starters:
         possibles.append(user.nick)
 
     if possibles:
