@@ -442,6 +442,29 @@ class TestUser(unittest.TestCase):
     self.assertEqual(known_user.quotes_requested, 0)
 
 
+  def test_get_user_statistics_user_absent(self):
+
+    self.user_collection.initUserset()
+
+    stats = self.user_collection.getUserStatistics("no-one")
+
+    self.assertEqual(stats, None)
+
+
+  def test_get_user_statistics_user_present(self):
+
+    self.createAndAddUser(self.captured_nick)
+    self.user_collection.initUserset()
+
+    stats = self.user_collection.getUserStatistics(self.captured_nick)
+
+    self.assertTrue(stats)
+    self.assertEqual(stats[users.UserStatisticType.REAL_NICK], self.captured_nick)
+    self.assertEqual(stats[users.UserStatisticType.ALIASES], None)
+    self.assertEqual(stats[users.UserStatisticType.PRODUCTION_COUNT], 3)
+    self.assertEqual(stats[users.UserStatisticType.QUOTES_REQUESTED], 0)
+
+
   def createAndAddUser(self, nick, source_material=["a b c d e"]):
 
     source_filename = TestUser.mkSourceFilename(nick)
