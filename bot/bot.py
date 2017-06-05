@@ -155,7 +155,8 @@ class ImpostorBot(irc.IRCClient):
 
 
   def __init__(self, source_dir):
-    self.generator = generator.Generator(source_dir)
+    self.generator = generator.Generator()
+    self.generator.build(source_dir)
     self.current_mystery = None
     self.next_mystery_ident = 0
     self.players = PlayerCollection()

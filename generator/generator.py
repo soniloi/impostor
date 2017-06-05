@@ -21,17 +21,12 @@ class GenericStatisticType:
   MOST_QUOTED_USERS = 5
 
 
-class Generator:
+class GeneratorUtil:
 
-  def __init__(self, source_dir):
-    self.users = UserCollection()
-    self.users.init(source_dir)
-    self.meta = {}
-    self.date_started = int(time.time())
-    self.buildMeta(source_dir)
+  @staticmethod
+  def buildMeta(source_dir):
 
-
-  def buildMeta(self, source_dir):
+    meta = {}
 
     meta_filename = source_dir + config.META_FILE_NAME
     if not os.path.isfile(meta_filename):
@@ -47,9 +42,24 @@ class Generator:
 
       meta_key = meta_words[0]
       meta_values = meta_words[1].split()
-      self.meta[meta_key] = meta_values
+      meta[meta_key] = meta_values
 
     meta_file.close()
+
+    return meta
+
+
+class Generator:
+
+  def build(self, source_dir, users=UserCollection()):
+    users.init(source_dir)
+    self.init(users, GeneratorUtil.buildMeta(source_dir))
+
+
+  def init(self, users, meta, time=int(time.time())):
+    self.users = users
+    self.meta = meta
+    self.date_started = time
 
 
   @staticmethod
