@@ -100,7 +100,8 @@ class Generator:
 
 
   # Make a shallow (ish) copy of a dictionary of lists
-  def copyListDict(self, original):
+  @staticmethod
+  def copyListDict(original):
     result = {}
     for pair, successors in original.iteritems():
       successors_copy = list(successors)
@@ -109,7 +110,8 @@ class Generator:
 
 
   # Merge one dictionary of lists into another
-  def mergeIntoDictionary(self, mergeinto, mergefrom):
+  @staticmethod
+  def mergeIntoDictionary(mergeinto, mergefrom):
     for pair, successors in mergefrom.iteritems():
       if pair in mergeinto:
         mergeinto[pair] += successors
@@ -118,7 +120,8 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generateQuote(self, lookbacks, initial):
+  @staticmethod
+  def generateQuote(lookbacks, initial):
 
     current = initial
     line = current[0] + ' ' + current[1]
@@ -154,13 +157,13 @@ class Generator:
     #  and starter list, so we will want copies
     if len(real_nicks) > 1:
       starting_pairs = list(starting_pairs)
-      lookbacks = self.copyListDict(lookbacks)
+      lookbacks = Generator.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
       other_user = self.users.getByAlias(other_nick)
       starting_pairs += other_user.starters
-      self.mergeIntoDictionary(lookbacks, other_user.lookbacks)
+      Generator.mergeIntoDictionary(lookbacks, other_user.lookbacks)
 
     initial = random.choice(starting_pairs)
-    return (real_nicks, self.generateQuote(lookbacks, initial))
+    return (real_nicks, Generator.generateQuote(lookbacks, initial))
 

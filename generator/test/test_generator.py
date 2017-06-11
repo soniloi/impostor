@@ -114,6 +114,27 @@ class TestGenerator(unittest.TestCase):
       self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
       self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
 
+  def test_generate_single_nonrandom(self):
+
+    local_generator = generator.Generator()
+
+    meta = {}
+    time = 0
+
+    nick = "mollusc"
+    nick_tuples = [(users.NickType.NONRANDOM, nick)]
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getRealNicks.return_value = [nick]
+
+
+      local_generator.init(users_instance, meta, time)
+      nicks, quote = local_generator.generate(nick_tuples)
+
+      self.assertEqual(nicks[0], nick)
+
 if __name__ == "__main__":
   unittest.main()
 
