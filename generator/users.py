@@ -54,6 +54,14 @@ class User:
     self.aliases = set(aliases)
 
 
+  def getStarters(self):
+    return tuple(self.starters)
+
+
+  def getLookbacks(self):
+    return self.lookbacks # FIXME: maybe return this immutable somehow
+
+
   def incrementQuotesRequested(self):
     self.quotes_requested += 1
 
@@ -239,6 +247,16 @@ class UserCollection:
   # Get user object from alias or real nick, when known to be in the set
   def getByAlias(self, nick):
     return self.usermap[nick]
+
+
+  # Get starters for a nick we know to be in the map
+  def getStarters(self, nick):
+    return self.usermap[nick].getStarters()
+
+
+  # Get lookbacks for a nick we know to be in the map
+  def getLookbacks(self, nick):
+    return self.usermap[nick].getLookbacks()
 
 
   def countUsers(self):

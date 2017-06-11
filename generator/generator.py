@@ -149,9 +149,8 @@ class Generator:
       return ([], "")
 
     first_nick = real_nicks[0]
-    first_user = self.users.getByAlias(first_nick)
-    starting_pairs = first_user.starters
-    lookbacks = first_user.lookbacks
+    starting_pairs = self.users.getStarters(first_nick)
+    lookbacks = self.users.getLookbacks(first_nick)
 
     # If we have more than one nick, we will be constructing a new lookback map
     #  and starter list, so we will want copies
@@ -160,9 +159,8 @@ class Generator:
       lookbacks = Generator.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
-      other_user = self.users.getByAlias(other_nick)
-      starting_pairs += other_user.starters
-      Generator.mergeIntoDictionary(lookbacks, other_user.lookbacks)
+      starting_pairs += list(self.users.getStarters(other_nick))
+      Generator.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
     return (real_nicks, Generator.generateQuote(lookbacks, initial))
