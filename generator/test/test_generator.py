@@ -115,7 +115,7 @@ class TestGenerator(unittest.TestCase):
       self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
 
 
-  def test_generate_single_nonrandom_unknown(self):
+  def test_generate_nonrandom_unknown(self):
 
     local_generator = generator.Generator()
 
@@ -134,7 +134,7 @@ class TestGenerator(unittest.TestCase):
       self.assertFalse(quote)
 
 
-  def test_generate_single_nonrandom_known(self):
+  def test_generate_nonrandom_known_single(self):
 
     local_generator = generator.Generator()
 
@@ -154,6 +154,8 @@ class TestGenerator(unittest.TestCase):
       ("i", "bhfad") : ["uainn"],
     }
 
+    expected_quote = "is glas iad na cnoic i bhfad uainn"
+
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
       users_instance = users_mock.return_value
@@ -165,7 +167,79 @@ class TestGenerator(unittest.TestCase):
       nicks, quote = local_generator.generate(nick_tuples)
 
       self.assertEqual(nicks[0], nick)
-      self.assertEqual(quote, "is glas iad na cnoic i bhfad uainn")
+      self.assertEqual(quote, expected_quote)
+
+
+  def test_generate_nonrandom_known_multiple(self):
+
+    local_generator = generator.Generator()
+
+    meta = {}
+    time = 0
+
+    saoi_nick = "saoi"
+    file_nick = "file"
+    nick_tuples = [
+      (users.NickType.NONRANDOM, saoi_nick),
+      (users.NickType.NONRANDOM, file_nick),
+    ]
+
+    expected_quotes = [
+      "is glas iad na cnoic i bhfad uainn",
+      "marbh le tae agus marbh gan é",
+    ]
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getRealNicks.return_value = [saoi_nick, file_nick]
+      users_instance.getStarters.side_effect = TestGenerator.starters_side_effect
+      users_instance.getLookbacks.side_effect = TestGenerator.lookbacks_side_effect
+
+      local_generator.init(users_instance, meta, time)
+      nicks, quote = local_generator.generate(nick_tuples)
+
+      self.assertTrue(nicks)
+      self.assertTrue(saoi_nick in nicks)
+      self.assertTrue(file_nick in nicks)
+      self.assertTrue(quote in expected_quotes)
+
+
+  @staticmethod
+  def starters_side_effect(*args):
+
+    if args[0] == "saoi":
+      return [("is", "glas")]
+
+    elif args[0] == "file":
+      return [("marbh", "le")]
+
+    return []
+
+
+  @staticmethod
+  def lookbacks_side_effect(*args):
+
+    if args[0] == "saoi":
+      return {
+        ("is", "glas") : ["iad"],
+        ("glas", "iad") : ["na"],
+        ("iad", "na") : ["cnoic"],
+        ("na", "cnoic") : ["i"],
+        ("cnoic", "i") : ["bhfad"],
+        ("i", "bhfad") : ["uainn"],
+      }
+
+    elif args[0] == "file":
+      return {
+        ("marbh", "le") : ["tae"],
+        ("le", "tae") : ["agus"],
+        ("tae", "agus") : ["marbh"],
+        ("agus", "marbh") : ["gan"],
+        ("marbh", "gan") : ["é"],
+      }
+
+    return {}
 
 
 if __name__ == "__main__":
