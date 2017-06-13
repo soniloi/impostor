@@ -114,26 +114,59 @@ class TestGenerator(unittest.TestCase):
       self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
       self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
 
-  def test_generate_single_nonrandom(self):
+
+  def test_generate_single_nonrandom_unknown(self):
 
     local_generator = generator.Generator()
 
     meta = {}
     time = 0
 
-    nick = "mollusc"
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getRealNicks.return_value = []
+
+      local_generator.init(users_instance, meta, time)
+      nicks, quote = local_generator.generate([])
+
+      self.assertFalse(nicks)
+      self.assertFalse(quote)
+
+
+  def test_generate_single_nonrandom_known(self):
+
+    local_generator = generator.Generator()
+
+    meta = {}
+    time = 0
+
+    nick = "saoi"
     nick_tuples = [(users.NickType.NONRANDOM, nick)]
+
+    starters = [("is", "glas")]
+    lookbacks = {
+      ("is", "glas") : ["iad"],
+      ("glas", "iad") : ["na"],
+      ("iad", "na") : ["cnoic"],
+      ("na", "cnoic") : ["i"],
+      ("cnoic", "i") : ["bhfad"],
+      ("i", "bhfad") : ["uainn"],
+    }
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
       users_instance = users_mock.return_value
       users_instance.getRealNicks.return_value = [nick]
-
+      users_instance.getStarters.return_value = starters
+      users_instance.getLookbacks.return_value = lookbacks
 
       local_generator.init(users_instance, meta, time)
       nicks, quote = local_generator.generate(nick_tuples)
 
       self.assertEqual(nicks[0], nick)
+      self.assertEqual(quote, "is glas iad na cnoic i bhfad uainn")
+
 
 if __name__ == "__main__":
   unittest.main()
