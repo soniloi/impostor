@@ -61,6 +61,27 @@ class TestGenerator(unittest.TestCase):
     return {}
 
 
+  def test_copy_list_dict(self):
+
+    rain_key = "rain"
+
+    focloir = {
+      rain_key : ["fearthainn", "baisteach"],
+    }
+
+    copy = generator.GeneratorUtil.copyListDict(focloir)
+
+    self.assertTrue(copy)
+    self.assertEqual(copy, focloir)
+
+    # Check that the list is new
+    self.assertFalse(copy[rain_key] is focloir[rain_key])
+
+    # Check that the list elements are not new
+    for i in range(0, len(copy[rain_key])):
+      self.assertTrue(copy[rain_key][i] is focloir[rain_key][i])
+
+
   def test_init_empty(self):
 
     local_generator = generator.Generator()

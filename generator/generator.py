@@ -49,6 +49,19 @@ class GeneratorUtil:
     return meta
 
 
+  # Make a shallow (ish) copy of a dictionary of lists
+  @staticmethod
+  def copyListDict(original):
+
+    result = {}
+
+    for pair, successors in original.iteritems():
+      successors_copy = list(successors)
+      result[pair] = successors_copy
+
+    return result
+
+
 class Generator:
 
   def build(self, source_dir, users=UserCollection()):
@@ -99,22 +112,15 @@ class Generator:
     return self.users.getUserStatistics(nick)
 
 
-  # Make a shallow (ish) copy of a dictionary of lists
-  @staticmethod
-  def copyListDict(original):
-    result = {}
-    for pair, successors in original.iteritems():
-      successors_copy = list(successors)
-      result[pair] = successors_copy
-    return result
-
-
   # Merge one dictionary of lists into another
   @staticmethod
   def mergeIntoDictionary(mergeinto, mergefrom):
+
     for pair, successors in mergefrom.iteritems():
+
       if not pair in mergeinto:
         mergeinto[pair] = []
+
       mergeinto[pair] += successors
 
 
@@ -155,7 +161,7 @@ class Generator:
     #  and starter list, so we will want copies
     if len(real_nicks) > 1:
       starting_pairs = list(starting_pairs)
-      lookbacks = Generator.copyListDict(lookbacks)
+      lookbacks = GeneratorUtil.copyListDict(lookbacks)
 
     for other_nick in real_nicks[1:]:
       starting_pairs += list(self.users.getStarters(other_nick))
