@@ -13,10 +13,52 @@ class TestGenerator(unittest.TestCase):
     self.saoi_nick = "saoi"
     self.file_nick = "file"
 
-    self.expected_quotes = {
+    self.quotes = {
       self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
       self.file_nick : "marbh le tae agus marbh gan é",
     }
+
+    self.starters = {}
+    self.lookbacks = {}
+
+    for (nick, quote) in self.quotes.iteritems():
+
+      self.starters[nick] = []
+      self.lookbacks[nick] = {}
+      words = quote.split()
+
+      starter = (words[0], words[1])
+      self.starters[nick].append(starter)
+
+      for i in range(0, len(words)-2):
+
+        predecessor = (words[i], words[i+1])
+        successor = words[i+2]
+
+        if not predecessor in self.lookbacks[nick]:
+          self.lookbacks[nick][predecessor] = []
+
+        self.lookbacks[nick][predecessor].append(successor)
+
+
+  def starters_side_effect(self, *args):
+
+    nick = args[0]
+
+    if nick in self.starters:
+      return self.starters[nick]
+
+    return []
+
+
+  def lookbacks_side_effect(self, *args):
+
+    nick = args[0]
+
+    if nick in self.lookbacks:
+      return self.lookbacks[nick]
+
+    return {}
 
 
   def test_init_empty(self):
@@ -202,42 +244,7 @@ class TestGenerator(unittest.TestCase):
       self.assertTrue(nicks)
       self.assertTrue(self.saoi_nick in nicks)
       self.assertTrue(self.file_nick in nicks)
-      self.assertTrue(quote in self.expected_quotes.values())
-
-
-  def starters_side_effect(self, *args):
-
-    if args[0] == self.saoi_nick:
-      return [("is", "glas")]
-
-    elif args[0] == self.file_nick:
-      return [("marbh", "le")]
-
-    return []
-
-
-  def lookbacks_side_effect(self, *args):
-
-    if args[0] == self.saoi_nick:
-      return {
-        ("is", "glas") : ["iad"],
-        ("glas", "iad") : ["na"],
-        ("iad", "na") : ["cnoic"],
-        ("na", "cnoic") : ["i"],
-        ("cnoic", "i") : ["bhfad"],
-        ("i", "bhfad") : ["uainn"],
-      }
-
-    elif args[0] == self.file_nick:
-      return {
-        ("marbh", "le") : ["tae"],
-        ("le", "tae") : ["agus"],
-        ("tae", "agus") : ["marbh"],
-        ("agus", "marbh") : ["gan"],
-        ("marbh", "gan") : ["é"],
-      }
-
-    return {}
+      self.assertTrue(quote in self.quotes.values())
 
 
 if __name__ == "__main__":
