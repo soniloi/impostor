@@ -9,7 +9,14 @@ from .. import users
 class TestGenerator(unittest.TestCase):
 
   def setUp(self):
-    pass
+
+    self.saoi_nick = "saoi"
+    self.file_nick = "file"
+
+    self.expected_quotes = {
+      self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
+      self.file_nick : "marbh le tae agus marbh gan é",
+    }
 
 
   def test_init_empty(self):
@@ -177,50 +184,41 @@ class TestGenerator(unittest.TestCase):
     meta = {}
     time = 0
 
-    saoi_nick = "saoi"
-    file_nick = "file"
     nick_tuples = [
-      (users.NickType.NONRANDOM, saoi_nick),
-      (users.NickType.NONRANDOM, file_nick),
-    ]
-
-    expected_quotes = [
-      "is glas iad na cnoic i bhfad uainn",
-      "marbh le tae agus marbh gan é",
+      (users.NickType.NONRANDOM, self.saoi_nick),
+      (users.NickType.NONRANDOM, self.file_nick),
     ]
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
       users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = [saoi_nick, file_nick]
-      users_instance.getStarters.side_effect = TestGenerator.starters_side_effect
-      users_instance.getLookbacks.side_effect = TestGenerator.lookbacks_side_effect
+      users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
+      users_instance.getStarters.side_effect = self.starters_side_effect
+      users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
       local_generator.init(users_instance, meta, time)
       nicks, quote = local_generator.generate(nick_tuples)
 
       self.assertTrue(nicks)
-      self.assertTrue(saoi_nick in nicks)
-      self.assertTrue(file_nick in nicks)
-      self.assertTrue(quote in expected_quotes)
+      self.assertTrue(self.saoi_nick in nicks)
+      self.assertTrue(self.file_nick in nicks)
+      self.assertTrue(quote in self.expected_quotes.values())
 
 
-  @staticmethod
-  def starters_side_effect(*args):
+  def starters_side_effect(self, *args):
 
-    if args[0] == "saoi":
+    if args[0] == self.saoi_nick:
       return [("is", "glas")]
 
-    elif args[0] == "file":
+    elif args[0] == self.file_nick:
       return [("marbh", "le")]
 
     return []
 
 
-  @staticmethod
-  def lookbacks_side_effect(*args):
+  def lookbacks_side_effect(self, *args):
 
-    if args[0] == "saoi":
+    if args[0] == self.saoi_nick:
       return {
         ("is", "glas") : ["iad"],
         ("glas", "iad") : ["na"],
@@ -230,7 +228,7 @@ class TestGenerator(unittest.TestCase):
         ("i", "bhfad") : ["uainn"],
       }
 
-    elif args[0] == "file":
+    elif args[0] == self.file_nick:
       return {
         ("marbh", "le") : ["tae"],
         ("le", "tae") : ["agus"],
