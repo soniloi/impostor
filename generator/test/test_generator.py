@@ -10,6 +10,14 @@ class TestGenerator(unittest.TestCase):
 
   def setUp(self):
 
+    self.rain_nick = "rain"
+    self.aliases = {
+      self.rain_nick : ["rain_", "fearthainn"],
+    }
+    self.stats = {
+      self.rain_nick : "statistics",
+    }
+
     self.saoi_nick = "saoi"
     self.file_nick = "file"
 
@@ -39,6 +47,26 @@ class TestGenerator(unittest.TestCase):
           self.lookbacks[nick][predecessor] = []
 
         self.lookbacks[nick][predecessor].append(successor)
+
+
+  def aliases_side_effect(self, *args):
+
+    nick = args[0]
+
+    if nick in self.aliases:
+      return self.aliases[nick]
+
+    return []
+
+
+  def stats_side_effect(self, *args):
+
+    nick = args[0]
+
+    if nick in self.stats:
+      return self.stats[nick]
+
+    return None
 
 
   def starters_side_effect(self, *args):
@@ -124,7 +152,7 @@ class TestGenerator(unittest.TestCase):
 
     rain_key = "rain"
     rain_elem1 = "fearthainn"
-    rain_elem2 = "baisteach"
+    rain_elem2 = "báisteach"
     rain_value1 = [rain_elem1]
     rain_value2 = [rain_elem2]
 
@@ -258,6 +286,53 @@ class TestGenerator(unittest.TestCase):
 
       self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
       self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
+
+
+  def test_get_user_aliases(self):
+
+    local_generator = generator.Generator()
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getUserAliases.side_effect = self.aliases_side_effect
+
+      local_generator.init(users_instance, {}, 0)
+      aliases = local_generator.getUserAliases(self.rain_nick)
+
+      self.assertEqual(aliases, self.aliases[self.rain_nick])
+      self.assertTrue(aliases is self.aliases[self.rain_nick])
+
+
+  def test_get_user_statistics_unknown(self):
+
+    local_generator = generator.Generator()
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getUserStatistics.side_effect = self.stats_side_effect
+
+      local_generator.init(users_instance, {}, 0)
+      stats = local_generator.getUserStatistics("unknown")
+      self.assertEqual(stats, None)
+
+
+  def test_get_user_statistics_known(self):
+
+    local_generator = generator.Generator()
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getUserStatistics.side_effect = self.stats_side_effect
+
+      local_generator.init(users_instance, {}, 0)
+      stats = local_generator.getUserStatistics(self.rain_nick)
+
+      self.assertTrue(stats)
+      self.assertEqual(stats, self.stats[self.rain_nick])
+      self.assertTrue(stats is self.stats[self.rain_nick])
 
 
   def test_generate_nonrandom_unknown(self):
