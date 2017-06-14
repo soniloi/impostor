@@ -190,33 +190,20 @@ class TestGenerator(unittest.TestCase):
     meta = {}
     time = 0
 
-    nick = "saoi"
-    nick_tuples = [(users.NickType.NONRANDOM, nick)]
-
-    starters = [("is", "glas")]
-    lookbacks = {
-      ("is", "glas") : ["iad"],
-      ("glas", "iad") : ["na"],
-      ("iad", "na") : ["cnoic"],
-      ("na", "cnoic") : ["i"],
-      ("cnoic", "i") : ["bhfad"],
-      ("i", "bhfad") : ["uainn"],
-    }
-
-    expected_quote = "is glas iad na cnoic i bhfad uainn"
+    nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
       users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = [nick]
-      users_instance.getStarters.return_value = starters
-      users_instance.getLookbacks.return_value = lookbacks
+      users_instance.getRealNicks.return_value = [self.saoi_nick]
+      users_instance.getStarters.side_effect = self.starters_side_effect
+      users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
       local_generator.init(users_instance, meta, time)
       nicks, quote = local_generator.generate(nick_tuples)
 
-      self.assertEqual(nicks[0], nick)
-      self.assertEqual(quote, expected_quote)
+      self.assertEqual(nicks[0], self.saoi_nick)
+      self.assertEqual(quote, self.quotes[self.saoi_nick])
 
 
   def test_generate_nonrandom_known_multiple(self):

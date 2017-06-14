@@ -113,10 +113,9 @@ class Generator:
   @staticmethod
   def mergeIntoDictionary(mergeinto, mergefrom):
     for pair, successors in mergefrom.iteritems():
-      if pair in mergeinto:
-        mergeinto[pair] += successors
-      else:
-        mergeinto[pair] = successors
+      if not pair in mergeinto:
+        mergeinto[pair] = []
+      mergeinto[pair] += successors
 
 
   # Return a line generated from a given lookback collection and a given initial pair
