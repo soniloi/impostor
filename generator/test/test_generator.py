@@ -66,7 +66,7 @@ class TestGenerator(unittest.TestCase):
     rain_key = "rain"
 
     focloir = {
-      rain_key : ["fearthainn", "baisteach"],
+      rain_key : ["fearthainn", "báisteach"],
     }
 
     copy = generator.GeneratorUtil.copyListDict(focloir)
@@ -80,6 +80,81 @@ class TestGenerator(unittest.TestCase):
     # Check that the list elements are not new
     for i in range(0, len(copy[rain_key])):
       self.assertTrue(copy[rain_key][i] is focloir[rain_key][i])
+
+
+  def test_merge_into_dictionary_no_matching_keys(self):
+
+    tree_key = "tree"
+    tree_value = ["crann"]
+
+    rain_key = "rain"
+    rain_value = ["báisteach"]
+
+    focloir1 = {
+      tree_key : tree_value,
+    }
+
+    focloir2 = {
+      rain_key : rain_value,
+    }
+
+    generator.GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
+
+    # Ensure first dictionary has been mutated correctly
+    self.assertEqual(len(focloir1), 2)
+    self.assertTrue(tree_key in focloir1)
+    self.assertTrue(rain_key in focloir1)
+    self.assertEqual(focloir1[tree_key], tree_value)
+    self.assertEqual(focloir1[rain_key], rain_value)
+
+    self.assertTrue(focloir1[tree_key] is tree_value)
+    self.assertTrue(focloir1[rain_key] is not rain_value)
+    self.assertTrue(focloir1[rain_key][0] is rain_value[0])
+
+    # Ensure second dictionary is unchanged
+    self.assertEqual(len(focloir2), 1)
+    self.assertTrue(rain_key in focloir2)
+
+    self.assertEqual(len(focloir2[rain_key]), 1)
+    self.assertTrue(focloir2[rain_key] is rain_value)
+    self.assertTrue(focloir2[rain_key][0] is rain_value[0])
+
+
+  def test_merge_into_dictionary_with_matching_keys(self):
+
+    rain_key = "rain"
+    rain_elem1 = "fearthainn"
+    rain_elem2 = "baisteach"
+    rain_value1 = [rain_elem1]
+    rain_value2 = [rain_elem2]
+
+    focloir1 = {
+      rain_key : rain_value1,
+    }
+
+    focloir2 = {
+      rain_key : rain_value2,
+    }
+
+    generator.GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
+
+    # Ensure first dictionary has been mutated correctly
+    self.assertEqual(len(focloir1), 1)
+    self.assertTrue(rain_key in focloir1)
+    self.assertEqual(focloir1[rain_key], [rain_elem1, rain_elem2])
+
+    self.assertTrue(focloir1[rain_key] is rain_value1)
+    self.assertTrue(focloir1[rain_key][0] is rain_value1[0])
+    self.assertTrue(focloir1[rain_key][1] is rain_value2[0])
+
+    # Ensure second dictionary is unchanged
+    self.assertEqual(len(focloir2), 1)
+    self.assertTrue(rain_key in focloir2)
+
+    self.assertEqual(len(focloir2[rain_key]), 1)
+    self.assertTrue(rain_key in focloir2)
+    self.assertTrue(focloir2[rain_key] is rain_value2)
+    self.assertTrue(focloir2[rain_key][0] is rain_value2[0])
 
 
   def test_init_empty(self):

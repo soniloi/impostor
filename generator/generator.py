@@ -62,6 +62,18 @@ class GeneratorUtil:
     return result
 
 
+  # Merge one dictionary of lists into another
+  @staticmethod
+  def mergeIntoDictionary(mergeinto, mergefrom):
+
+    for key, value_list in mergefrom.iteritems():
+
+      if not key in mergeinto:
+        mergeinto[key] = []
+
+      mergeinto[key] += value_list
+
+
 class Generator:
 
   def build(self, source_dir, users=UserCollection()):
@@ -112,18 +124,6 @@ class Generator:
     return self.users.getUserStatistics(nick)
 
 
-  # Merge one dictionary of lists into another
-  @staticmethod
-  def mergeIntoDictionary(mergeinto, mergefrom):
-
-    for pair, successors in mergefrom.iteritems():
-
-      if not pair in mergeinto:
-        mergeinto[pair] = []
-
-      mergeinto[pair] += successors
-
-
   # Return a line generated from a given lookback collection and a given initial pair
   @staticmethod
   def generateQuote(lookbacks, initial):
@@ -165,7 +165,7 @@ class Generator:
 
     for other_nick in real_nicks[1:]:
       starting_pairs += list(self.users.getStarters(other_nick))
-      Generator.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
+      GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
     return (real_nicks, Generator.generateQuote(lookbacks, initial))
