@@ -339,6 +339,26 @@ class TestGenerator(unittest.TestCase):
       self.assertFalse(quote)
 
 
+  def test_generate_nonrandom_known_single_short(self):
+
+    local_generator = generator.Generator()
+
+    nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      users_instance = users_mock.return_value
+      users_instance.getRealNicks.return_value = [self.saoi_nick]
+      users_instance.getStarters.side_effect = self.starters_side_effect
+      users_instance.getLookbacks.return_value = []
+
+      local_generator.init(users_instance, {}, 0)
+      nicks, quote = local_generator.generate(nick_tuples)
+
+      self.assertEqual(nicks[0], self.saoi_nick)
+      self.assertEqual(quote, ' '.join(list(self.starters[self.saoi_nick][0])))
+
+
   def test_generate_nonrandom_known_single(self):
 
     local_generator = generator.Generator()

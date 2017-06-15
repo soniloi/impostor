@@ -131,6 +131,7 @@ class Generator:
     current = initial
     line = current[0] + ' ' + current[1]
 
+    # FIXME: this should not be possible; maybe do something else here?
     if not current in lookbacks:
       return line
 
