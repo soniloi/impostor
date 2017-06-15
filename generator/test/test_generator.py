@@ -49,44 +49,33 @@ class TestGenerator(unittest.TestCase):
         self.lookbacks[nick][predecessor].append(successor)
 
 
+  @staticmethod
+  def retrieve_value_or_default(dictionary, key, default):
+
+    if key in dictionary:
+      return dictionary[key]
+
+    return default
+
+
   def aliases_side_effect(self, *args):
 
-    nick = args[0]
-
-    if nick in self.aliases:
-      return self.aliases[nick]
-
-    return []
+    return TestGenerator.retrieve_value_or_default(self.aliases, args[0], [])
 
 
   def stats_side_effect(self, *args):
 
-    nick = args[0]
-
-    if nick in self.stats:
-      return self.stats[nick]
-
-    return None
+    return TestGenerator.retrieve_value_or_default(self.stats, args[0], None)
 
 
   def starters_side_effect(self, *args):
 
-    nick = args[0]
-
-    if nick in self.starters:
-      return self.starters[nick]
-
-    return []
+    return TestGenerator.retrieve_value_or_default(self.starters, args[0], [])
 
 
   def lookbacks_side_effect(self, *args):
 
-    nick = args[0]
-
-    if nick in self.lookbacks:
-      return self.lookbacks[nick]
-
-    return {}
+    return TestGenerator.retrieve_value_or_default(self.lookbacks, args[0], {})
 
 
   def test_copy_list_dict(self):
@@ -202,8 +191,7 @@ class TestGenerator(unittest.TestCase):
 
     local_generator = generator.Generator()
 
-    meta = {}
-    time = 0
+    time = 818
     user_count = 0
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
@@ -213,7 +201,7 @@ class TestGenerator(unittest.TestCase):
       users_instance.getBiggestUsers.return_value = None
       users_instance.getMostQuoted.return_value = None
 
-      local_generator.init(users_instance, meta, time)
+      local_generator.init(users_instance, {}, time)
       stats = local_generator.getGenericStatistics()
 
       self.assertTrue(generator.GenericStatisticType.USER_COUNT in stats)
@@ -339,15 +327,12 @@ class TestGenerator(unittest.TestCase):
 
     local_generator = generator.Generator()
 
-    meta = {}
-    time = 0
-
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
       users_instance = users_mock.return_value
       users_instance.getRealNicks.return_value = []
 
-      local_generator.init(users_instance, meta, time)
+      local_generator.init(users_instance, {}, 0)
       nicks, quote = local_generator.generate([])
 
       self.assertFalse(nicks)
@@ -358,9 +343,6 @@ class TestGenerator(unittest.TestCase):
 
     local_generator = generator.Generator()
 
-    meta = {}
-    time = 0
-
     nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
@@ -370,7 +352,7 @@ class TestGenerator(unittest.TestCase):
       users_instance.getStarters.side_effect = self.starters_side_effect
       users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
-      local_generator.init(users_instance, meta, time)
+      local_generator.init(users_instance, {}, 0)
       nicks, quote = local_generator.generate(nick_tuples)
 
       self.assertEqual(nicks[0], self.saoi_nick)
@@ -380,9 +362,6 @@ class TestGenerator(unittest.TestCase):
   def test_generate_nonrandom_known_multiple(self):
 
     local_generator = generator.Generator()
-
-    meta = {}
-    time = 0
 
     nick_tuples = [
       (users.NickType.NONRANDOM, self.saoi_nick),
@@ -396,7 +375,7 @@ class TestGenerator(unittest.TestCase):
       users_instance.getStarters.side_effect = self.starters_side_effect
       users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
-      local_generator.init(users_instance, meta, time)
+      local_generator.init(users_instance, {}, 0)
       nicks, quote = local_generator.generate(nick_tuples)
 
       self.assertTrue(nicks)
