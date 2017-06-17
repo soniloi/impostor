@@ -128,8 +128,10 @@ class Generator:
   @staticmethod
   def generateQuote(lookbacks, initial):
 
+    lookback_count = config.LOOKBACK_LEN
+
     current = initial
-    line = current[0] + ' ' + current[1]
+    line = ' '.join(current[0:lookback_count])
 
     # FIXME: this should not be possible; maybe do something else here?
     if not current in lookbacks:
@@ -137,9 +139,12 @@ class Generator:
 
     i = 0
     while current in lookbacks and i < config.OUTPUT_WORDS_MAX:
-      next = random.choice(lookbacks[current])
-      line += ' ' + next
-      current = (current[1], next)
+      follow = random.choice(lookbacks[current])
+      line += ' ' + follow
+
+      current_list = list(current[1:lookback_count])
+      current_list.append(follow)
+      current = tuple(current_list)
       i += 1
 
     return line

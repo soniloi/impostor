@@ -142,16 +142,17 @@ class UserCollection:
 
   def processLineWords(self, words, starters, lookbackmap):
 
-    starter = (words[0], words[1])
+    lookback_count = config.LOOKBACK_LEN
+
+    starter = tuple(words[0:lookback_count])
     starters.append(starter)
 
-    bound = len(words) - config.LOOKBACK_LEN
+    bound = len(words) - lookback_count
     for i in range(0, bound):
 
-      first = words[i]
-      second = words[i+1]
-      follow = words[i+2]
-      lookback = (first, second)
+      follow_index = i + lookback_count
+      lookback = tuple(words[i:follow_index])
+      follow = words[follow_index]
 
       if not lookback in lookbackmap:
         lookbackmap[lookback] = []
