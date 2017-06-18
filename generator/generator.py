@@ -76,8 +76,12 @@ class GeneratorUtil:
 
 class Generator:
 
+  def __init__(self, lookback_count=config.LOOKBACK_LEN):
+    self.lookback_count = lookback_count
+
+
   def build(self, source_dir, users=UserCollection()):
-    users.init(source_dir)
+    users.init(source_dir, self.lookback_count)
     self.init(users, GeneratorUtil.buildMeta(source_dir))
 
 
@@ -125,13 +129,10 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  @staticmethod
-  def generateQuote(lookbacks, initial):
-
-    lookback_count = config.LOOKBACK_LEN
+  def generateQuote(self, lookbacks, initial):
 
     current = initial
-    line = ' '.join(current[0:lookback_count])
+    line = ' '.join(current[0:self.lookback_count])
 
     # FIXME: this should not be possible; maybe do something else here?
     if not current in lookbacks:
@@ -142,7 +143,7 @@ class Generator:
       follow = random.choice(lookbacks[current])
       line += ' ' + follow
 
-      current_list = list(current[1:lookback_count])
+      current_list = list(current[1:self.lookback_count])
       current_list.append(follow)
       current = tuple(current_list)
       i += 1
@@ -174,5 +175,5 @@ class Generator:
       GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
-    return (real_nicks, Generator.generateQuote(lookbacks, initial))
+    return (real_nicks, self.generateQuote(lookbacks, initial))
 

@@ -101,8 +101,9 @@ class UserCollection:
     self.changes = 0
 
 
-  def init(self, source_dir):
+  def init(self, source_dir, lookback_count):
 
+    self.lookback_count = lookback_count
     self.readSources(source_dir)
     self.initUserset()
     self.buildStaticStats()
@@ -142,15 +143,13 @@ class UserCollection:
 
   def processLineWords(self, words, starters, lookbackmap):
 
-    lookback_count = config.LOOKBACK_LEN
-
-    starter = tuple(words[0:lookback_count])
+    starter = tuple(words[0:self.lookback_count])
     starters.append(starter)
 
-    bound = len(words) - lookback_count
+    bound = len(words) - self.lookback_count
     for i in range(0, bound):
 
-      follow_index = i + lookback_count
+      follow_index = i + self.lookback_count
       lookback = tuple(words[i:follow_index])
       follow = words[follow_index]
 
