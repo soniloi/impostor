@@ -92,8 +92,9 @@ class UserCollection:
   SEP = "/"
   SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
 
-  def __init__(self):
+  def __init__(self, lookback_count=config.LOOKBACK_LEN):
 
+    self.lookback_count = lookback_count
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
@@ -101,9 +102,8 @@ class UserCollection:
     self.changes = 0
 
 
-  def init(self, source_dir, lookback_count):
+  def init(self, source_dir):
 
-    self.lookback_count = lookback_count
     self.readSources(source_dir)
     self.initUserset()
     self.buildStaticStats()

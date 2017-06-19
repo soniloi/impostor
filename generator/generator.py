@@ -80,8 +80,12 @@ class Generator:
     self.lookback_count = lookback_count
 
 
-  def build(self, source_dir, users=UserCollection()):
-    users.init(source_dir, self.lookback_count)
+  def build(self, source_dir):
+    self.build_local(source_dir, UserCollection(self.lookback_count))
+
+
+  def build_local(self, source_dir, users):
+    users.init(source_dir)
     self.init(users, GeneratorUtil.buildMeta(source_dir))
 
 
