@@ -76,15 +76,16 @@ class GeneratorUtil:
 
 class Generator:
 
+  SEP = "/"
+  SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
+
   def __init__(self, lookback_count=config.LOOKBACK_LEN):
     self.lookback_count = lookback_count
 
 
   def build(self, source_dir):
-    self.build_local(source_dir, UserCollection(self.lookback_count))
-
-
-  def build_local(self, source_dir, users):
+    users = UserCollection()
+    self.readSources(source_dir, users)
     users.init(source_dir)
     self.init(users, GeneratorUtil.buildMeta(source_dir))
 
@@ -93,6 +94,54 @@ class Generator:
     self.users = users
     self.meta = meta
     self.date_started = time
+
+
+  def readSources(self, source_dir, users):
+
+    source_filenames = os.listdir(source_dir)
+
+    for source_filename in source_filenames:
+
+      if source_filename.endswith(config.SOURCEFILE_EXT):
+
+        source_filepath = source_dir + Generator.SEP + source_filename
+        infile = open(source_filepath, 'r')
+        self.buildSource(source_filename, infile, users)
+        infile.close()
+
+
+  def buildSource(self, source_filename, source_data, users):
+
+    nick = source_filename[:-Generator.SOURCEFILE_EXTLEN]
+    starters = []
+    lookbackmap = {}
+
+    for line in source_data:
+      words = line.split()
+      if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
+        self.processLineWords(words, starters, lookbackmap)
+
+    # Only add new user to sources if any material actually found in file
+    if lookbackmap:
+      users.addUser(nick, starters, lookbackmap)
+
+
+  def processLineWords(self, words, starters, lookbackmap):
+
+    starter = tuple(words[0:self.lookback_count])
+    starters.append(starter)
+
+    bound = len(words) - self.lookback_count
+    for i in range(0, bound):
+
+      follow_index = i + self.lookback_count
+      lookback = tuple(words[i:follow_index])
+      follow = words[follow_index]
+
+      if not lookback in lookbackmap:
+        lookbackmap[lookback] = []
+
+      lookbackmap[lookback].append(follow)
 
 
   @staticmethod

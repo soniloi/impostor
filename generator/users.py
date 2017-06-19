@@ -89,12 +89,8 @@ class User:
 
 class UserCollection:
 
-  SEP = "/"
-  SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
+  def __init__(self):
 
-  def __init__(self, lookback_count=config.LOOKBACK_LEN):
-
-    self.lookback_count = lookback_count
     self.usermap = {} # Map of nick to User objects
     self.count = 0
     self.biggest_users = None
@@ -104,59 +100,14 @@ class UserCollection:
 
   def init(self, source_dir):
 
-    self.readSources(source_dir)
     self.initUserset()
     self.buildStaticStats()
     self.readMergeInfo(source_dir)
     self.readUserStats()
 
 
-  def readSources(self, source_dir):
-
-    source_filenames = os.listdir(source_dir)
-
-    for source_filename in source_filenames:
-
-      if source_filename.endswith(config.SOURCEFILE_EXT):
-
-        source_filepath = source_dir + UserCollection.SEP + source_filename
-        infile = open(source_filepath, 'r')
-        self.buildSource(source_filename, infile)
-        infile.close()
-
-
-  def buildSource(self, source_filename, source_data):
-
-    nick = source_filename[:-UserCollection.SOURCEFILE_EXTLEN]
-    starters = []
-    lookbackmap = {}
-
-    for line in source_data:
-      words = line.split()
-      if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
-        self.processLineWords(words, starters, lookbackmap)
-
-    # Only add nick to sources if any material actually found in file
-    if lookbackmap:
-      self.usermap[nick] = User(nick, starters, lookbackmap)
-
-
-  def processLineWords(self, words, starters, lookbackmap):
-
-    starter = tuple(words[0:self.lookback_count])
-    starters.append(starter)
-
-    bound = len(words) - self.lookback_count
-    for i in range(0, bound):
-
-      follow_index = i + self.lookback_count
-      lookback = tuple(words[i:follow_index])
-      follow = words[follow_index]
-
-      if not lookback in lookbackmap:
-        lookbackmap[lookback] = []
-
-      lookbackmap[lookback].append(follow)
+  def addUser(self, nick, starters, lookbacks):
+    self.usermap[nick] = User(nick, starters, lookbacks)
 
 
   def initUserset(self):
