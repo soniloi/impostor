@@ -116,26 +116,23 @@ class TestUser(unittest.TestCase):
 
   def test_build_source_empty(self):
 
-    nick = "ash"
-    source_filename = TestUser.mkSourceFilename(nick)
-    source_material = []
-
-    self.user_collection.buildSource(source_filename, source_material)
-
     self.assertTrue(self.user_collection.empty())
 
 
   def test_build_source_nonempty(self):
 
     nick = "birch"
-    source_filename = TestUser.mkSourceFilename(nick)
-    source_material = [
-      "a b c d",
-      "a b c e f g",
-      "h i j k"
-    ]
+    starters = [("a", "b"), ("a", "b"), ("h", "i")]
+    lookbacks = {
+      ("a", "b") : ["c", "c"],
+      ("b", "c") : ["d", "e"],
+      ("c", "e") : ["f"],
+      ("e", "f") : ["g"],
+      ("h", "i") : ["j"],
+      ("i", "j") : ["k"],
+    }
 
-    self.user_collection.buildSource(source_filename, source_material)
+    self.user_collection.addUser(nick, starters, lookbacks)
 
     self.assertEqual(len(self.user_collection.usermap), 1)
     self.assertTrue(self.user_collection.containsByAlias(nick))
@@ -155,9 +152,9 @@ class TestUser(unittest.TestCase):
   def test_build_static_stats(self):
 
     coll_nick = "coll"
-    self.createAndAddUser(coll_nick, ["a b c"])
+    self.createAndAddUser(coll_nick, [("a", "b")], {("a", "b") : ["c"]})
     dair_nick = "dair"
-    self.createAndAddUser(dair_nick, ["d e f g"])
+    self.createAndAddUser(dair_nick, [("d", "e")], {("d", "e") : ["f"], ("e", "f") : ["g"]})
 
     self.user_collection.initUserset()
     self.user_collection.buildStaticStats()
@@ -467,10 +464,15 @@ class TestUser(unittest.TestCase):
     self.assertEqual(stats[users.UserStatisticType.QUOTES_REQUESTED], 0)
 
 
-  def createAndAddUser(self, nick, source_material=["a b c d e"]):
+  def createAndAddUser(self,\
+                       nick,\
+                       starters=[("a", "b")],\
+                       lookbacks={("a", "b") : ["c"],\
+                                  ("b", "c") : ["d"],\
+                                  ("c", "d") : ["e"],\
+                        }):
 
-    source_filename = TestUser.mkSourceFilename(nick)
-    self.user_collection.buildSource(source_filename, source_material)
+    self.user_collection.addUser(nick, starters, lookbacks)
 
 
   @staticmethod
