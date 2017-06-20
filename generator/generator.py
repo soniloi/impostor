@@ -106,27 +106,29 @@ class Generator:
 
         source_filepath = source_dir + Generator.SEP + source_filename
         infile = open(source_filepath, 'r')
-        self.buildSource(source_filename, infile, users)
+        (nick, starters, lookbacks) = self.processSource(source_filename, infile)
         infile.close()
 
+        # Only add new user to sources if any material actually found in file
+        if lookbacks:
+          users.addUser(nick, starters, lookbacks)
 
-  def buildSource(self, source_filename, source_data, users):
+
+  def processSource(self, source_filename, source_data):
 
     nick = source_filename[:-Generator.SOURCEFILE_EXTLEN]
     starters = []
-    lookbackmap = {}
+    lookbacks = {}
 
     for line in source_data:
       words = line.split()
-      if len(words) >= (config.LOOKBACK_LEN + 1): # Not interested in lines too short to create productions
-        self.processLineWords(words, starters, lookbackmap)
+      if len(words) >= (self.lookback_count + 1): # Not interested in lines too short to create productions
+        self.processLineWords(words, starters, lookbacks)
 
-    # Only add new user to sources if any material actually found in file
-    if lookbackmap:
-      users.addUser(nick, starters, lookbackmap)
+    return (nick, starters, lookbacks)
 
 
-  def processLineWords(self, words, starters, lookbackmap):
+  def processLineWords(self, words, starters, lookbacks):
 
     starter = tuple(words[0:self.lookback_count])
     starters.append(starter)
@@ -138,10 +140,10 @@ class Generator:
       lookback = tuple(words[i:follow_index])
       follow = words[follow_index]
 
-      if not lookback in lookbackmap:
-        lookbackmap[lookback] = []
+      if not lookback in lookbacks:
+        lookbacks[lookback] = []
 
-      lookbackmap[lookback].append(follow)
+      lookbacks[lookback].append(follow)
 
 
   @staticmethod

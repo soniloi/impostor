@@ -189,6 +189,48 @@ class TestGenerator(unittest.TestCase):
       self.assertTrue(local_generator.empty())
 
 
+  def test_process_source(self):
+
+    local_generator = generator.Generator()
+
+    source_nick = "almond"
+    source_filename = source_nick + ".src"
+    source_data = [
+      "a b c d",
+      "a b c e",
+      "f g h",
+      "i j",
+    ]
+
+    (nick, starters, lookbacks) = local_generator.processSource(source_filename, source_data)
+
+    ab = ("a", "b")
+    bc = ("b", "c")
+    fg = ("f", "g")
+
+    self.assertEqual(nick, source_nick)
+
+    self.assertEqual(len(starters), 3)
+    self.assertTrue(ab in starters)
+    self.assertTrue(fg in starters)
+
+    self.assertEqual(len(lookbacks), 3)
+    self.assertTrue(ab in lookbacks)
+    self.assertTrue(bc in lookbacks)
+    self.assertTrue(fg in lookbacks)
+
+    self.assertEqual(len(lookbacks[ab]), 2)
+    self.assertTrue("c" in lookbacks[ab])
+    self.assertEqual(lookbacks[ab][0], lookbacks[ab][1])
+
+    self.assertEqual(len(lookbacks[bc]), 2)
+    self.assertTrue("d" in lookbacks[bc])
+    self.assertTrue("e" in lookbacks[bc])
+
+    self.assertEqual(len(lookbacks[fg]), 1)
+    self.assertTrue("h" in lookbacks[fg])
+
+
   def test_get_generic_statistics_empty(self):
 
     local_generator = generator.Generator()
