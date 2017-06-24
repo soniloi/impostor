@@ -1,4 +1,7 @@
+from collections import namedtuple
 import random
+
+MysteryInfo = namedtuple("MysteryInfo", "known_quotes known_nick_characters already_guessed")
 
 
 class HintType:
@@ -18,24 +21,13 @@ class Mystery:
     self.already_guessed = set()
 
 
-  def getDescription(self):
+  def getInfo(self):
 
-    description = "The mystery author says: [" + self.quotes[0] + "]"
-    for quote in self.quotes[1:]:
-      description += " and [" + quote + "]"
-    description += ". "
-
-    if self.nick_characters:
-      description += "Their nick contains the character(s) ["
-      description += ",".join(self.nick_characters)
-      description += "]. "
-
-    if self.already_guessed:
-      description += "The nick(s) guessed so far are ["
-      description += ",".join(self.already_guessed)
-      description += "]. "
-
-    return description
+    return MysteryInfo(
+      self.quotes,
+      self.nick_characters,
+      self.already_guessed
+    )
 
 
   def getHint(self):

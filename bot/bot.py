@@ -571,15 +571,38 @@ class ImpostorBot(irc.IRCClient):
     return count_raw
 
 
+  @staticmethod
+  def formatMysteryDescription(mystery_info):
+
+    quotes = mystery_info.known_quotes
+    characters = mystery_info.known_nick_characters
+    guessed = mystery_info.already_guessed
+
+    description = ""
+
+    if quotes:
+      description += "The mystery author says: [" + quotes[0] + "]"
+      for quote in quotes[1:]:
+        description += " and [" + quote + "]"
+      description += ". "
+
+    if characters:
+      description += "Their nick contains the character(s) ["
+      description += ",".join(characters)
+      description += "]. "
+
+    if guessed:
+      description += "The nick(s) guessed so far are ["
+      description += ",".join(guessed)
+      description += "]. "
+
+    return description
+
+
   # Attempt to start a mystery sequence; return response string
   def startMystery(self, user, raw_tokens):
 
-    output_message = ""
-
-    if self.current_mystery:
-      output_message += self.current_mystery.getDescription()
-
-    else:
+    if not self.current_mystery:
       nick_tuple = (NickType.RANDOM, "")
       output_nicks, output_quote = self.generator.generate([nick_tuple], config.MYSTERY_MIN_STARTERS, False)
 
@@ -591,7 +614,8 @@ class ImpostorBot(irc.IRCClient):
         author_aliases = self.generator.getUserAliases(author)
         self.current_mystery = Mystery(self.next_mystery_ident, author, author_aliases, output_quote, hints)
         self.next_mystery_ident += 1
-        output_message += self.current_mystery.getDescription()
+
+    output_message = ImpostorBot.formatMysteryDescription(self.current_mystery.getInfo())
 
     return [output_message]
 
