@@ -21,6 +21,20 @@ class TestUser(unittest.TestCase):
     self.assertEqual(self.player.scores[players.PlayerScoreType.GUESSES_CORRECT], 0)
 
 
+  def test_record_game_already_played(self):
+
+    self.player.recordGame(-1)
+    self.assertEqual(self.player.scores[players.PlayerScoreType.GAMES_PLAYED], 0)
+
+
+  def test_record_game_not_already_played(self):
+
+    self.player.recordGame(0)
+    self.player.recordGame(1)
+    self.player.recordGame(53)
+    self.assertEqual(self.player.scores[players.PlayerScoreType.GAMES_PLAYED], 3)
+
+
 if __name__ == "__main__":
   unittest.main()
 
