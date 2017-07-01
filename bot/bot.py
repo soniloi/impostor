@@ -695,7 +695,18 @@ class ImpostorBot(irc.IRCClient):
     output_message = ImpostorBot.NO_MYSTERY
 
     if self.current_mystery:
-      output_message = self.current_mystery.getHint()
+
+      hint = self.current_mystery.getHint()
+
+      if not hint:
+        output_message = "I have no further hints to give. "
+
+      else:
+        if hint[0] == HintType.NICK_CHARACTER:
+          output_message = "The mystery author's name contains the character [%s]" % hint[1]
+
+        elif hint[0] == HintType.ADDITIONAL_QUOTE:
+          output_message = "The mystery author also says: [%s]" % hint[1]
 
     return [output_message]
 

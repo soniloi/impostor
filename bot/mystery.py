@@ -32,25 +32,14 @@ class Mystery:
 
   def getHint(self):
 
-    hint_message = ""
+    hint = None
 
-    if not self.future_hints:
-      hint_message = "I have no further hints to give. "
-
-    else:
+    if self.future_hints:
       hint_index = random.randint(0, len(self.future_hints) - 1)
-      (hint_type, hint) = self.future_hints[hint_index]
+      hint = self.future_hints[hint_index]
       del self.future_hints[hint_index]
 
-      if hint_type == HintType.NICK_CHARACTER:
-        self.nick_characters.append(hint)
-        hint_message = "The mystery author's name contains the character [" + hint + "]"
-
-      elif hint_type == HintType.ADDITIONAL_QUOTE:
-        self.quotes.append(hint)
-        hint_message = "The mystery author also says: [" + hint + "]"
-
-    return hint_message
+    return hint
 
 
   # Evaluate a guess, with aliasing
