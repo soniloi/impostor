@@ -143,6 +143,10 @@ class ImpostorBot(irc.IRCClient):
   MYSTERY_SOLVE_NO_WINNER = "The mystery author was: %s. No-one guessed correctly. "
   MYSTERY_SOLVE_WITH_WINNER = "The mystery author was: %s%s. Congratulations, %s! "
 
+  MYSTERY_HINT_NONE = "I have no further hints to give. "
+  MYSTERY_HINT_NICK_CHARACTER = "The mystery author's name contains the character [%s]"
+  MYSTERY_HINT_ADDITIONAL_QUOTE = "The mystery author also says: [%s]"
+
   GENERIC_SCORE_MESSAGE_UNKNOWN = "No-one has participated in any games since I started keeping records."
   GENERIC_SCORE_MESSAGE_KNOWN = "The player who has played the most games is %s with %d game(s). " \
                        "The player with the most incorrect guesses is %s with %d. " \
@@ -700,14 +704,14 @@ class ImpostorBot(irc.IRCClient):
       hint = self.current_mystery.getHint()
 
       if not hint:
-        output_message = "I have no further hints to give. "
+        output_message = ImpostorBot.MYSTERY_HINT_NONE
 
       else:
         if hint[0] == HintType.NICK_CHARACTER:
-          output_message = "The mystery author's name contains the character [%s]" % hint[1]
+          output_message = ImpostorBot.MYSTERY_HINT_NICK_CHARACTER % hint[1]
 
         elif hint[0] == HintType.ADDITIONAL_QUOTE:
-          output_message = "The mystery author also says: [%s]" % hint[1]
+          output_message = ImpostorBot.MYSTERY_HINT_ADDITIONAL_QUOTE % hint[1]
 
     return [output_message]
 
@@ -766,6 +770,9 @@ class ImpostorBot(irc.IRCClient):
 
 class ImpostorBotFactory(protocol.ClientFactory):
 
+  USAGE = "Usage: %s <network> <channel> <logfile> <sourcedir>"
+  CONNECTION_FAILED = "Connection failed: %s"
+
   def __init__(self, channel, filename, source_dir):
     self.channel = channel
     self.filename = filename
@@ -783,23 +790,30 @@ class ImpostorBotFactory(protocol.ClientFactory):
 
 
   def clientConnectionFailed(self, connector, reason):
-    print "connection failed:", reason
+    print ImpostorBotFactory.CONNECTION_FAILED % reason
     reactor.stop()
 
 
 if __name__ == '__main__':
-  # initialize logging
+
+  # Initialize logging
   log.startLogging(sys.stdout)
 
   if len(sys.argv) < 5:
-    print "Usage: " + sys.argv[0] + " <network> <channel> <logfile> <sourcedir>"
+    print ImpostorBotFactory.USAGE % sys.argv[0]
 
-  # create factory protocol and application
-  f = ImpostorBotFactory(sys.argv[2], sys.argv[3], sys.argv[4])
+  host = sys.argv[1]
+  port = 6667
+  channel = sys.argv[2]
+  log_filename = sys.argv[3]
+  source_dir = sys.argv[4]
 
-  # connect factory to this host and port
-  reactor.connectTCP(sys.argv[1], 6667, f)
+  # Create factory protocol and application
+  factory = ImpostorBotFactory(channel, log_filename, source_dir)
 
-  # run bot
+  # Connect factory to this host and port
+  reactor.connectTCP(host, port, factory)
+
+  # Run bot
   reactor.run()
 
