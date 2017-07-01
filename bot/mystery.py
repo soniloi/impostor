@@ -1,5 +1,4 @@
 from collections import namedtuple
-import random
 
 MysteryInfo = namedtuple("MysteryInfo", "known_quotes known_nick_characters already_guessed")
 
@@ -35,9 +34,8 @@ class Mystery:
     hint = None
 
     if self.future_hints:
-      hint_index = random.randint(0, len(self.future_hints) - 1)
-      hint = self.future_hints[hint_index]
-      del self.future_hints[hint_index]
+      hint = self.future_hints[0]
+      del self.future_hints[0]
 
     return hint
 

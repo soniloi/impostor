@@ -649,6 +649,7 @@ class ImpostorBot(irc.IRCClient):
         additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
         hints.append(additional_quote_hint)
 
+    random.shuffle(hints)
     return hints
 
 
