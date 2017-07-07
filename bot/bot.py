@@ -79,6 +79,11 @@ class MessageLogger:
 
 class RequestProcessor():
 
+  GENERIC_DATE_FORMAT_STR = "%Y-%m-%d at %H.%M.%S"
+  UNKNOWN_START = "[Unknown"
+  UNKNOWN_STR = UNKNOWN_START + "]"
+  UNKNOWN_OR_NONE_STR = UNKNOWN_START + " or none]"
+
   BOLD_DEFAULT = Style.BOLD + "%s" + Style.CLEAR
 
   GENERATE_TRIGGER = Style.BOLD + Style.COLOUR + Colour.YELLOW + config.GENERATE_TRIGGER
@@ -147,6 +152,10 @@ class RequestProcessor():
   MYSTERY_HINT_NICK_CHARACTER = "The mystery author's name contains the character [%s]"
   MYSTERY_HINT_ADDITIONAL_QUOTE = "The mystery author also says: [%s]"
 
+  MYSTERY_DESCRIPTION_QUOTES = "The mystery author says: [%s]. "
+  MYSTERY_DESCRIPTION_CHARACTERS = "Their nick contains the character(s) [%s]. "
+  MYSTERY_DESCRIPTION_GUESSED = "Nick(s) guessed so far: [%s]. "
+
   GENERIC_SCORE_MESSAGE_UNKNOWN = "No-one has participated in any games since I started keeping records."
   GENERIC_SCORE_MESSAGE_KNOWN = "The player who has played the most games is %s with %d game(s). " \
                        "The player with the most incorrect guesses is %s with %d. " \
@@ -155,6 +164,7 @@ class RequestProcessor():
   PLAYER_SCORE_MESSAGE_KNOWN = "The player %s has participated in %d mystery game(s). The have guessed incorrectly %d time(s) and correctly %d time(s). "
   PLAYER_SCORE_MESSAGE_UNKNOWN = "If there is someone currently called %s, then they have not played since I started keeping records. "
 
+  USER_UNKNOWN = "I know of no such user %s. "
 
   def __init__(self, source_dir):
     self.generator = generator.Generator()
@@ -455,12 +465,12 @@ class RequestProcessor():
   @staticmethod
   def formatGenericDate(date_raw):
 
-    date = RequestProcessor.formatStatsDisplayBold("[Unknown]")
+    date = RequestProcessor.formatStatsDisplayBold(RequestProcessor.UNKNOWN_STR)
 
     if date_raw:
       date = datetime.datetime.fromtimestamp(
       int(date_raw)
-      ).strftime("%Y-%m-%d at %H.%M.%S")
+      ).strftime(RequestProcessor.GENERIC_DATE_FORMAT_STR)
 
     return date
 
@@ -471,12 +481,12 @@ class RequestProcessor():
     primary_raw = channels_raw.primary
     additionals_raw = channels_raw.additionals
 
-    primary = RequestProcessor.formatStatsDisplayBold("[Unknown]")
+    primary = RequestProcessor.formatStatsDisplayBold(RequestProcessor.UNKNOWN_STR)
 
     if primary_raw:
       primary = RequestProcessor.formatStatsDisplayBold(primary_raw)
 
-    additionals = RequestProcessor.formatStatsDisplayBold("[Unknown or None]")
+    additionals = RequestProcessor.formatStatsDisplayBold(RequestProcessor.UNKNOWN_OR_NONE_STR)
     additionals_formatted = []
 
     if additionals_raw:
@@ -501,7 +511,7 @@ class RequestProcessor():
   def formatGenericBiggestUsers(biggest_users_raw):
 
     biggest_user_count = len(biggest_users_raw)
-    biggest_users = RequestProcessor.formatStatsDisplayBold("[Unknown]")
+    biggest_users = RequestProcessor.formatStatsDisplayBold(RequestProcessor.UNKNOWN_STR)
     biggest_users_formatted = []
 
     for big_user in biggest_users_raw:
@@ -557,7 +567,7 @@ class RequestProcessor():
 
   def makeUserStats(self, nick):
     stats = self.generator.getUserStatistics(nick)
-    no_such = "I know of no such user %s. " % RequestProcessor.formatStatsDisplayBold(nick)
+    no_such = RequestProcessor.USER_UNKNOWN % RequestProcessor.formatStatsDisplayBold(nick)
     return RequestProcessor.formatStats(stats, self.user_statistic_formatters, [no_such])
 
 
@@ -626,20 +636,13 @@ class RequestProcessor():
     description = ""
 
     if quotes:
-      description += "The mystery author says: [" + quotes[0] + "]"
-      for quote in quotes[1:]:
-        description += " and [" + quote + "]"
-      description += ". "
+      description += RequestProcessor.MYSTERY_DESCRIPTION_QUOTES % "] and [".join(quotes)
 
     if characters:
-      description += "Their nick contains the character(s) ["
-      description += ",".join(characters)
-      description += "]. "
+      description += RequestProcessor.MYSTERY_DESCRIPTION_CHARACTERS % ",".join(characters)
 
     if guessed:
-      description += "The nick(s) guessed so far are ["
-      description += ",".join(guessed)
-      description += "]. "
+      description += RequestProcessor.MYSTERY_DESCRIPTION_GUESSED % ",".join(guessed)
 
     return description
 
