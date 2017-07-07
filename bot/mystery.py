@@ -35,6 +35,13 @@ class Mystery:
 
     if self.future_hints:
       hint = self.future_hints[0]
+
+      if hint[0] == HintType.NICK_CHARACTER:
+        self.nick_characters.append(hint[1])
+
+      elif hint[0] == HintType.ADDITIONAL_QUOTE:
+        self.quotes.append(hint[1])
+
       del self.future_hints[0]
 
     return hint
