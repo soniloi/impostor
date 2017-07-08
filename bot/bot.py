@@ -1,4 +1,5 @@
 from collections import namedtuple
+import logging
 import sys
 import time
 
@@ -42,6 +43,7 @@ class ImpostorBot(irc.IRCClient):
 
 
   def __init__(self, source_dir):
+    logging.basicConfig(filename="impostorbot.log", level=logging.INFO)
     self.processor = RequestProcessor(source_dir)
 
 
@@ -67,12 +69,14 @@ class ImpostorBot(irc.IRCClient):
   def joined(self, channel):
     """This will get called when the bot joins the channel."""
     self.logger.log("[I have joined %s]" % channel)
+    logging.info("Joined %s" % channel)
 
 
   def privmsg(self, user, channel, input_message_raw):
     """This will get called when the bot receives a message."""
     user = user.split('!', 1)[0]
     self.logger.log("<%s> %s" % (user, input_message_raw))
+    logging.info("Message received from %s: [%s] %s" % (channel, user, input_message_raw))
 
     input_message = input_message_raw.strip().lower()
     output_messages = []
@@ -97,6 +101,7 @@ class ImpostorBot(irc.IRCClient):
     """This will get called when the bot sees someone do an action."""
     user = user.split('!', 1)[0]
     self.logger.log("* %s %s" % (user, input_message))
+    logging.info("Action received from %s: [%s] %s" % (channel, user, input_message))
 
 
   # irc callbacks
@@ -105,6 +110,8 @@ class ImpostorBot(irc.IRCClient):
 
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
+
+    logging.info("Nick change detected: [%s] -> [%s]" % (old_nick, new_nick))
 
     self.players.updateNick(old_nick, new_nick)
 
@@ -116,7 +123,9 @@ class ImpostorBot(irc.IRCClient):
     Generate an altered version of a nickname that caused a collision in an
     effort to create an unused related name for subsequent registration.
     """
-    return nickname + '^'
+    alternative_nickname = nickname + '^'
+    logging.warning("Nickname %s collided, using %s instead" % (nickname, alternative_nickname))
+    return alternative_nickname
 
 
 class ImpostorBotFactory(protocol.ClientFactory):
