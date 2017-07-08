@@ -21,12 +21,13 @@ class ImpostorBot(irc.IRCClient):
   nickname = config.BOT_NICK
 
 
-  def __init__(self, source_dir):
+  def __init__(self, source_dir, log_filename, channel):
+    self.channel = channel
     self.processor = RequestProcessor(source_dir)
+    logging.basicConfig(filename=log_filename, level=logging.INFO)
 
 
   def connectionMade(self):
-    logging.basicConfig(filename=self.factory.log_filename, level=logging.INFO)
     irc.IRCClient.connectionMade(self)
     logging.info("Connection made at: %s", time.asctime(time.localtime(time.time())))
 
@@ -40,7 +41,7 @@ class ImpostorBot(irc.IRCClient):
 
   def signedOn(self):
     """Called when bot has succesfully signed on to server."""
-    self.join(self.factory.channel)
+    self.join(self.channel)
     logging.info("Signed on at: %s", time.asctime(time.localtime(time.time())))
 
 
@@ -113,8 +114,7 @@ class ImpostorBotFactory(protocol.ClientFactory):
 
 
   def buildProtocol(self, addr):
-    p = ImpostorBot(self.source_dir)
-    p.factory = self
+    p = ImpostorBot(self.source_dir, self.log_filename, self.channel)
     return p
 
 
