@@ -1,5 +1,6 @@
 from collections import namedtuple
 import datetime
+import logging
 import random
 import re
 
@@ -203,7 +204,7 @@ class RequestProcessor():
 
 
   def pmdToMe(self, user, input_message):
-    #self.logger.log("[PM] <%s> %s" % (user, input_message))
+    logging.warning("Message received by PM: [%s] %s", user, input_message)
     return []
 
 
