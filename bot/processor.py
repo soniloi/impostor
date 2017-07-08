@@ -179,6 +179,11 @@ class RequestProcessor():
     }
 
 
+  def updateNick(self, old_nick, new_nick):
+    logging.info("Nick change detected: [%s] -> [%s]", old_nick, new_nick)
+    self.players.updateNick(old_nick, new_nick)
+
+
   def makeHelp(self, user, raw_tokens):
 
     specifics = raw_tokens[1:]

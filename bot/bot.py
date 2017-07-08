@@ -85,10 +85,8 @@ class ImpostorBot(irc.IRCClient):
 
     old_nick = prefix.split('!')[0]
     new_nick = params[0]
+    self.processor.updateNick(old_nick, new_nick)
 
-    logging.info("Nick change detected: [%s] -> [%s]", old_nick, new_nick)
-
-    self.players.updateNick(old_nick, new_nick)
 
 
   # For fun, override the method that determines how a nickname is changed on
