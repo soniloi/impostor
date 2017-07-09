@@ -6,6 +6,9 @@ import time
 import config
 from processor import RequestProcessor
 
+from generator import generator
+from players import PlayerCollection
+
 #
 # IRC bot to be used with per-user Markov generator
 #
@@ -23,7 +26,7 @@ class ImpostorBot(irc.IRCClient):
 
   def __init__(self, source_dir, log_filename, channel):
     self.channel = channel
-    self.processor = RequestProcessor(source_dir)
+    self.processor = RequestProcessor(source_dir, generator.Generator(), PlayerCollection())
     logging.basicConfig(filename=log_filename, level=logging.INFO)
 
 
