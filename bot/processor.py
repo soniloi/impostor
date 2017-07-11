@@ -214,7 +214,7 @@ class RequestProcessor():
 
 
   def directedAtMe(self, user, input_message):
-    return self.makeGenericHelp(user, input_message.split())
+    return [self.makeGenericHelp()]
 
 
   def makeStats(self, user, raw_tokens):

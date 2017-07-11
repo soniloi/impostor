@@ -52,6 +52,21 @@ class TestProcessor(unittest.TestCase):
     self.assertEquals(response[0], processor.RequestProcessor.HELP_MYSTERY)
 
 
+  def test_pmd_to_me(self):
+
+    response = self.processor.pmdToMe("mollusc", "whatever")
+
+    self.assertEquals(len(response), 0)
+
+
+  def test_directed_at_me(self):
+
+    response = self.processor.directedAtMe("mollusc", "whatever")
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.BOT_DESC_BASIC)
+
+
 if __name__ == "__main__":
   unittest.main()
 
