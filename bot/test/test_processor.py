@@ -33,16 +33,31 @@ class TestProcessor(unittest.TestCase):
       generator.GenericStatisticType.MOST_QUOTED_USERS : most_quoted_users
     }
 
+    self.mollusc_stats = {
+      users.UserStatisticType.REAL_NICK : "mollusc",
+      users.UserStatisticType.ALIASES : (["mollusc_", "snail", "limpet"], "limpet"),
+      users.UserStatisticType.PRODUCTION_COUNT : 12345,
+      users.UserStatisticType.QUOTES_REQUESTED : 91,
+    }
+
     with patch(generator.__name__ + ".Generator") as generator_mock, \
           patch(players.__name__ + ".PlayerCollection") as players_mock:
 
-      generator_instance = generator_mock.return_value
-      generator_instance.empty.return_value = False
-      generator_instance.getGenericStatistics.return_value = self.generic_stats
+      self.generator_instance = generator_mock.return_value
+      self.generator_instance.empty.return_value = False
+      self.generator_instance.getGenericStatistics.return_value = self.generic_stats
 
-      players_instance = players_mock.return_value
+      self.players_instance = players_mock.return_value
 
-      self.processor = processor.RequestProcessor("", generator_instance, players_instance)
+      self.processor = processor.RequestProcessor("", self.generator_instance, self.players_instance)
+
+
+  def user_statistics_side_effect(self, *args):
+
+    if args[0] == "mollusc":
+      return self.mollusc_stats
+
+    return None
 
 
   def test_init(self):
@@ -98,10 +113,49 @@ class TestProcessor(unittest.TestCase):
       "started keeping records, the user prompted for quotes most often is: \x02lemon\x0f (requested 89 times(s)), " + \
       "followed by \x02amethyst\x0f (41). "
 
-    stats = self.processor.makeStats("mollusc", [])
+    stats = self.processor.makeStats("mollusc", ["stats"])
 
     self.assertEquals(len(stats), 1)
     self.assertEquals(stats[0], expected_stats)
+
+
+  def test_make_stats_one_nick_unknown(self):
+
+    stats = self.processor.makeStats("mollusc", ["stats", "unknown"])
+
+    self.assertEquals(len(stats), 1)
+    self.assertEquals(len(stats[0]), 0)
+
+
+  def test_make_stats_one_nick_known(self):
+
+    expected_start = "The user \x02mollusc\x0f (AKA "
+    expected_end = ") has 12345 production(s). 91 quote(s) have been requested of them. "
+
+    self.generator_instance.getUserStatistics.side_effect = self.user_statistics_side_effect
+
+    stats = self.processor.makeStats("mollusc", ["stats", "mollusc"])
+
+    self.assertEquals(len(stats), 1)
+    self.assertTrue(stats[0].startswith(expected_start))
+    self.assertTrue(stats[0].endswith(expected_end))
+    self.assertTrue("mollusc_" in stats[0])
+    self.assertTrue("snail" in stats[0])
+    self.assertTrue("limpet" in stats[0])
+
+
+  def test_make_stats_two_nick(self):
+
+    expected_start = "The user \x02mollusc\x0f (AKA "
+    expected_end = ") has 12345 production(s). 91 quote(s) have been requested of them. "
+
+    self.generator_instance.getUserStatistics.side_effect = self.user_statistics_side_effect
+
+    stats = self.processor.makeStats("mollusc", ["stats", "mollusc", "someoneelse"])
+
+    self.assertEquals(len(stats), 1)
+    self.assertTrue(stats[0].startswith(expected_start))
+    self.assertTrue(stats[0].endswith(expected_end))
 
 
 if __name__ == "__main__":
