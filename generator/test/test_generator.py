@@ -50,6 +50,12 @@ class TestGenerator(unittest.TestCase):
 
         self.lookbacks[nick][predecessor].append(successor)
 
+    self.generator = generator.Generator()
+
+    with patch(users.__name__ + ".UserCollection") as users_mock:
+
+      self.users_instance = users_mock.return_value
+
 
   @staticmethod
   def retrieve_value_or_default(dictionary, key, default):
@@ -178,20 +184,13 @@ class TestGenerator(unittest.TestCase):
 
   def test_init_empty(self):
 
-    local_generator = generator.Generator()
+    self.users_instance.empty.return_value = True
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
-
-      users_instance = users_mock.return_value
-      users_instance.empty.return_value = True
-
-      local_generator.init(users_instance, {}, 0)
-      self.assertTrue(local_generator.empty())
+    self.generator.init(self.users_instance, {}, 0)
+    self.assertTrue(self.generator.empty())
 
 
   def test_process_source(self):
-
-    local_generator = generator.Generator()
 
     source_nick = "almond"
     source_filename = source_nick + ".src"
@@ -202,7 +201,7 @@ class TestGenerator(unittest.TestCase):
       "i j",
     ]
 
-    (nick, starters, lookbacks) = local_generator.processSource(source_filename, source_data)
+    (nick, starters, lookbacks) = self.generator.processSource(source_filename, source_data)
 
     ab = ("a", "b")
     bc = ("b", "c")
@@ -233,43 +232,36 @@ class TestGenerator(unittest.TestCase):
 
   def test_get_generic_statistics_empty(self):
 
-    local_generator = generator.Generator()
-
     time = 818
     user_count = 0
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.users_instance.countUsers.return_value = user_count
+    self.users_instance.getBiggestUsers.return_value = None
+    self.users_instance.getMostQuoted.return_value = None
 
-      users_instance = users_mock.return_value
-      users_instance.countUsers.return_value = user_count
-      users_instance.getBiggestUsers.return_value = None
-      users_instance.getMostQuoted.return_value = None
+    self.generator.init(self.users_instance, {}, time)
+    stats = self.generator.getGenericStatistics()
 
-      local_generator.init(users_instance, {}, time)
-      stats = local_generator.getGenericStatistics()
+    self.assertTrue(generator.GenericStatisticType.USER_COUNT in stats)
+    self.assertTrue(generator.GenericStatisticType.DATE_STARTED in stats)
+    self.assertTrue(generator.GenericStatisticType.DATE_GENERATED in stats)
+    self.assertTrue(generator.GenericStatisticType.SOURCE_CHANNELS in stats)
+    self.assertTrue(generator.GenericStatisticType.BIGGEST_USERS in stats)
+    self.assertTrue(generator.GenericStatisticType.MOST_QUOTED_USERS in stats)
 
-      self.assertTrue(generator.GenericStatisticType.USER_COUNT in stats)
-      self.assertTrue(generator.GenericStatisticType.DATE_STARTED in stats)
-      self.assertTrue(generator.GenericStatisticType.DATE_GENERATED in stats)
-      self.assertTrue(generator.GenericStatisticType.SOURCE_CHANNELS in stats)
-      self.assertTrue(generator.GenericStatisticType.BIGGEST_USERS in stats)
-      self.assertTrue(generator.GenericStatisticType.MOST_QUOTED_USERS in stats)
+    self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
+    self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
+    self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
 
-      self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
-      self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
-      self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
+    source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
+    self.assertEqual(source_channels.primary, None)
+    self.assertFalse(source_channels.additionals)
 
-      source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
-      self.assertEqual(source_channels.primary, None)
-      self.assertFalse(source_channels.additionals)
-
-      self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], None)
-      self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], None)
+    self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], None)
+    self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], None)
 
 
   def test_get_generic_statistics_nonempty(self):
-
-    local_generator = generator.Generator()
 
     primary = "#ocean"
     additional = ["#pond", "#sea", "#lake"]
@@ -298,154 +290,116 @@ class TestGenerator(unittest.TestCase):
       users.NickAndCount(user_nick_2, 62),
     ]
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.users_instance.countUsers.return_value = user_count
+    self.users_instance.getBiggestUsers.return_value = big_users
+    self.users_instance.getMostQuoted.return_value = quoted_users
 
-      users_instance = users_mock.return_value
-      users_instance.countUsers.return_value = user_count
-      users_instance.getBiggestUsers.return_value = big_users
-      users_instance.getMostQuoted.return_value = quoted_users
+    self.generator.init(self.users_instance, meta, time)
+    stats = self.generator.getGenericStatistics()
 
-      local_generator.init(users_instance, meta, time)
-      stats = local_generator.getGenericStatistics()
+    self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
+    self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
+    self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
 
-      self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
-      self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
-      self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
+    source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
+    self.assertEqual(source_channels.primary, primary)
+    self.assertEqual(source_channels.additionals, tuple(additional))
 
-      source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
-      self.assertEqual(source_channels.primary, primary)
-      self.assertEqual(source_channels.additionals, tuple(additional))
-
-      self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
-      self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
+    self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
+    self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
 
 
   def test_get_user_aliases(self):
 
-    local_generator = generator.Generator()
+    self.users_instance.getUserAliases.side_effect = self.aliases_side_effect
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.generator.init(self.users_instance, {}, 0)
+    aliases = self.generator.getUserAliases(self.rain_nick)
 
-      users_instance = users_mock.return_value
-      users_instance.getUserAliases.side_effect = self.aliases_side_effect
-
-      local_generator.init(users_instance, {}, 0)
-      aliases = local_generator.getUserAliases(self.rain_nick)
-
-      self.assertEqual(aliases, self.aliases[self.rain_nick])
-      self.assertTrue(aliases is self.aliases[self.rain_nick])
+    self.assertEqual(aliases, self.aliases[self.rain_nick])
+    self.assertTrue(aliases is self.aliases[self.rain_nick])
 
 
   def test_get_user_statistics_unknown(self):
 
-    local_generator = generator.Generator()
+    self.users_instance.getUserStatistics.side_effect = self.stats_side_effect
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
-
-      users_instance = users_mock.return_value
-      users_instance.getUserStatistics.side_effect = self.stats_side_effect
-
-      local_generator.init(users_instance, {}, 0)
-      stats = local_generator.getUserStatistics("unknown")
-      self.assertEqual(stats, None)
+    self.generator.init(self.users_instance, {}, 0)
+    stats = self.generator.getUserStatistics("unknown")
+    self.assertEqual(stats, None)
 
 
   def test_get_user_statistics_known(self):
 
-    local_generator = generator.Generator()
+    self.users_instance.getUserStatistics.side_effect = self.stats_side_effect
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.generator.init(self.users_instance, {}, 0)
+    stats = self.generator.getUserStatistics(self.rain_nick)
 
-      users_instance = users_mock.return_value
-      users_instance.getUserStatistics.side_effect = self.stats_side_effect
-
-      local_generator.init(users_instance, {}, 0)
-      stats = local_generator.getUserStatistics(self.rain_nick)
-
-      self.assertTrue(stats)
-      self.assertEqual(stats, self.stats[self.rain_nick])
-      self.assertTrue(stats is self.stats[self.rain_nick])
+    self.assertTrue(stats)
+    self.assertEqual(stats, self.stats[self.rain_nick])
+    self.assertTrue(stats is self.stats[self.rain_nick])
 
 
   def test_generate_nonrandom_unknown(self):
 
-    local_generator = generator.Generator()
+    self.users_instance.getRealNicks.return_value = []
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate([])
 
-      users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = []
-
-      local_generator.init(users_instance, {}, 0)
-      nicks, quote = local_generator.generate([])
-
-      self.assertFalse(nicks)
-      self.assertFalse(quote)
+    self.assertFalse(nicks)
+    self.assertFalse(quote)
 
 
   def test_generate_nonrandom_known_single_short(self):
 
-    local_generator = generator.Generator()
-
     nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.users_instance.getRealNicks.return_value = [self.saoi_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getLookbacks.return_value = []
 
-      users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = [self.saoi_nick]
-      users_instance.getStarters.side_effect = self.starters_side_effect
-      users_instance.getLookbacks.return_value = []
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples)
 
-      local_generator.init(users_instance, {}, 0)
-      nicks, quote = local_generator.generate(nick_tuples)
-
-      self.assertEqual(nicks[0], self.saoi_nick)
-      self.assertEqual(quote, ' '.join(list(self.starters[self.saoi_nick][0])))
+    self.assertEqual(nicks[0], self.saoi_nick)
+    self.assertEqual(quote, ' '.join(list(self.starters[self.saoi_nick][0])))
 
 
   def test_generate_nonrandom_known_single(self):
 
-    local_generator = generator.Generator()
-
     nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.users_instance.getRealNicks.return_value = [self.saoi_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
-      users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = [self.saoi_nick]
-      users_instance.getStarters.side_effect = self.starters_side_effect
-      users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples)
 
-      local_generator.init(users_instance, {}, 0)
-      nicks, quote = local_generator.generate(nick_tuples)
-
-      self.assertEqual(nicks[0], self.saoi_nick)
-      self.assertEqual(quote, self.quotes[self.saoi_nick])
+    self.assertEqual(nicks[0], self.saoi_nick)
+    self.assertEqual(quote, self.quotes[self.saoi_nick])
 
 
   def test_generate_nonrandom_known_multiple(self):
-
-    local_generator = generator.Generator()
 
     nick_tuples = [
       (users.NickType.NONRANDOM, self.saoi_nick),
       (users.NickType.NONRANDOM, self.file_nick),
     ]
 
-    with patch(users.__name__ + ".UserCollection") as users_mock:
+    self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
 
-      users_instance = users_mock.return_value
-      users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
-      users_instance.getStarters.side_effect = self.starters_side_effect
-      users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples)
 
-      local_generator.init(users_instance, {}, 0)
-      nicks, quote = local_generator.generate(nick_tuples)
-
-      self.assertTrue(nicks)
-      self.assertTrue(self.saoi_nick in nicks)
-      self.assertTrue(self.file_nick in nicks)
-      self.assertTrue(quote in self.quotes.values())
+    self.assertTrue(nicks)
+    self.assertTrue(self.saoi_nick in nicks)
+    self.assertTrue(self.file_nick in nicks)
+    self.assertTrue(quote in self.quotes.values())
 
 
 if __name__ == "__main__":
