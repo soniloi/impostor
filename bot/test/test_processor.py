@@ -42,19 +42,18 @@ class TestProcessor(unittest.TestCase):
     }
 
     with patch(generator.__name__ + ".Generator") as generator_mock, \
-          patch(players.__name__ + ".PlayerCollection") as players_mock:
+          patch(players.__name__ + ".PlayerCollection") as players_mock, \
+          patch(mystery.__name__ + ".Mystery") as mystery_mock:
 
       self.generator_instance = generator_mock.return_value
       self.generator_instance.empty.return_value = False
       self.generator_instance.getGenericStatistics.return_value = self.generic_stats
 
       self.players_instance = players_mock.return_value
+      self.mystery_instance = mystery_mock.return_value
 
       self.processor = processor.RequestProcessor("", self.generator_instance, self.players_instance)
-
-    with patch(mystery.__name__ + ".Mystery") as mystery_mock:
-
-      self.mystery_instance = mystery_mock.return_value
+      self.processor.players = self.players_instance
       self.processor.current_mystery = self.mystery_instance
 
 
@@ -70,6 +69,14 @@ class TestProcessor(unittest.TestCase):
 
     if args[0] == "quercus":
       return args[0]
+
+    return None
+
+
+  def player_score_side_effect(self, *args):
+
+    if args[0] == "mollusc":
+      return (83, 21, 17)
 
     return None
 
@@ -274,6 +281,69 @@ class TestProcessor(unittest.TestCase):
 
     self.assertEquals(len(response), 1)
     self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_ADDITIONAL_QUOTE % "goodbye there")
+
+
+  def test_solve_mystery_no_mystery(self):
+
+    self.processor.current_mystery = None
+
+    response = self.processor.solveMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.NO_MYSTERY)
+
+
+  def test_solve_mystery_with_mystery(self):
+
+    self.mystery_instance.author = "quercus"
+
+    response = self.processor.solveMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], "The mystery author was: quercus. No-one guessed correctly. ")
+    self.assertIsNone(self.processor.current_mystery)
+
+
+  def test_score_mystery_generic_no_mysteries(self):
+
+    self.players_instance.getGenericScore.return_value = None
+
+    response = self.processor.scoreMystery("mollusc", ["@score"])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.GENERIC_SCORE_MESSAGE_UNKNOWN)
+
+
+  def test_score_mystery_generic_with_mysteries(self):
+
+    scores = ("mollusc", 17, "quercus", 81, "lemon", 27)
+
+    self.players_instance.getGenericScore.return_value = scores
+
+    response = self.processor.scoreMystery("mollusc", ["@score"])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.GENERIC_SCORE_MESSAGE_KNOWN % scores)
+
+
+  def test_score_mystery_player_no_mysteries(self):
+
+    self.players_instance.getPlayerScore.side_effect = self.player_score_side_effect
+
+    response = self.processor.scoreMystery("mollusc", ["@score", "quercus"])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.PLAYER_SCORE_MESSAGE_UNKNOWN % ("\x02" + "quercus" + "\x0f"))
+
+
+  def test_score_mystery_player_with_mysteries(self):
+
+    self.players_instance.getPlayerScore.side_effect = self.player_score_side_effect
+
+    response = self.processor.scoreMystery("mollusc", ["@score", "mollusc"])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.PLAYER_SCORE_MESSAGE_KNOWN % ("\x02" + "mollusc" + "\x0f", 83, 21, 17))
 
 
 if __name__ == "__main__":
