@@ -4,6 +4,7 @@ import mock
 from mock import patch
 import unittest
 
+from bot import mystery
 from bot import players
 from bot import processor
 from generator import generator
@@ -51,11 +52,24 @@ class TestProcessor(unittest.TestCase):
 
       self.processor = processor.RequestProcessor("", self.generator_instance, self.players_instance)
 
+    with patch(mystery.__name__ + ".Mystery") as mystery_mock:
+
+      self.mystery_instance = mystery_mock.return_value
+      self.processor.current_mystery = self.mystery_instance
+
 
   def user_statistics_side_effect(self, *args):
 
     if args[0] == "mollusc":
       return self.mollusc_stats
+
+    return None
+
+
+  def mystery_guess_side_effect(self, *args):
+
+    if args[0] == "quercus":
+      return args[0]
 
     return None
 
@@ -165,6 +179,7 @@ class TestProcessor(unittest.TestCase):
     generate_result = ([mystery_nick], mystery_quote)
     self.generator_instance.generate.return_value = generate_result
 
+    self.processor.current_mystery = None
     response = self.processor.startMystery("", [])
 
     self.assertEquals(response[0], "The mystery author says: [%s]. " % mystery_quote)
@@ -192,6 +207,7 @@ class TestProcessor(unittest.TestCase):
 
   def test_guess_mystery_none(self):
 
+    self.processor.current_mystery = None
     response = self.processor.guessMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
@@ -200,11 +216,7 @@ class TestProcessor(unittest.TestCase):
 
   def test_guess_mystery_existing_incorrect(self):
 
-    mystery_nick = "quercus"
-    mystery_quote = "hello there"
-    generate_result = ([mystery_nick], mystery_quote)
-    self.generator_instance.generate.return_value = generate_result
-    self.processor.startMystery("", [])
+    self.mystery_instance.guess.side_effect = self.mystery_guess_side_effect
 
     response = self.processor.guessMystery("mollusc", ["guess", "lemon"])
 
@@ -213,19 +225,55 @@ class TestProcessor(unittest.TestCase):
     self.assertIsNotNone(self.processor.current_mystery)
 
 
-  def test_guess_mystery_existing_incorrect(self):
+  def test_guess_mystery_existing_correct(self):
 
-    mystery_nick = "quercus"
-    mystery_quote = "hello there"
-    generate_result = ([mystery_nick], mystery_quote)
-    self.generator_instance.generate.return_value = generate_result
-    self.processor.startMystery("", [])
+    self.mystery_instance.guess.side_effect = self.mystery_guess_side_effect
 
     response = self.processor.guessMystery("mollusc", ["guess", "quercus"])
 
     self.assertEquals(len(response), 1)
     self.assertEquals(response[0], "The mystery author was: quercus. Congratulations, mollusc! ")
     self.assertIsNone(self.processor.current_mystery)
+
+
+  def test_hint_mystery_no_mystery(self):
+
+    self.processor.current_mystery = None
+
+    response = self.processor.hintMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.NO_MYSTERY)
+
+
+  def test_hint_mystery_no_hint(self):
+
+    self.mystery_instance.getHint.return_value = None
+
+    response = self.processor.hintMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_NONE)
+
+
+  def test_hint_mystery_with_hint_nick_character(self):
+
+    self.mystery_instance.getHint.return_value = (mystery.HintType.NICK_CHARACTER, 'a')
+
+    response = self.processor.hintMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_NICK_CHARACTER % "a")
+
+
+  def test_hint_mystery_with_hint_additional_quote(self):
+
+    self.mystery_instance.getHint.return_value = (mystery.HintType.ADDITIONAL_QUOTE, "goodbye there")
+
+    response = self.processor.hintMystery("mollusc", [])
+
+    self.assertEquals(len(response), 1)
+    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_ADDITIONAL_QUOTE % "goodbye there")
 
 
 if __name__ == "__main__":
