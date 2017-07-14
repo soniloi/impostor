@@ -60,3 +60,6 @@ target/
 .*
 !/.gitignore
 
+# Pickling
+*.p
+
