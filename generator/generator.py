@@ -151,7 +151,8 @@ class Generator:
     if not last_lookback in lookbacks:
       lookbacks[last_lookback] = []
 
-    lookbacks[last_lookback].append(Generator.TERMINATE)
+    if not Generator.TERMINATE in lookbacks[last_lookback]:
+      lookbacks[last_lookback].append(Generator.TERMINATE)
 
 
   @staticmethod
