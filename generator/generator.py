@@ -147,6 +147,10 @@ class Generator:
       lookbacks[lookback].append(follow)
 
     last_lookback = tuple(words[bound:])
+
+    if not last_lookback in lookbacks:
+      lookbacks[last_lookback] = []
+
     lookbacks[last_lookback].append(Generator.TERMINATE)
 
 
@@ -235,5 +239,6 @@ class Generator:
       GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
-    return (real_nicks, self.generateQuote(lookbacks, initial))
+    quote = self.generateQuote(lookbacks, initial)
+    return (real_nicks, quote)
 
