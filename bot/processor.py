@@ -134,15 +134,20 @@ class RequestProcessor():
   USER_UNKNOWN = "I know of no such user %s. "
 
   def __init__(self, source_dir, generator, players):
-    self.generator = generator
-    self.generator.build(source_dir)
+
     self.current_mystery = None
     self.next_mystery_ident = 0
-    self.players = players
+
     self.initCommandMap()
     self.initStatisticFormatters()
+
+    self.generator = generator
+    self.generator.build(source_dir)
     if self.generator.empty():
       print "Warning: generator is empty; is this correct?"
+
+    self.players = players
+    self.players.init()
 
 
   def initCommandMap(self):

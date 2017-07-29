@@ -63,6 +63,9 @@ class PlayerCollection:
   def __init__(self):
     self.playermap = {} # Map of nick to Player objects
     self.changes = 0
+
+
+  def init(self):
     self.loadPlayerScores()
 
 
