@@ -78,6 +78,7 @@ class Generator:
 
   SEP = "/"
   SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
+  TERMINATE = None
 
   def __init__(self, lookback_count=config.LOOKBACK_LEN):
     self.lookback_count = lookback_count
@@ -145,6 +146,9 @@ class Generator:
 
       lookbacks[lookback].append(follow)
 
+    last_lookback = tuple(words[bound:])
+    lookbacks[last_lookback].append(Generator.TERMINATE)
+
 
   @staticmethod
   def getFirstOrNone(lis):
@@ -194,14 +198,15 @@ class Generator:
       return line
 
     i = 0
-    while current in lookbacks and i < config.OUTPUT_WORDS_MAX:
-      follow = random.choice(lookbacks[current])
+    follow = random.choice(lookbacks[current])
+    while current in lookbacks and i < config.OUTPUT_WORDS_MAX and follow != Generator.TERMINATE:
       line += ' ' + follow
 
       current_list = list(current[1:self.lookback_count])
       current_list.append(follow)
       current = tuple(current_list)
       i += 1
+      follow = random.choice(lookbacks[current])
 
     return line
 
