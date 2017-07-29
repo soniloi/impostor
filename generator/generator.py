@@ -123,7 +123,7 @@ class Generator:
 
     for line in source_data:
       words = line.split()
-      if len(words) >= (self.lookback_count + 1): # Not interested in lines too short to create productions
+      if len(words) >= (self.lookback_count): # Not interested in lines too short to create productions
         self.processLineWords(words, starters, lookbacks)
 
     return (nick, starters, lookbacks)

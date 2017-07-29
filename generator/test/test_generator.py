@@ -210,20 +210,22 @@ class TestGenerator(unittest.TestCase):
     ce = ("c", "e")
     fg = ("f", "g")
     gh = ("g", "h")
+    ij = ("i", "j")
 
     self.assertEqual(nick, source_nick)
 
-    self.assertEqual(len(starters), 3)
+    self.assertEqual(len(starters), 4)
     self.assertTrue(ab in starters)
     self.assertTrue(fg in starters)
 
-    self.assertEqual(len(lookbacks), 6)
+    self.assertEqual(len(lookbacks), 7)
     self.assertTrue(ab in lookbacks)
     self.assertTrue(bc in lookbacks)
     self.assertTrue(cd in lookbacks)
     self.assertTrue(ce in lookbacks)
     self.assertTrue(fg in lookbacks)
     self.assertTrue(gh in lookbacks)
+    self.assertTrue(ij in lookbacks)
 
     self.assertEqual(len(lookbacks[ab]), 2)
     self.assertTrue("c" in lookbacks[ab])
@@ -244,6 +246,9 @@ class TestGenerator(unittest.TestCase):
 
     self.assertEqual(len(lookbacks[gh]), 1)
     self.assertTrue(generator.Generator.TERMINATE in lookbacks[gh])
+
+    self.assertEqual(len(lookbacks[ij]), 1)
+    self.assertTrue(generator.Generator.TERMINATE in lookbacks[ij])
 
 
   def test_get_generic_statistics_empty(self):
