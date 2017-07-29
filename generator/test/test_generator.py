@@ -29,26 +29,27 @@ class TestGenerator(unittest.TestCase):
     }
 
     self.starters = {}
+    self.starters[self.saoi_nick] = [("is", "glas")]
+    self.starters[self.file_nick] = [("marbh", "le")]
+
     self.lookbacks = {}
-
-    for (nick, quote) in self.quotes.iteritems():
-
-      self.starters[nick] = []
-      self.lookbacks[nick] = {}
-      words = quote.split()
-
-      starter = (words[0], words[1])
-      self.starters[nick].append(starter)
-
-      for i in range(0, len(words)-2):
-
-        predecessor = (words[i], words[i+1])
-        successor = words[i+2]
-
-        if not predecessor in self.lookbacks[nick]:
-          self.lookbacks[nick][predecessor] = []
-
-        self.lookbacks[nick][predecessor].append(successor)
+    self.lookbacks[self.saoi_nick] = {
+      ("is", "glas") : ["iad"],
+      ("glas", "iad") : ["na"],
+      ("iad", "na") : ["cnoic"],
+      ("na", "cnoic") : ["i"],
+      ("cnoic", "i") : ["bhfad"],
+      ("i", "bhfad") : ["uainn"],
+      ("bhfad", "uainn") : [generator.Generator.TERMINATE],
+    }
+    self.lookbacks[self.file_nick] = {
+      ("marbh", "le") : ["tae"],
+      ("le", "tae") : ["agus"],
+      ("tae", "agus") : ["marbh"],
+      ("agus", "marbh") : ["gan"],
+      ("marbh", "gan") : ["é"],
+      ("gan", "é") : [generator.Generator.TERMINATE],
+    }
 
     self.generator = generator.Generator()
 
