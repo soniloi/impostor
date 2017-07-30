@@ -63,8 +63,8 @@ class User:
     return self.generic_lookbacks # FIXME: maybe return this immutable somehow
 
 
-  def getClosingLookbacks(self, opener):
-    return self.closing_lookbacks[opener]
+  def getClosingLookbacks(self):
+    return self.closing_lookbacks
 
 
   def incrementQuotesRequested(self):
@@ -210,14 +210,14 @@ class UserCollection:
     return self.usermap[nick].getStarters()
 
 
-  # Get lookbacks for a nick we know to be in the map
+  # Get generic lookbacks for a nick we know to be in the map
   def getGenericLookbacks(self, nick):
     return self.usermap[nick].getGenericLookbacks()
 
 
-  # Get closing lookbacks corresponding to an opener for a nick we know to be in the map
-  def getClosingLookbacks(self, nick, opener):
-    return self.usermap[nick].getClosingLookbacks(opener)
+  # Get closing lookbacks for a nick we know to be in the map
+  def getClosingLookbacks(self, nick):
+    return self.usermap[nick].getClosingLookbacks()
 
 
   def countUsers(self):

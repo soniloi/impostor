@@ -182,11 +182,13 @@ class Generator:
 
       last = follow[-1]
 
+      # Add some tuples to specific closing pools
       if last in GeneratorUtil.CLOSERS_TO_OPENERS:
         GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
           GeneratorUtil.CLOSERS_TO_OPENERS[last], lookback, \
           GeneratorUtil.appendNonTerminalWithCreate, follow)
 
+      # Add all tuples to the generic pool
       GeneratorUtil.appendNonTerminalWithCreate(generic_lookbacks, lookback, follow)
 
     last_lookback = tuple(words[bound:])
@@ -238,27 +240,45 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generateQuote(self, lookbacks, initial):
+  def generateQuote(self, generic_lookbacks, closing_lookbacks, initial):
 
     current = initial
     line = ' '.join(current[0:self.lookback_count])
 
     # FIXME: this should not be possible; maybe do something else here?
-    if not current in lookbacks:
+    if not current in generic_lookbacks:
       return line
 
+    opener = None
     i = 0
-    follow = random.choice(lookbacks[current])
-    while current in lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
+    (follow, opener) = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, opener)
+    while current in generic_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
       line += ' ' + follow
 
       current_list = list(current[1:self.lookback_count])
       current_list.append(follow)
       current = tuple(current_list)
       i += 1
-      follow = random.choice(lookbacks[current])
+      (follow, opener) = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, opener)
 
     return line
+
+  @staticmethod
+  def getFollow(generic_lookbacks, closing_lookbacks, current_tuple, current_opener):
+
+    lookbacks = generic_lookbacks
+    next_opener = current_opener
+
+    if current_opener and current_opener in closing_lookbacks:
+      if current_tuple in closing_lookbacks[current_opener]:
+        lookbacks = closing_lookbacks[current_opener]
+        next_opener = None
+
+    next_follow = random.choice(lookbacks[current_tuple])
+    if next_follow and next_follow[0] in GeneratorUtil.CLOSERS_TO_OPENERS.values():
+      next_opener = next_follow[0]
+
+    return (next_follow, next_opener)
 
 
   # Return a line generated from the source of a nick or nicks
@@ -272,19 +292,20 @@ class Generator:
 
     first_nick = real_nicks[0]
     starting_pairs = self.users.getStarters(first_nick)
-    lookbacks = self.users.getGenericLookbacks(first_nick)
+    generic_lookbacks = self.users.getGenericLookbacks(first_nick)
+    closing_lookbacks = self.users.getClosingLookbacks(first_nick)
 
     # If we have more than one nick, we will be constructing a new lookback map
     #  and starter list, so we will want copies
     if len(real_nicks) > 1:
       starting_pairs = list(starting_pairs)
-      lookbacks = GeneratorUtil.copyListDict(lookbacks)
+      generic_lookbacks = GeneratorUtil.copyListDict(generic_lookbacks)
 
     for other_nick in real_nicks[1:]:
       starting_pairs += list(self.users.getStarters(other_nick))
-      GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getGenericLookbacks(other_nick))
+      GeneratorUtil.mergeIntoDictionary(generic_lookbacks, self.users.getGenericLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
-    quote = self.generateQuote(lookbacks, initial)
+    quote = self.generateQuote(generic_lookbacks, closing_lookbacks, initial)
     return (real_nicks, quote)
 
