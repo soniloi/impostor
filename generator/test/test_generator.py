@@ -44,7 +44,7 @@ class TestGenerator(unittest.TestCase):
       ("na", "cnoic") : ["i"],
       ("cnoic", "i") : ["bhfad"],
       ("i", "bhfad") : ["uainn"],
-      ("bhfad", "uainn") : [Generator.TERMINATE],
+      ("bhfad", "uainn") : [GeneratorUtil.TERMINATE],
     }
     self.lookbacks[self.file_nick] = {
       ("marbh", "le") : ["tae"],
@@ -52,7 +52,7 @@ class TestGenerator(unittest.TestCase):
       ("tae", "agus") : ["marbh"],
       ("agus", "marbh") : ["gan"],
       ("marbh", "gan") : ["é"],
-      ("gan", "é") : [Generator.TERMINATE],
+      ("gan", "é") : [GeneratorUtil.TERMINATE],
     }
 
     self.generator = Generator()
@@ -247,10 +247,10 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue("e" in generic_lookbacks[bc])
 
     self.assertEqual(len(generic_lookbacks[cd]), 1)
-    self.assertTrue(Generator.TERMINATE in generic_lookbacks[cd])
+    self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[cd])
 
     self.assertEqual(len(generic_lookbacks[ce]), 1)
-    self.assertTrue(Generator.TERMINATE in generic_lookbacks[ce])
+    self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[ce])
 
     self.assertEqual(len(generic_lookbacks[fg]), 1)
     self.assertTrue("h" in generic_lookbacks[fg])
@@ -259,10 +259,10 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue("n" in generic_lookbacks[lm])
 
     self.assertEqual(len(generic_lookbacks[gh]), 1)
-    self.assertTrue(Generator.TERMINATE in generic_lookbacks[gh])
+    self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[gh])
 
     self.assertEqual(len(generic_lookbacks[ij]), 1)
-    self.assertTrue(Generator.TERMINATE in generic_lookbacks[ij])
+    self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[ij])
 
     self.assertEqual(len(closing_lookbacks), 1)
     self.assertTrue("(" in closing_lookbacks)

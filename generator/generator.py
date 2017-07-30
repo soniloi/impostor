@@ -23,6 +23,7 @@ class GenericStatisticType:
 
 class GeneratorUtil:
 
+  TERMINATE = None
   CLOSERS_TO_OPENERS = {
     ")" : "(",
     "]" : "[",
@@ -82,7 +83,7 @@ class GeneratorUtil:
 
 
   @staticmethod
-  def appendWithCreate(dictionary, key, value):
+  def appendNonTerminalWithCreate(dictionary, key, value):
 
     if not key in dictionary:
       dictionary[key] = []
@@ -90,11 +91,21 @@ class GeneratorUtil:
     dictionary[key].append(value)
 
 
+  @staticmethod
+  def appendTerminalWithCreate(dictionary, key):
+
+    if not GeneratorUtil.TERMINATE in dictionary:
+
+      if not key in dictionary:
+        dictionary[key] = []
+
+      dictionary[key].append(GeneratorUtil.TERMINATE)
+
+
 class Generator:
 
   SEP = "/"
   SOURCEFILE_EXTLEN = len(config.SOURCEFILE_EXT) # Length of the source file extension
-  TERMINATE = None
 
   def __init__(self, lookback_count=config.LOOKBACK_LEN):
     self.lookback_count = lookback_count
@@ -166,9 +177,9 @@ class Generator:
         if not opener in closing_lookbacks:
           closing_lookbacks[opener] = {}
 
-        GeneratorUtil.appendWithCreate(closing_lookbacks[opener], lookback, follow)
+        GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
 
-      GeneratorUtil.appendWithCreate(generic_lookbacks, lookback, follow)
+      GeneratorUtil.appendNonTerminalWithCreate(generic_lookbacks, lookback, follow)
 
     last_lookback = tuple(words[bound:])
     last_last = last_lookback[-1]
@@ -179,17 +190,9 @@ class Generator:
       if not last_opener in closing_lookbacks:
         closing_lookbacks[last_opener] = {}
 
-      if not last_lookback in closing_lookbacks[last_opener]:
-        closing_lookbacks[last_opener][last_lookback] = []
+      GeneratorUtil.appendTerminalWithCreate(closing_lookbacks[last_opener], last_lookback)
 
-      if not Generator.TERMINATE in closing_lookbacks[last_opener][last_lookback]:
-        closing_lookbacks[last_opener][last_lookback].append(Generator.TERMINATE)
-
-    if not last_lookback in generic_lookbacks:
-        generic_lookbacks[last_lookback] = []
-
-    if not Generator.TERMINATE in generic_lookbacks[last_lookback]:
-        generic_lookbacks[last_lookback].append(Generator.TERMINATE)
+    GeneratorUtil.appendTerminalWithCreate(generic_lookbacks, last_lookback)
 
 
   @staticmethod
@@ -241,7 +244,7 @@ class Generator:
 
     i = 0
     follow = random.choice(lookbacks[current])
-    while current in lookbacks and i < config.OUTPUT_WORDS_MAX and follow != Generator.TERMINATE:
+    while current in lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
       line += ' ' + follow
 
       current_list = list(current[1:self.lookback_count])
