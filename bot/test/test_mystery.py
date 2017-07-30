@@ -2,7 +2,9 @@
 
 import unittest
 
-from .. import mystery
+from bot.mystery import HintType
+from bot.mystery import Mystery
+
 
 class TestMystery(unittest.TestCase):
 
@@ -13,30 +15,30 @@ class TestMystery(unittest.TestCase):
     author_aliases = ["limpet"]
     initial_quote = "Hello"
     hints = [
-      (mystery.HintType.NICK_CHARACTER, "o"),
-      (mystery.HintType.ADDITIONAL_QUOTE, "Carpe diem"),
-      (mystery.HintType.NICK_CHARACTER, "s"),
-      (mystery.HintType.NICK_CHARACTER, "l"),
+      (HintType.NICK_CHARACTER, "o"),
+      (HintType.ADDITIONAL_QUOTE, "Carpe diem"),
+      (HintType.NICK_CHARACTER, "s"),
+      (HintType.NICK_CHARACTER, "l"),
     ]
-    self.mystery = mystery.Mystery(ident, author, author_aliases, initial_quote, hints)
+    self.mystery = Mystery(ident, author, author_aliases, initial_quote, hints)
 
 
   def test_get_hint(self):
 
     hint = self.mystery.getHint()
-    self.assertEqual(hint[0], mystery.HintType.NICK_CHARACTER)
+    self.assertEqual(hint[0], HintType.NICK_CHARACTER)
     self.assertEqual(hint[1], "o")
 
     hint = self.mystery.getHint()
-    self.assertEqual(hint[0], mystery.HintType.ADDITIONAL_QUOTE)
+    self.assertEqual(hint[0], HintType.ADDITIONAL_QUOTE)
     self.assertEqual(hint[1], "Carpe diem")
 
     hint = self.mystery.getHint()
-    self.assertEqual(hint[0], mystery.HintType.NICK_CHARACTER)
+    self.assertEqual(hint[0], HintType.NICK_CHARACTER)
     self.assertEqual(hint[1], "s")
 
     hint = self.mystery.getHint()
-    self.assertEqual(hint[0], mystery.HintType.NICK_CHARACTER)
+    self.assertEqual(hint[0], HintType.NICK_CHARACTER)
     self.assertEqual(hint[1], "l")
 
     hint = self.mystery.getHint()

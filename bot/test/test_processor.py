@@ -5,40 +5,48 @@ from mock import patch
 import unittest
 
 from bot import mystery
+from bot.mystery import Mystery
 from bot import players
-from bot import processor
+from bot.players import PlayerCollection
+from bot.processor import RequestProcessor
 from generator import generator
-from generator import users
+from generator.generator import Generator
+from generator.generator import GenericStatisticType
+from generator.generator import SourceChannelNames
+from generator.users import NickAndCount
+from generator.users import UserCollection
+from generator.users import UserStatisticType
+
 
 class TestProcessor(unittest.TestCase):
 
   def setUp(self):
 
-    source_channels = generator.SourceChannelNames("#sea", ["#ocean", "#lake"])
+    source_channels = SourceChannelNames("#sea", ["#ocean", "#lake"])
     biggest_users = [
-      users.NickAndCount("mollusc", 29),
-      users.NickAndCount("lemon", 21),
-      users.NickAndCount("quercus", 8),
+      NickAndCount("mollusc", 29),
+      NickAndCount("lemon", 21),
+      NickAndCount("quercus", 8),
     ]
     most_quoted_users = [
-      users.NickAndCount("lemon", 89),
-      users.NickAndCount("amethyst", 41),
+      NickAndCount("lemon", 89),
+      NickAndCount("amethyst", 41),
     ]
 
     self.generic_stats = {
-      generator.GenericStatisticType.USER_COUNT : 11,
-      generator.GenericStatisticType.DATE_STARTED : 1234567890,
-      generator.GenericStatisticType.DATE_GENERATED : 1234567,
-      generator.GenericStatisticType.SOURCE_CHANNELS : source_channels,
-      generator.GenericStatisticType.BIGGEST_USERS : biggest_users,
-      generator.GenericStatisticType.MOST_QUOTED_USERS : most_quoted_users
+      GenericStatisticType.USER_COUNT : 11,
+      GenericStatisticType.DATE_STARTED : 1234567890,
+      GenericStatisticType.DATE_GENERATED : 1234567,
+      GenericStatisticType.SOURCE_CHANNELS : source_channels,
+      GenericStatisticType.BIGGEST_USERS : biggest_users,
+      GenericStatisticType.MOST_QUOTED_USERS : most_quoted_users
     }
 
     self.mollusc_stats = {
-      users.UserStatisticType.REAL_NICK : "mollusc",
-      users.UserStatisticType.ALIASES : (["mollusc_", "snail", "limpet"], "limpet"),
-      users.UserStatisticType.PRODUCTION_COUNT : 12345,
-      users.UserStatisticType.QUOTES_REQUESTED : 91,
+      UserStatisticType.REAL_NICK : "mollusc",
+      UserStatisticType.ALIASES : (["mollusc_", "snail", "limpet"], "limpet"),
+      UserStatisticType.PRODUCTION_COUNT : 12345,
+      UserStatisticType.QUOTES_REQUESTED : 91,
     }
 
     with patch(generator.__name__ + ".Generator") as generator_mock, \
@@ -52,7 +60,7 @@ class TestProcessor(unittest.TestCase):
       self.players_instance = players_mock.return_value
       self.mystery_instance = mystery_mock.return_value
 
-      self.processor = processor.RequestProcessor("", self.generator_instance, self.players_instance)
+      self.processor = RequestProcessor("", self.generator_instance, self.players_instance)
       self.processor.players = self.players_instance
       self.processor.current_mystery = self.mystery_instance
 
@@ -92,7 +100,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.triggerMeta("mollusc", "@help")
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.BOT_DESC_BASIC)
+    self.assertEquals(response[0], RequestProcessor.BOT_DESC_BASIC)
 
 
   def test_trigger_meta_help_specific_unknown(self):
@@ -107,7 +115,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.triggerMeta("mollusc", "@help mystery")
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.HELP_MYSTERY)
+    self.assertEquals(response[0], RequestProcessor.HELP_MYSTERY)
 
 
   def test_pmd_to_me(self):
@@ -122,7 +130,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.directedAtMe("mollusc", "whatever")
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.BOT_DESC_BASIC)
+    self.assertEquals(response[0], RequestProcessor.BOT_DESC_BASIC)
 
 
   def test_make_stats_no_nick(self):
@@ -218,7 +226,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.guessMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.NO_MYSTERY)
+    self.assertEquals(response[0], RequestProcessor.NO_MYSTERY)
 
 
   def test_guess_mystery_existing_incorrect(self):
@@ -250,7 +258,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.hintMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.NO_MYSTERY)
+    self.assertEquals(response[0], RequestProcessor.NO_MYSTERY)
 
 
   def test_hint_mystery_no_hint(self):
@@ -260,7 +268,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.hintMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_NONE)
+    self.assertEquals(response[0], RequestProcessor.MYSTERY_HINT_NONE)
 
 
   def test_hint_mystery_with_hint_nick_character(self):
@@ -270,7 +278,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.hintMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_NICK_CHARACTER % "a")
+    self.assertEquals(response[0], RequestProcessor.MYSTERY_HINT_NICK_CHARACTER % "a")
 
 
   def test_hint_mystery_with_hint_additional_quote(self):
@@ -280,7 +288,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.hintMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.MYSTERY_HINT_ADDITIONAL_QUOTE % "goodbye there")
+    self.assertEquals(response[0], RequestProcessor.MYSTERY_HINT_ADDITIONAL_QUOTE % "goodbye there")
 
 
   def test_solve_mystery_no_mystery(self):
@@ -290,7 +298,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.solveMystery("mollusc", [])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.NO_MYSTERY)
+    self.assertEquals(response[0], RequestProcessor.NO_MYSTERY)
 
 
   def test_solve_mystery_with_mystery(self):
@@ -311,7 +319,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.scoreMystery("mollusc", ["@score"])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.GENERIC_SCORE_MESSAGE_UNKNOWN)
+    self.assertEquals(response[0], RequestProcessor.GENERIC_SCORE_MESSAGE_UNKNOWN)
 
 
   def test_score_mystery_generic_with_mysteries(self):
@@ -323,7 +331,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.scoreMystery("mollusc", ["@score"])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.GENERIC_SCORE_MESSAGE_KNOWN % scores)
+    self.assertEquals(response[0], RequestProcessor.GENERIC_SCORE_MESSAGE_KNOWN % scores)
 
 
   def test_score_mystery_player_no_mysteries(self):
@@ -333,7 +341,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.scoreMystery("mollusc", ["@score", "quercus"])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.PLAYER_SCORE_MESSAGE_UNKNOWN % ("\x02" + "quercus" + "\x0f"))
+    self.assertEquals(response[0], RequestProcessor.PLAYER_SCORE_MESSAGE_UNKNOWN % ("\x02" + "quercus" + "\x0f"))
 
 
   def test_score_mystery_player_with_mysteries(self):
@@ -343,7 +351,7 @@ class TestProcessor(unittest.TestCase):
     response = self.processor.scoreMystery("mollusc", ["@score", "mollusc"])
 
     self.assertEquals(len(response), 1)
-    self.assertEquals(response[0], processor.RequestProcessor.PLAYER_SCORE_MESSAGE_KNOWN % ("\x02" + "mollusc" + "\x0f", 83, 21, 17))
+    self.assertEquals(response[0], RequestProcessor.PLAYER_SCORE_MESSAGE_KNOWN % ("\x02" + "mollusc" + "\x0f", 83, 21, 17))
 
 
 if __name__ == "__main__":
