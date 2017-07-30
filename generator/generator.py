@@ -102,6 +102,17 @@ class GeneratorUtil:
       dictionary[key].append(GeneratorUtil.TERMINATE)
 
 
+  @staticmethod
+  def mapAndAppendWithCreate(outer_dictionary, outer_key, inner_key, append_func, *args):
+
+    if not outer_key in outer_dictionary:
+      outer_dictionary[outer_key] = {}
+
+    inner_dictionary = outer_dictionary[outer_key]
+
+    append_func(inner_dictionary, inner_key, *args)
+
+
 class Generator:
 
   SEP = "/"
@@ -172,12 +183,9 @@ class Generator:
       last = follow[-1]
 
       if last in GeneratorUtil.CLOSERS_TO_OPENERS:
-        opener = GeneratorUtil.CLOSERS_TO_OPENERS[last]
-
-        if not opener in closing_lookbacks:
-          closing_lookbacks[opener] = {}
-
-        GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
+        GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
+          GeneratorUtil.CLOSERS_TO_OPENERS[last], lookback, \
+          GeneratorUtil.appendNonTerminalWithCreate, follow)
 
       GeneratorUtil.appendNonTerminalWithCreate(generic_lookbacks, lookback, follow)
 
@@ -185,12 +193,9 @@ class Generator:
     last_last = last_lookback[-1]
 
     if last_last in GeneratorUtil.CLOSERS_TO_OPENERS:
-      last_opener = GeneratorUtil.CLOSERS_TO_OPENERS[last_last]
-
-      if not last_opener in closing_lookbacks:
-        closing_lookbacks[last_opener] = {}
-
-      GeneratorUtil.appendTerminalWithCreate(closing_lookbacks[last_opener], last_lookback)
+      GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
+        GeneratorUtil.CLOSERS_TO_OPENERS[last_last], last_lookback, \
+        GeneratorUtil.appendTerminalWithCreate)
 
     GeneratorUtil.appendTerminalWithCreate(generic_lookbacks, last_lookback)
 
