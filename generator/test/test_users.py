@@ -2,7 +2,12 @@
 
 import unittest
 
-from .. import users
+from generator.users import User
+from generator.users import UserCollection
+from generator.users import UserNickType
+from generator.users import UserStatisticType
+from generator.users import UserStatsToPersist
+
 
 class TestUser(unittest.TestCase):
 
@@ -30,7 +35,7 @@ class TestUser(unittest.TestCase):
       tuple4 : follow4,
     }
 
-    self.user = users.User(nick, starters, lookbacks)
+    self.user = User(nick, starters, lookbacks)
 
     self.user.initAliases(["squid", "limpet"])
 
@@ -38,7 +43,7 @@ class TestUser(unittest.TestCase):
     for i in range(0, requested):
       self.user.incrementQuotesRequested()
 
-    self.user_collection = users.UserCollection()
+    self.user_collection = UserCollection()
 
     self.captured_nick = "whoever"
 
@@ -49,7 +54,7 @@ class TestUser(unittest.TestCase):
     local_lookbacks = {}
     local_nick = "siucra"
 
-    local_user = users.User(local_nick, local_starters, local_lookbacks)
+    local_user = User(local_nick, local_starters, local_lookbacks)
 
     self.assertEqual(local_user.nick, local_nick)
     self.assertEquals(local_user.production_count, 0)
@@ -72,7 +77,7 @@ class TestUser(unittest.TestCase):
   def test_persisted_statistics(self):
 
     quotes_requested = 97
-    stats_in = users.UserStatsToPersist(quotes_requested)
+    stats_in = UserStatsToPersist(quotes_requested)
     self.user.setPersistedStatistics(stats_in)
 
     self.assertEqual(self.user.quotes_requested, quotes_requested)
@@ -81,10 +86,10 @@ class TestUser(unittest.TestCase):
   def test_get_statistics_canonical_nick(self):
 
     stats = self.user.getStatistics("mollusc")
-    real_nick = stats[users.UserStatisticType.REAL_NICK]
-    alias_info = stats[users.UserStatisticType.ALIASES]
-    production_count = stats[users.UserStatisticType.PRODUCTION_COUNT]
-    quotes_requested = stats[users.UserStatisticType.QUOTES_REQUESTED]
+    real_nick = stats[UserStatisticType.REAL_NICK]
+    alias_info = stats[UserStatisticType.ALIASES]
+    production_count = stats[UserStatisticType.PRODUCTION_COUNT]
+    quotes_requested = stats[UserStatisticType.QUOTES_REQUESTED]
     aliases = alias_info.aliases
     requested_nick = alias_info.requested_nick
 
@@ -101,7 +106,7 @@ class TestUser(unittest.TestCase):
 
     stats = self.user.getStatistics("limpet")
 
-    alias_info = stats[users.UserStatisticType.ALIASES]
+    alias_info = stats[UserStatisticType.ALIASES]
     self.assertEqual(alias_info.requested_nick, "limpet")
 
 
@@ -205,7 +210,7 @@ class TestUser(unittest.TestCase):
     grape_quotes_requested = 117
 
     stats_data = {
-      grape_nick : users.UserStatsToPersist(grape_quotes_requested),
+      grape_nick : UserStatsToPersist(grape_quotes_requested),
     }
 
     self.user_collection.buildUserStats(stats_data)
@@ -222,8 +227,8 @@ class TestUser(unittest.TestCase):
     hazel_quotes_requested = 711
 
     stats_data = {
-      grape_nick : users.UserStatsToPersist(grape_quotes_requested),
-      hazel_nick : users.UserStatsToPersist(hazel_quotes_requested),
+      grape_nick : UserStatsToPersist(grape_quotes_requested),
+      hazel_nick : UserStatsToPersist(hazel_quotes_requested),
     }
 
     self.user_collection.buildUserStats(stats_data)
@@ -232,7 +237,7 @@ class TestUser(unittest.TestCase):
 
     hazel = self.user_collection.getByAlias(hazel_nick)
     hazel_stats = hazel.getStatistics(hazel_nick)
-    hazel_quotes_requested = hazel_stats[users.UserStatisticType.QUOTES_REQUESTED]
+    hazel_quotes_requested = hazel_stats[UserStatisticType.QUOTES_REQUESTED]
     self.assertEqual(hazel_quotes_requested, hazel_quotes_requested)
 
 
@@ -257,9 +262,9 @@ class TestUser(unittest.TestCase):
     kale_quotes_requested = 0
 
     stats_data = {
-        iris_nick : users.UserStatsToPersist(iris_quotes_requested),
-        juniper_nick : users.UserStatsToPersist(juniper_quotes_requested),
-        kale_nick : users.UserStatsToPersist(kale_quotes_requested),
+        iris_nick : UserStatsToPersist(iris_quotes_requested),
+        juniper_nick : UserStatsToPersist(juniper_quotes_requested),
+        kale_nick : UserStatsToPersist(kale_quotes_requested),
     }
 
     self.user_collection.buildUserStats(stats_data)
@@ -346,9 +351,9 @@ class TestUser(unittest.TestCase):
     self.createAndAddUser(unknown_existent_nick)
     self.user_collection.initUserset()
 
-    nonexistent_nick_tuple = (users.NickType.NONRANDOM, nonexistent_nick)
-    known_existent_nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
-    unknown_existent_nick_tuple = (users.NickType.RANDOM, "")
+    nonexistent_nick_tuple = (UserNickType.NONRANDOM, nonexistent_nick)
+    known_existent_nick_tuple = (UserNickType.NONRANDOM, known_existent_nick)
+    unknown_existent_nick_tuple = (UserNickType.RANDOM, "")
     nick_tuples = [
       nonexistent_nick_tuple,
       known_existent_nick_tuple,
@@ -376,8 +381,8 @@ class TestUser(unittest.TestCase):
     self.createAndAddUser(known_existent_nick)
     self.user_collection.initUserset()
 
-    known_existent_nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
-    unknown_existent_nick_tuple = (users.NickType.RANDOM, "")
+    known_existent_nick_tuple = (UserNickType.NONRANDOM, known_existent_nick)
+    unknown_existent_nick_tuple = (UserNickType.RANDOM, "")
     nick_tuples = [
       known_existent_nick_tuple,
       unknown_existent_nick_tuple,
@@ -396,8 +401,8 @@ class TestUser(unittest.TestCase):
     self.createAndAddUser(unknown_existent_nick)
     self.user_collection.initUserset()
 
-    unknown_existent_nick_tuple_1 = (users.NickType.RANDOM, "")
-    unknown_existent_nick_tuple_2 = (users.NickType.RANDOM, "")
+    unknown_existent_nick_tuple_1 = (UserNickType.RANDOM, "")
+    unknown_existent_nick_tuple_2 = (UserNickType.RANDOM, "")
     nick_tuples = [
       unknown_existent_nick_tuple_1,
       unknown_existent_nick_tuple_2,
@@ -414,7 +419,7 @@ class TestUser(unittest.TestCase):
     self.createAndAddUser(self.captured_nick)
     self.user_collection.initUserset()
 
-    nick_tuple = (users.NickType.RANDOM, "")
+    nick_tuple = (UserNickType.RANDOM, "")
     nick_tuples = [nick_tuple]
 
     real_nicks = self.user_collection.getRealNicks(nick_tuples, 2)
@@ -428,7 +433,7 @@ class TestUser(unittest.TestCase):
     self.createAndAddUser(known_existent_nick)
     self.user_collection.initUserset()
 
-    nick_tuple = (users.NickType.NONRANDOM, known_existent_nick)
+    nick_tuple = (UserNickType.NONRANDOM, known_existent_nick)
     nick_tuples = [nick_tuple]
 
     real_nicks = self.user_collection.getRealNicks(nick_tuples, 0, False)
@@ -458,10 +463,10 @@ class TestUser(unittest.TestCase):
     stats = self.user_collection.getUserStatistics(self.captured_nick)
 
     self.assertTrue(stats)
-    self.assertEqual(stats[users.UserStatisticType.REAL_NICK], self.captured_nick)
-    self.assertEqual(stats[users.UserStatisticType.ALIASES], None)
-    self.assertEqual(stats[users.UserStatisticType.PRODUCTION_COUNT], 3)
-    self.assertEqual(stats[users.UserStatisticType.QUOTES_REQUESTED], 0)
+    self.assertEqual(stats[UserStatisticType.REAL_NICK], self.captured_nick)
+    self.assertEqual(stats[UserStatisticType.ALIASES], None)
+    self.assertEqual(stats[UserStatisticType.PRODUCTION_COUNT], 3)
+    self.assertEqual(stats[UserStatisticType.QUOTES_REQUESTED], 0)
 
 
   def createAndAddUser(self,\

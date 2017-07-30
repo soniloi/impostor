@@ -4,9 +4,13 @@ import mock
 from mock import patch
 import unittest
 
-from .. import config
-from .. import generator
-from .. import users
+from generator import config
+from generator import users
+from generator.generator import Generator
+from generator.generator import GeneratorUtil
+from generator.generator import GenericStatisticType
+from generator.users import UserNickType
+
 
 class TestGenerator(unittest.TestCase):
 
@@ -40,7 +44,7 @@ class TestGenerator(unittest.TestCase):
       ("na", "cnoic") : ["i"],
       ("cnoic", "i") : ["bhfad"],
       ("i", "bhfad") : ["uainn"],
-      ("bhfad", "uainn") : [generator.Generator.TERMINATE],
+      ("bhfad", "uainn") : [Generator.TERMINATE],
     }
     self.lookbacks[self.file_nick] = {
       ("marbh", "le") : ["tae"],
@@ -48,10 +52,10 @@ class TestGenerator(unittest.TestCase):
       ("tae", "agus") : ["marbh"],
       ("agus", "marbh") : ["gan"],
       ("marbh", "gan") : ["é"],
-      ("gan", "é") : [generator.Generator.TERMINATE],
+      ("gan", "é") : [Generator.TERMINATE],
     }
 
-    self.generator = generator.Generator()
+    self.generator = Generator()
 
     with patch(users.__name__ + ".UserCollection") as users_mock:
 
@@ -95,7 +99,7 @@ class TestGenerator(unittest.TestCase):
       rain_key : ["fearthainn", "báisteach"],
     }
 
-    copy = generator.GeneratorUtil.copyListDict(focloir)
+    copy = GeneratorUtil.copyListDict(focloir)
 
     self.assertTrue(copy)
     self.assertEqual(copy, focloir)
@@ -124,7 +128,7 @@ class TestGenerator(unittest.TestCase):
       rain_key : rain_value,
     }
 
-    generator.GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
+    GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
 
     # Ensure first dictionary has been mutated correctly
     self.assertEqual(len(focloir1), 2)
@@ -162,7 +166,7 @@ class TestGenerator(unittest.TestCase):
       rain_key : rain_value2,
     }
 
-    generator.GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
+    GeneratorUtil.mergeIntoDictionary(focloir1, focloir2)
 
     # Ensure first dictionary has been mutated correctly
     self.assertEqual(len(focloir1), 1)
@@ -236,19 +240,19 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue("e" in lookbacks[bc])
 
     self.assertEqual(len(lookbacks[cd]), 1)
-    self.assertTrue(generator.Generator.TERMINATE in lookbacks[cd])
+    self.assertTrue(Generator.TERMINATE in lookbacks[cd])
 
     self.assertEqual(len(lookbacks[ce]), 1)
-    self.assertTrue(generator.Generator.TERMINATE in lookbacks[ce])
+    self.assertTrue(Generator.TERMINATE in lookbacks[ce])
 
     self.assertEqual(len(lookbacks[fg]), 1)
     self.assertTrue("h" in lookbacks[fg])
 
     self.assertEqual(len(lookbacks[gh]), 1)
-    self.assertTrue(generator.Generator.TERMINATE in lookbacks[gh])
+    self.assertTrue(Generator.TERMINATE in lookbacks[gh])
 
     self.assertEqual(len(lookbacks[ij]), 1)
-    self.assertTrue(generator.Generator.TERMINATE in lookbacks[ij])
+    self.assertTrue(Generator.TERMINATE in lookbacks[ij])
 
 
   def test_get_generic_statistics_empty(self):
@@ -263,23 +267,23 @@ class TestGenerator(unittest.TestCase):
     self.generator.init(self.users_instance, {}, time)
     stats = self.generator.getGenericStatistics()
 
-    self.assertTrue(generator.GenericStatisticType.USER_COUNT in stats)
-    self.assertTrue(generator.GenericStatisticType.DATE_STARTED in stats)
-    self.assertTrue(generator.GenericStatisticType.DATE_GENERATED in stats)
-    self.assertTrue(generator.GenericStatisticType.SOURCE_CHANNELS in stats)
-    self.assertTrue(generator.GenericStatisticType.BIGGEST_USERS in stats)
-    self.assertTrue(generator.GenericStatisticType.MOST_QUOTED_USERS in stats)
+    self.assertTrue(GenericStatisticType.USER_COUNT in stats)
+    self.assertTrue(GenericStatisticType.DATE_STARTED in stats)
+    self.assertTrue(GenericStatisticType.DATE_GENERATED in stats)
+    self.assertTrue(GenericStatisticType.SOURCE_CHANNELS in stats)
+    self.assertTrue(GenericStatisticType.BIGGEST_USERS in stats)
+    self.assertTrue(GenericStatisticType.MOST_QUOTED_USERS in stats)
 
-    self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
-    self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
-    self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
+    self.assertEqual(stats[GenericStatisticType.USER_COUNT], user_count)
+    self.assertEqual(stats[GenericStatisticType.DATE_STARTED], time)
+    self.assertEqual(stats[GenericStatisticType.DATE_GENERATED], None)
 
-    source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
+    source_channels = stats[GenericStatisticType.SOURCE_CHANNELS]
     self.assertEqual(source_channels.primary, None)
     self.assertFalse(source_channels.additionals)
 
-    self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], None)
-    self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], None)
+    self.assertEqual(stats[GenericStatisticType.BIGGEST_USERS], None)
+    self.assertEqual(stats[GenericStatisticType.MOST_QUOTED_USERS], None)
 
 
   def test_get_generic_statistics_nonempty(self):
@@ -318,16 +322,16 @@ class TestGenerator(unittest.TestCase):
     self.generator.init(self.users_instance, meta, time)
     stats = self.generator.getGenericStatistics()
 
-    self.assertEqual(stats[generator.GenericStatisticType.USER_COUNT], user_count)
-    self.assertEqual(stats[generator.GenericStatisticType.DATE_STARTED], time)
-    self.assertEqual(stats[generator.GenericStatisticType.DATE_GENERATED], None)
+    self.assertEqual(stats[GenericStatisticType.USER_COUNT], user_count)
+    self.assertEqual(stats[GenericStatisticType.DATE_STARTED], time)
+    self.assertEqual(stats[GenericStatisticType.DATE_GENERATED], None)
 
-    source_channels = stats[generator.GenericStatisticType.SOURCE_CHANNELS]
+    source_channels = stats[GenericStatisticType.SOURCE_CHANNELS]
     self.assertEqual(source_channels.primary, primary)
     self.assertEqual(source_channels.additionals, tuple(additional))
 
-    self.assertEqual(stats[generator.GenericStatisticType.BIGGEST_USERS], big_users)
-    self.assertEqual(stats[generator.GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
+    self.assertEqual(stats[GenericStatisticType.BIGGEST_USERS], big_users)
+    self.assertEqual(stats[GenericStatisticType.MOST_QUOTED_USERS], quoted_users)
 
 
   def test_get_user_aliases(self):
@@ -375,7 +379,7 @@ class TestGenerator(unittest.TestCase):
 
   def test_generate_nonrandom_known_single_short(self):
 
-    nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.saoi_nick)]
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
@@ -390,7 +394,7 @@ class TestGenerator(unittest.TestCase):
 
   def test_generate_nonrandom_known_single(self):
 
-    nick_tuples = [(users.NickType.NONRANDOM, self.saoi_nick)]
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.saoi_nick)]
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
@@ -406,8 +410,8 @@ class TestGenerator(unittest.TestCase):
   def test_generate_nonrandom_known_multiple(self):
 
     nick_tuples = [
-      (users.NickType.NONRANDOM, self.saoi_nick),
-      (users.NickType.NONRANDOM, self.file_nick),
+      (users.UserNickType.NONRANDOM, self.saoi_nick),
+      (users.UserNickType.NONRANDOM, self.file_nick),
     ]
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]

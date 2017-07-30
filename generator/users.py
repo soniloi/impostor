@@ -11,7 +11,7 @@ NickAndCount = namedtuple("NickAndCount", "nick, count")
 UserStatsToPersist = namedtuple("UserStatsToPersist", "quotes_requested");
 
 
-class NickType:
+class UserNickType:
   NONRANDOM = 0
   RANDOM = 1
 
@@ -268,14 +268,14 @@ class UserCollection:
       real_alias = nick_tuple[1]
 
       # Expand any randoms to real nicks
-      if nick_tuple[0] == NickType.RANDOM:
+      if nick_tuple[0] == UserNickType.RANDOM:
         real_alias = self.getRandomNick(real_nicks, random_min_starters)
 
       # Catch any Nones or empties
       if real_alias and real_alias in self.usermap:
 
         # Only increment this if the user was directly requested
-        if increment_quote_count and nick_tuple[0] != NickType.RANDOM:
+        if increment_quote_count and nick_tuple[0] != UserNickType.RANDOM:
           self.usermap[real_alias].incrementQuotesRequested()
           self.updateChanges()
 

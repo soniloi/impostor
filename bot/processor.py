@@ -12,7 +12,7 @@ from players import PlayerScoreType
 
 from generator import generator
 from generator.generator import GenericStatisticType
-from generator.users import NickType
+from generator.users import UserNickType
 from generator.users import UserStatisticType
 
 
@@ -240,7 +240,7 @@ class RequestProcessor():
   def startMystery(self, user, raw_tokens):
 
     if not self.current_mystery:
-      nick_tuple = (NickType.RANDOM, "")
+      nick_tuple = (UserNickType.RANDOM, "")
       output_nicks, output_quote = self.generator.generate([nick_tuple], config.MYSTERY_MIN_STARTERS, False)
 
       if output_nicks:
@@ -387,11 +387,11 @@ class RequestProcessor():
   @staticmethod
   def makeNickTuple(raw_nick):
 
-    nick_type = NickType.NONRANDOM
+    nick_type = UserNickType.NONRANDOM
     nick_name = raw_nick
 
     if raw_nick == config.RANDOM_NICK:
-      nick_type = NickType.RANDOM
+      nick_type = UserNickType.RANDOM
       nick_name = ""
 
     return (nick_type, nick_name)
