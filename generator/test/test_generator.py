@@ -26,18 +26,21 @@ class TestGenerator(unittest.TestCase):
 
     self.saoi_nick = "saoi"
     self.file_nick = "file"
+    self.bard_nick = "bard"
 
     self.quotes = {
       self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
       self.file_nick : "marbh le tae agus marbh gan é",
+      self.bard_nick : "is olc an ghaoth (nach séideann maith) do dhuine éigin",
     }
 
     self.starters = {}
     self.starters[self.saoi_nick] = [("is", "glas")]
     self.starters[self.file_nick] = [("marbh", "le")]
+    self.starters[self.bard_nick] = [("is", "olc")]
 
-    self.lookbacks = {}
-    self.lookbacks[self.saoi_nick] = {
+    self.generic_lookbacks = {}
+    self.generic_lookbacks[self.saoi_nick] = {
       ("is", "glas") : ["iad"],
       ("glas", "iad") : ["na"],
       ("iad", "na") : ["cnoic"],
@@ -46,7 +49,7 @@ class TestGenerator(unittest.TestCase):
       ("i", "bhfad") : ["uainn"],
       ("bhfad", "uainn") : [GeneratorUtil.TERMINATE],
     }
-    self.lookbacks[self.file_nick] = {
+    self.generic_lookbacks[self.file_nick] = {
       ("marbh", "le") : ["tae"],
       ("le", "tae") : ["agus"],
       ("tae", "agus") : ["marbh"],
@@ -54,6 +57,24 @@ class TestGenerator(unittest.TestCase):
       ("marbh", "gan") : ["é"],
       ("gan", "é") : [GeneratorUtil.TERMINATE],
     }
+    self.generic_lookbacks[self.bard_nick] = {
+      ("is", "olc") : ["an"],
+      ("olc", "an") : ["ghaoth"],
+      ("an", "ghaoth") : ["(nach"],
+      ("ghaoth", "(nach") : ["séideann"],
+      ("(nach", "séideann") : ["eile"],
+      ("séideann", "maith)") : ["do"],
+      ("maith)", "do") : ["dhuine"],
+      ("do", "dhuine") : ["éigin"],
+      ("dhuine", "éigin") : [GeneratorUtil.TERMINATE],
+    }
+
+    self.closing_lookbacks = {}
+    self.closing_lookbacks[self.saoi_nick] = {}
+    self.closing_lookbacks[self.file_nick] = {}
+    self.closing_lookbacks[self.bard_nick] = {
+      "(" : { ("(nach", "séideann") : ["maith)"],
+    }}
 
     self.generator = Generator()
 
@@ -86,9 +107,14 @@ class TestGenerator(unittest.TestCase):
     return TestGenerator.retrieve_value_or_default(self.starters, args[0], [])
 
 
-  def lookbacks_side_effect(self, *args):
+  def generic_lookbacks_side_effect(self, *args):
 
-    return TestGenerator.retrieve_value_or_default(self.lookbacks, args[0], {})
+    return TestGenerator.retrieve_value_or_default(self.generic_lookbacks, args[0], {})
+
+
+  def closing_lookbacks_side_effect(self, *args):
+
+    return TestGenerator.retrieve_value_or_default(self.closing_lookbacks, args[0], {})
 
 
   def test_copy_list_dict(self):
@@ -420,7 +446,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.lookbacks_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -438,7 +464,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.lookbacks_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -447,6 +473,22 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(self.saoi_nick in nicks)
     self.assertTrue(self.file_nick in nicks)
     self.assertTrue(quote in self.quotes.values())
+
+
+  def test_generate_nonrandom_known_parentheses(self):
+
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.bard_nick)]
+
+    self.users_instance.getRealNicks.return_value = [self.bard_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getClosingLookbacks.side_effect = self.closing_lookbacks_side_effect
+
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples)
+
+    self.assertEqual(nicks[0], self.bard_nick)
+    self.assertEqual(quote, self.quotes[self.bard_nick])
 
 
 if __name__ == "__main__":
