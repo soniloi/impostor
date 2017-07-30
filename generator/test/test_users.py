@@ -28,14 +28,16 @@ class TestUser(unittest.TestCase):
     follow4 = ["mat", "doorstep"]
 
     starters = [tuple1]
-    lookbacks = {
+    generic_lookbacks = {
       tuple1 : follow1,
       tuple2 : follow2,
       tuple3 : follow3,
       tuple4 : follow4,
     }
+    closing_lookbacks = {
+    }
 
-    self.user = User(nick, starters, lookbacks)
+    self.user = User(nick, starters, generic_lookbacks, closing_lookbacks)
 
     self.user.initAliases(["squid", "limpet"])
 
@@ -54,7 +56,7 @@ class TestUser(unittest.TestCase):
     local_lookbacks = {}
     local_nick = "siucra"
 
-    local_user = User(local_nick, local_starters, local_lookbacks)
+    local_user = User(local_nick, local_starters, local_lookbacks, {})
 
     self.assertEqual(local_user.nick, local_nick)
     self.assertEquals(local_user.production_count, 0)
@@ -128,7 +130,7 @@ class TestUser(unittest.TestCase):
 
     nick = "birch"
     starters = [("a", "b"), ("a", "b"), ("h", "i")]
-    lookbacks = {
+    generic_lookbacks = {
       ("a", "b") : ["c", "c"],
       ("b", "c") : ["d", "e"],
       ("c", "e") : ["f"],
@@ -136,22 +138,36 @@ class TestUser(unittest.TestCase):
       ("h", "i") : ["j"],
       ("i", "j") : ["k"],
     }
+    closing_lookbacks = {
+      "(" : {
+        ("l", "m") : ["n)"]
+      }
+    }
 
-    self.user_collection.addUser(nick, starters, lookbacks)
+    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks)
 
     self.assertEqual(len(self.user_collection.usermap), 1)
     self.assertTrue(self.user_collection.containsByAlias(nick))
 
     birch = self.user_collection.getByAlias(nick)
     self.assertEqual(birch.nick, nick)
+
     self.assertEqual(len(birch.starters), 3)
     self.assertTrue(("a", "b") in birch.starters)
     self.assertTrue(("h", "i") in birch.starters)
+
     self.assertEqual(birch.production_count, 8)
-    self.assertEqual(len(birch.lookbacks[("a", "b")]), 2)
-    self.assertEqual(len(birch.lookbacks[("b", "c")]), 2)
-    self.assertFalse(("c", "d") in birch.lookbacks)
-    self.assertEqual(len(birch.lookbacks[("c", "e")]), 1)
+
+    self.assertEqual(len(birch.generic_lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(birch.generic_lookbacks[("b", "c")]), 2)
+    self.assertFalse(("c", "d") in birch.generic_lookbacks)
+    self.assertEqual(len(birch.generic_lookbacks[("c", "e")]), 1)
+
+    self.assertEqual(len(birch.closing_lookbacks), 1)
+    self.assertTrue("(" in birch.closing_lookbacks)
+    self.assertEqual(len(birch.closing_lookbacks["("]), 1)
+    self.assertTrue(("l", "m") in birch.closing_lookbacks["("])
+    self.assertEqual(birch.closing_lookbacks["("][("l", "m")], ["n)"])
 
 
   def test_build_static_stats(self):
@@ -472,12 +488,13 @@ class TestUser(unittest.TestCase):
   def createAndAddUser(self,\
                        nick,\
                        starters=[("a", "b")],\
-                       lookbacks={("a", "b") : ["c"],\
+                       generic_lookbacks={("a", "b") : ["c"],\
                                   ("b", "c") : ["d"],\
                                   ("c", "d") : ["e"],\
-                        }):
+                        },
+                        closing_lookbacks={}):
 
-    self.user_collection.addUser(nick, starters, lookbacks)
+    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks)
 
 
   @staticmethod

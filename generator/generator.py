@@ -23,6 +23,13 @@ class GenericStatisticType:
 
 class GeneratorUtil:
 
+  CLOSERS_TO_OPENERS = {
+    ")" : "(",
+    "]" : "[",
+    "{" : "}",
+    "\"" : "\"",
+  }
+
   @staticmethod
   def buildMeta(source_dir):
 
@@ -74,6 +81,15 @@ class GeneratorUtil:
       mergeinto[key] += value_list
 
 
+  @staticmethod
+  def appendWithCreate(dictionary, key, value):
+
+    if not key in dictionary:
+      dictionary[key] = []
+
+    dictionary[key].append(value)
+
+
 class Generator:
 
   SEP = "/"
@@ -107,29 +123,30 @@ class Generator:
 
         source_filepath = source_dir + Generator.SEP + source_filename
         infile = open(source_filepath, 'r')
-        (nick, starters, lookbacks) = self.processSource(source_filename, infile)
+        (nick, starters, generic_lookbacks, closing_lookbacks) = self.processSource(source_filename, infile)
         infile.close()
 
         # Only add new user to sources if any material actually found in file
-        if lookbacks:
-          users.addUser(nick, starters, lookbacks)
+        if generic_lookbacks or closing_lookbacks:
+          users.addUser(nick, starters, generic_lookbacks, closing_lookbacks)
 
 
   def processSource(self, source_filename, source_data):
 
     nick = source_filename[:-Generator.SOURCEFILE_EXTLEN]
     starters = []
-    lookbacks = {}
+    generic_lookbacks = {}
+    closing_lookbacks = {}
 
     for line in source_data:
       words = line.split()
-      if len(words) >= (self.lookback_count): # Not interested in lines too short to create productions
-        self.processLineWords(words, starters, lookbacks)
+      if len(words) >= self.lookback_count: # Not interested in lines too short to create productions
+        self.processLineWords(words, starters, generic_lookbacks, closing_lookbacks)
 
-    return (nick, starters, lookbacks)
+    return (nick, starters, generic_lookbacks, closing_lookbacks)
 
 
-  def processLineWords(self, words, starters, lookbacks):
+  def processLineWords(self, words, starters, generic_lookbacks, closing_lookbacks):
 
     starter = tuple(words[0:self.lookback_count])
     starters.append(starter)
@@ -141,18 +158,38 @@ class Generator:
       lookback = tuple(words[i:follow_index])
       follow = words[follow_index]
 
-      if not lookback in lookbacks:
-        lookbacks[lookback] = []
+      last = follow[-1]
 
-      lookbacks[lookback].append(follow)
+      if last in GeneratorUtil.CLOSERS_TO_OPENERS:
+        opener = GeneratorUtil.CLOSERS_TO_OPENERS[last]
+
+        if not opener in closing_lookbacks:
+          closing_lookbacks[opener] = {}
+
+        GeneratorUtil.appendWithCreate(closing_lookbacks[opener], lookback, follow)
+
+      GeneratorUtil.appendWithCreate(generic_lookbacks, lookback, follow)
 
     last_lookback = tuple(words[bound:])
+    last_last = last_lookback[-1]
 
-    if not last_lookback in lookbacks:
-      lookbacks[last_lookback] = []
+    if last_last in GeneratorUtil.CLOSERS_TO_OPENERS:
+      last_opener = GeneratorUtil.CLOSERS_TO_OPENERS[last_last]
 
-    if not Generator.TERMINATE in lookbacks[last_lookback]:
-      lookbacks[last_lookback].append(Generator.TERMINATE)
+      if not last_opener in closing_lookbacks:
+        closing_lookbacks[last_opener] = {}
+
+      if not last_lookback in closing_lookbacks[last_opener]:
+        closing_lookbacks[last_opener][last_lookback] = []
+
+      if not Generator.TERMINATE in closing_lookbacks[last_opener][last_lookback]:
+        closing_lookbacks[last_opener][last_lookback].append(Generator.TERMINATE)
+
+    if not last_lookback in generic_lookbacks:
+        generic_lookbacks[last_lookback] = []
+
+    if not Generator.TERMINATE in generic_lookbacks[last_lookback]:
+        generic_lookbacks[last_lookback].append(Generator.TERMINATE)
 
 
   @staticmethod
@@ -227,7 +264,7 @@ class Generator:
 
     first_nick = real_nicks[0]
     starting_pairs = self.users.getStarters(first_nick)
-    lookbacks = self.users.getLookbacks(first_nick)
+    lookbacks = self.users.getGenericLookbacks(first_nick)
 
     # If we have more than one nick, we will be constructing a new lookback map
     #  and starter list, so we will want copies
@@ -237,7 +274,7 @@ class Generator:
 
     for other_nick in real_nicks[1:]:
       starting_pairs += list(self.users.getStarters(other_nick))
-      GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getLookbacks(other_nick))
+      GeneratorUtil.mergeIntoDictionary(lookbacks, self.users.getGenericLookbacks(other_nick))
 
     initial = random.choice(starting_pairs)
     quote = self.generateQuote(lookbacks, initial)

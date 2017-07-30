@@ -204,9 +204,12 @@ class TestGenerator(unittest.TestCase):
       "a b c e",
       "f g h",
       "i j",
+      "k l m) n",
+      "o p q)",
+      "r",
     ]
 
-    (nick, starters, lookbacks) = self.generator.processSource(source_filename, source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource(source_filename, source_data)
 
     ab = ("a", "b")
     bc = ("b", "c")
@@ -215,44 +218,63 @@ class TestGenerator(unittest.TestCase):
     fg = ("f", "g")
     gh = ("g", "h")
     ij = ("i", "j")
+    kl = ("k", "l")
+    lm = ("l", "m)")
+    op = ("o", "p")
 
     self.assertEqual(nick, source_nick)
 
-    self.assertEqual(len(starters), 4)
+    self.assertEqual(len(starters), 6)
     self.assertTrue(ab in starters)
     self.assertTrue(fg in starters)
 
-    self.assertEqual(len(lookbacks), 7)
-    self.assertTrue(ab in lookbacks)
-    self.assertTrue(bc in lookbacks)
-    self.assertTrue(cd in lookbacks)
-    self.assertTrue(ce in lookbacks)
-    self.assertTrue(fg in lookbacks)
-    self.assertTrue(gh in lookbacks)
-    self.assertTrue(ij in lookbacks)
+    self.assertEqual(len(generic_lookbacks), 12)
+    self.assertTrue(ab in generic_lookbacks)
+    self.assertTrue(bc in generic_lookbacks)
+    self.assertTrue(cd in generic_lookbacks)
+    self.assertTrue(ce in generic_lookbacks)
+    self.assertTrue(fg in generic_lookbacks)
+    self.assertTrue(gh in generic_lookbacks)
+    self.assertTrue(ij in generic_lookbacks)
+    self.assertTrue(lm in generic_lookbacks)
 
-    self.assertEqual(len(lookbacks[ab]), 2)
-    self.assertTrue("c" in lookbacks[ab])
-    self.assertEqual(lookbacks[ab][0], lookbacks[ab][1])
+    self.assertEqual(len(generic_lookbacks[ab]), 2)
+    self.assertTrue("c" in generic_lookbacks[ab])
+    self.assertEqual(generic_lookbacks[ab][0], generic_lookbacks[ab][1])
 
-    self.assertEqual(len(lookbacks[bc]), 2)
-    self.assertTrue("d" in lookbacks[bc])
-    self.assertTrue("e" in lookbacks[bc])
+    self.assertEqual(len(generic_lookbacks[bc]), 2)
+    self.assertTrue("d" in generic_lookbacks[bc])
+    self.assertTrue("e" in generic_lookbacks[bc])
 
-    self.assertEqual(len(lookbacks[cd]), 1)
-    self.assertTrue(Generator.TERMINATE in lookbacks[cd])
+    self.assertEqual(len(generic_lookbacks[cd]), 1)
+    self.assertTrue(Generator.TERMINATE in generic_lookbacks[cd])
 
-    self.assertEqual(len(lookbacks[ce]), 1)
-    self.assertTrue(Generator.TERMINATE in lookbacks[ce])
+    self.assertEqual(len(generic_lookbacks[ce]), 1)
+    self.assertTrue(Generator.TERMINATE in generic_lookbacks[ce])
 
-    self.assertEqual(len(lookbacks[fg]), 1)
-    self.assertTrue("h" in lookbacks[fg])
+    self.assertEqual(len(generic_lookbacks[fg]), 1)
+    self.assertTrue("h" in generic_lookbacks[fg])
 
-    self.assertEqual(len(lookbacks[gh]), 1)
-    self.assertTrue(Generator.TERMINATE in lookbacks[gh])
+    self.assertEqual(len(generic_lookbacks[lm]), 1)
+    self.assertTrue("n" in generic_lookbacks[lm])
 
-    self.assertEqual(len(lookbacks[ij]), 1)
-    self.assertTrue(Generator.TERMINATE in lookbacks[ij])
+    self.assertEqual(len(generic_lookbacks[gh]), 1)
+    self.assertTrue(Generator.TERMINATE in generic_lookbacks[gh])
+
+    self.assertEqual(len(generic_lookbacks[ij]), 1)
+    self.assertTrue(Generator.TERMINATE in generic_lookbacks[ij])
+
+    self.assertEqual(len(closing_lookbacks), 1)
+    self.assertTrue("(" in closing_lookbacks)
+    self.assertEqual(len(closing_lookbacks["("]), 2)
+
+    self.assertTrue(kl in closing_lookbacks["("])
+    self.assertEqual(len(closing_lookbacks["("][kl]), 1)
+    self.assertTrue("m)" in closing_lookbacks["("][kl])
+
+    self.assertTrue(op in closing_lookbacks["("])
+    self.assertEqual(len(closing_lookbacks["("][op]), 1)
+    self.assertTrue("q)" in closing_lookbacks["("][op])
 
 
   def test_get_generic_statistics_empty(self):
@@ -383,7 +405,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getLookbacks.return_value = []
+    self.users_instance.getGenericLookbacks.return_value = []
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -398,7 +420,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -416,7 +438,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getLookbacks.side_effect = self.lookbacks_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
