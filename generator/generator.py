@@ -249,9 +249,9 @@ class Generator:
     if not current in generic_lookbacks:
       return line
 
-    opener = None
+    openers = []
     i = 0
-    (follow, opener) = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, opener)
+    follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
     while current in generic_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
       line += ' ' + follow
 
@@ -259,26 +259,29 @@ class Generator:
       current_list.append(follow)
       current = tuple(current_list)
       i += 1
-      (follow, opener) = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, opener)
+      follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
 
     return line
 
   @staticmethod
-  def getFollow(generic_lookbacks, closing_lookbacks, current_tuple, current_opener):
+  def getFollow(generic_lookbacks, closing_lookbacks, current_tuple, openers):
 
     lookbacks = generic_lookbacks
-    next_opener = current_opener
+
+    current_opener = None
+    if openers:
+      current_opener = openers[-1]
 
     if current_opener and current_opener in closing_lookbacks:
       if current_tuple in closing_lookbacks[current_opener]:
         lookbacks = closing_lookbacks[current_opener]
-        next_opener = None
+        openers.pop()
 
     next_follow = random.choice(lookbacks[current_tuple])
     if next_follow and next_follow[0] in GeneratorUtil.CLOSERS_TO_OPENERS.values():
-      next_opener = next_follow[0]
+      openers.append(next_follow[0])
 
-    return (next_follow, next_opener)
+    return next_follow
 
 
   # Return a line generated from the source of a nick or nicks

@@ -31,7 +31,7 @@ class TestGenerator(unittest.TestCase):
     self.quotes = {
       self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
       self.file_nick : "marbh le tae agus marbh gan é",
-      self.bard_nick : "is olc an ghaoth (nach séideann maith) do dhuine éigin",
+      self.bard_nick : "is olc (an ghaoth (nach séideann maith) do dhuine éigin)",
     }
 
     self.starters = {}
@@ -58,22 +58,24 @@ class TestGenerator(unittest.TestCase):
       ("gan", "é") : [GeneratorUtil.TERMINATE],
     }
     self.generic_lookbacks[self.bard_nick] = {
-      ("is", "olc") : ["an"],
-      ("olc", "an") : ["ghaoth"],
-      ("an", "ghaoth") : ["(nach"],
+      ("is", "olc") : ["(an"],
+      ("olc", "(an") : ["ghaoth"],
+      ("(an", "ghaoth") : ["(nach"],
       ("ghaoth", "(nach") : ["séideann"],
       ("(nach", "séideann") : ["eile"],
       ("séideann", "maith)") : ["do"],
       ("maith)", "do") : ["dhuine"],
-      ("do", "dhuine") : ["éigin"],
-      ("dhuine", "éigin") : [GeneratorUtil.TERMINATE],
+      ("do", "dhuine") : ["eile"],
+      ("dhuine", "éigin)") : [GeneratorUtil.TERMINATE],
     }
 
     self.closing_lookbacks = {}
     self.closing_lookbacks[self.saoi_nick] = {}
     self.closing_lookbacks[self.file_nick] = {}
     self.closing_lookbacks[self.bard_nick] = {
-      "(" : { ("(nach", "séideann") : ["maith)"],
+      "(" : {
+        ("(nach", "séideann") : ["maith)"],
+        ("do", "dhuine") : ["éigin)"],
     }}
 
     self.generator = Generator()
