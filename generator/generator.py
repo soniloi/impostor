@@ -258,6 +258,7 @@ class Generator:
 
     i = 0
     follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
+    Generator.updateOpeners(follow, openers)
     while current in generic_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
       line += ' ' + follow
 
@@ -281,7 +282,6 @@ class Generator:
     if current_opener and current_opener in closing_lookbacks:
       if current_tuple in closing_lookbacks[current_opener]:
         lookbacks = closing_lookbacks[current_opener]
-        openers.pop()
 
     next_follow = random.choice(lookbacks[current_tuple])
     Generator.updateOpeners(next_follow, openers)
@@ -294,11 +294,15 @@ class Generator:
 
     if word:
 
-      first = word[0]
-      last = word[-1]
+      i = 0
+      while i < len(word) and word[i] in GeneratorUtil.OPENERS_TO_CLOSERS:
+        openers.append(word[i])
+        i += 1
 
-      if first in GeneratorUtil.OPENERS_TO_CLOSERS and not last == GeneratorUtil.OPENERS_TO_CLOSERS[first]:
-        openers.append(first)
+      i = 0
+      while i < len(word) and len(openers) > 0 and word[-i-1] == GeneratorUtil.OPENERS_TO_CLOSERS[openers[-1]]:
+        openers.pop()
+        i += 1
 
 
   # Return a line generated from the source of a nick or nicks
