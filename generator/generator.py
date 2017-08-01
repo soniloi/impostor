@@ -24,11 +24,14 @@ class GenericStatisticType:
 class GeneratorUtil:
 
   TERMINATE = None
-  CLOSERS_TO_OPENERS = {
-    ")" : "(",
-    "]" : "[",
+  OPENERS_TO_CLOSERS = {
+    "(" : ")",
+    "[" : "]",
     "{" : "}",
     "\"" : "\"",
+  }
+  CLOSERS_TO_OPENERS = {
+    v: k for k, v in OPENERS_TO_CLOSERS.iteritems()
   }
 
   @staticmethod
@@ -250,6 +253,9 @@ class Generator:
       return line
 
     openers = []
+    for word in initial:
+      Generator.updateOpeners(word, openers)
+
     i = 0
     follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
     while current in generic_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
@@ -278,10 +284,21 @@ class Generator:
         openers.pop()
 
     next_follow = random.choice(lookbacks[current_tuple])
-    if next_follow and next_follow[0] in GeneratorUtil.CLOSERS_TO_OPENERS.values():
-      openers.append(next_follow[0])
+    Generator.updateOpeners(next_follow, openers)
 
     return next_follow
+
+
+  @staticmethod
+  def updateOpeners(word, openers):
+
+    if word:
+
+      first = word[0]
+      last = word[-1]
+
+      if first in GeneratorUtil.OPENERS_TO_CLOSERS and not last == GeneratorUtil.OPENERS_TO_CLOSERS[first]:
+        openers.append(first)
 
 
   # Return a line generated from the source of a nick or nicks
