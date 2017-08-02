@@ -245,16 +245,17 @@ class Generator:
   # Return a line generated from a given lookback collection and a given initial pair
   def generateQuote(self, generic_lookbacks, closing_lookbacks, initial):
 
+    openers = []
+    line = Generator.updateOpeners(initial[0], openers)
+
+    for word in initial[1:]:
+      line += ' ' + Generator.updateOpeners(word, openers)
+
     current = initial
-    line = ' '.join(current[0:self.lookback_count])
 
     # FIXME: this should not be possible; maybe do something else here?
     if not current in generic_lookbacks:
       return line
-
-    openers = []
-    for word in initial:
-      Generator.updateOpeners(word, openers)
 
     i = 0
     follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
