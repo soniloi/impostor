@@ -258,7 +258,6 @@ class Generator:
 
     i = 0
     follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
-    Generator.updateOpeners(follow, openers)
     while current in generic_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
       line += ' ' + follow
 
@@ -267,6 +266,10 @@ class Generator:
       current = tuple(current_list)
       i += 1
       follow = Generator.getFollow(generic_lookbacks, closing_lookbacks, current, openers)
+
+    # Close any remaining open parentheses
+    while openers:
+      line += GeneratorUtil.OPENERS_TO_CLOSERS[openers.pop()]
 
     return line
 
