@@ -272,29 +272,32 @@ class Generator:
   @staticmethod
   def getCleanedWord(word, openers):
 
-    cleaned_word = word
-
-    if word:
-
-      if not word in config.PARENTHESIS_EXCEPTIONS:
-        i = 0
-        while i < len(word) and word[i] in config.OPENERS_TO_CLOSERS:
-          openers.append(word[i])
-          i += 1
-
+    if not word in config.PARENTHESIS_EXCEPTIONS:
       i = 0
-      while i < len(word) and len(openers) > 0 and word[-i-1] == config.OPENERS_TO_CLOSERS[openers[-1]]:
-        openers.pop()
+      while i < len(word) and word[i] in config.OPENERS_TO_CLOSERS:
+        openers.append(word[i])
         i += 1
 
-      # Remove any stray closing parentheses
-      if not word in config.PARENTHESIS_EXCEPTIONS:
-        i = len(word)-i-1
-        while cleaned_word[i] in config.CLOSERS_TO_OPENERS:
-          cleaned_word = cleaned_word[:i] + cleaned_word[i+1:]
-          i -= 1
+    i = 0
+    while i < len(word) and len(openers) > 0 and word[-i-1] == config.OPENERS_TO_CLOSERS[openers[-1]]:
+      openers.pop()
+      i += 1
 
-    return cleaned_word
+    # Remove any stray closing parentheses
+    matched_end_index = len(word) - i - 1
+    word = Generator.removeUnmatchedClosers(word, matched_end_index)
+
+    return word
+
+
+  @staticmethod
+  def removeUnmatchedClosers(word, matched_end_index):
+
+    core_end_index = matched_end_index - 1
+    while word[core_end_index] in config.CLOSERS_TO_OPENERS:
+      core_end_index -= 1
+
+    return word[:core_end_index+1] + word[matched_end_index:]
 
 
   # Return a line generated from the source of a nick or nicks
