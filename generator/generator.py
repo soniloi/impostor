@@ -317,10 +317,11 @@ class Generator:
         i += 1
 
       # Remove any stray closing parentheses
-      i = len(word)-i-1
-      while cleaned_word[i] in GeneratorUtil.CLOSERS_TO_OPENERS:
-        cleaned_word = cleaned_word[:i] + cleaned_word[i+1:]
-        i -= 1
+      if not word in GeneratorUtil.PARENTHESIS_EXCEPTIONS:
+        i = len(word)-i-1
+        while cleaned_word[i] in GeneratorUtil.CLOSERS_TO_OPENERS:
+          cleaned_word = cleaned_word[:i] + cleaned_word[i+1:]
+          i -= 1
 
     return cleaned_word
 

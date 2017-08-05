@@ -31,7 +31,7 @@ class TestGenerator(unittest.TestCase):
     self.quotes = {
       self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
       self.file_nick : "marbh le tae agus marbh gan é",
-      self.bard_nick : "is olc (an ghaoth (nach séideann maith) do dhuine éigin) {mar a deirtear}",
+      self.bard_nick : "is olc (an ghaoth (nach séideann maith) do dhuine éigin) {mar a :) deirtear}",
     }
 
     self.starters = {}
@@ -68,7 +68,8 @@ class TestGenerator(unittest.TestCase):
       ("do", "dhuine") : ["eile"],
       ("dhuine", "éigin)") : ["{mar"],
       ("éigin)", "{mar") : ["a"],
-      ("{mar", "a") : ["deirtear"],
+      ("{mar", "a") : [":)"],
+      ("a", ":)") : ["deirtear"],
       ("a", "deirtear") : [GeneratorUtil.TERMINATE],
     }
 
