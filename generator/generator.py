@@ -206,13 +206,6 @@ class Generator:
       GeneratorUtil.appendNonTerminalWithCreate(all_lookbacks, lookback, follow)
 
     last_lookback = tuple(words[bound:])
-    last_last = last_lookback[-1]
-
-    if last_last in GeneratorUtil.CLOSERS_TO_OPENERS:
-      GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
-        GeneratorUtil.CLOSERS_TO_OPENERS[last_last], last_lookback, \
-        GeneratorUtil.appendTerminalWithCreate)
-
     GeneratorUtil.appendTerminalWithCreate(all_lookbacks, last_lookback)
 
 
