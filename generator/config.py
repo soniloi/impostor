@@ -14,3 +14,26 @@ CHANGES_BETWEEN_STATS_PERSISTENCE = 5 # Number of changes seen between stats wri
 
 OUTPUT_WORDS_MAX = 200 # The maximum number of words to generate in a line, just to prevent infinite strings
 
+# Pairs of parentheses and other punctuation to search for in matching
+OPENERS_TO_CLOSERS = {
+  "(" : ")",
+  "[" : "]",
+  "{" : "}",
+  "\"" : "\"",
+}
+CLOSERS_TO_OPENERS = {
+  v: k for k, v in OPENERS_TO_CLOSERS.iteritems()
+}
+
+# Set of tokens that should be ignored in parenthesis matching
+PARENTHESIS_EXCEPTIONS = {
+  "(:",
+  "(:<)"
+  "):",
+  "):<",
+  ":(",
+  ">:(",
+  ":)",
+  ">:)",
+}
+

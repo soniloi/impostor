@@ -24,26 +24,6 @@ class GenericStatisticType:
 class GeneratorUtil:
 
   TERMINATE = None
-  OPENERS_TO_CLOSERS = {
-    "(" : ")",
-    "[" : "]",
-    "{" : "}",
-    "\"" : "\"",
-  }
-  CLOSERS_TO_OPENERS = {
-    v: k for k, v in OPENERS_TO_CLOSERS.iteritems()
-  }
-
-  PARENTHESIS_EXCEPTIONS = {
-    "(:",
-    "(:<)"
-    "):",
-    "):<",
-    ":(",
-    ">:(",
-    ":)",
-    ">:)",
-  }
 
   @staticmethod
   def buildMeta(source_dir):
@@ -162,7 +142,7 @@ class Generator:
     starters = []
     all_lookbacks = {}
     closing_lookbacks = {}
-    for opener in GeneratorUtil.OPENERS_TO_CLOSERS:
+    for opener in config.OPENERS_TO_CLOSERS:
       closing_lookbacks[opener] = {}
 
     for line in source_data:
@@ -188,8 +168,8 @@ class Generator:
       last = follow[-1]
 
       # Add some tuples to specific closing pools
-      if follow not in GeneratorUtil.PARENTHESIS_EXCEPTIONS and last in GeneratorUtil.CLOSERS_TO_OPENERS:
-        opener = GeneratorUtil.CLOSERS_TO_OPENERS[last]
+      if follow not in config.PARENTHESIS_EXCEPTIONS and last in config.CLOSERS_TO_OPENERS:
+        opener = config.CLOSERS_TO_OPENERS[last]
         GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
 
       # Add all tuples to the generic pool
@@ -267,7 +247,7 @@ class Generator:
 
     # Close any remaining open parentheses
     while openers:
-      line += GeneratorUtil.OPENERS_TO_CLOSERS[openers.pop()]
+      line += config.OPENERS_TO_CLOSERS[openers.pop()]
 
     return line
 
@@ -296,21 +276,21 @@ class Generator:
 
     if word:
 
-      if not word in GeneratorUtil.PARENTHESIS_EXCEPTIONS:
+      if not word in config.PARENTHESIS_EXCEPTIONS:
         i = 0
-        while i < len(word) and word[i] in GeneratorUtil.OPENERS_TO_CLOSERS:
+        while i < len(word) and word[i] in config.OPENERS_TO_CLOSERS:
           openers.append(word[i])
           i += 1
 
       i = 0
-      while i < len(word) and len(openers) > 0 and word[-i-1] == GeneratorUtil.OPENERS_TO_CLOSERS[openers[-1]]:
+      while i < len(word) and len(openers) > 0 and word[-i-1] == config.OPENERS_TO_CLOSERS[openers[-1]]:
         openers.pop()
         i += 1
 
       # Remove any stray closing parentheses
-      if not word in GeneratorUtil.PARENTHESIS_EXCEPTIONS:
+      if not word in config.PARENTHESIS_EXCEPTIONS:
         i = len(word)-i-1
-        while cleaned_word[i] in GeneratorUtil.CLOSERS_TO_OPENERS:
+        while cleaned_word[i] in config.CLOSERS_TO_OPENERS:
           cleaned_word = cleaned_word[:i] + cleaned_word[i+1:]
           i -= 1
 
