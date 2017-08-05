@@ -34,6 +34,17 @@ class GeneratorUtil:
     v: k for k, v in OPENERS_TO_CLOSERS.iteritems()
   }
 
+  PARENTHESIS_EXCEPTIONS = {
+    "(:",
+    "(:<)"
+    "):",
+    "):<",
+    ":(",
+    ">:(",
+    ":)",
+    ">:)",
+  }
+
   @staticmethod
   def buildMeta(source_dir):
 
@@ -186,7 +197,7 @@ class Generator:
       last = follow[-1]
 
       # Add some tuples to specific closing pools
-      if last in GeneratorUtil.CLOSERS_TO_OPENERS:
+      if follow not in GeneratorUtil.PARENTHESIS_EXCEPTIONS and last in GeneratorUtil.CLOSERS_TO_OPENERS:
         GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
           GeneratorUtil.CLOSERS_TO_OPENERS[last], lookback, \
           GeneratorUtil.appendNonTerminalWithCreate, follow)
