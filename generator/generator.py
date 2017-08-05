@@ -304,12 +304,14 @@ class Generator:
   def getCleanedWord(word, openers):
 
     cleaned_word = word
+
     if word:
 
-      i = 0
-      while i < len(word) and word[i] in GeneratorUtil.OPENERS_TO_CLOSERS:
-        openers.append(word[i])
-        i += 1
+      if not word in GeneratorUtil.PARENTHESIS_EXCEPTIONS:
+        i = 0
+        while i < len(word) and word[i] in GeneratorUtil.OPENERS_TO_CLOSERS:
+          openers.append(word[i])
+          i += 1
 
       i = 0
       while i < len(word) and len(openers) > 0 and word[-i-1] == GeneratorUtil.OPENERS_TO_CLOSERS[openers[-1]]:
