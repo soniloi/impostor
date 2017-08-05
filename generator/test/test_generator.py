@@ -227,7 +227,7 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(self.generator.empty())
 
 
-  def test_process_source(self):
+  def test_process_source_generic(self):
 
     source_nick = "almond"
     source_filename = source_nick + ".src"
@@ -236,9 +236,7 @@ class TestGenerator(unittest.TestCase):
       "a b c e",
       "f g h",
       "i j",
-      "k l m) n",
-      "o p q)",
-      "r",
+      "k",
     ]
 
     (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource(source_filename, source_data)
@@ -250,17 +248,14 @@ class TestGenerator(unittest.TestCase):
     fg = ("f", "g")
     gh = ("g", "h")
     ij = ("i", "j")
-    kl = ("k", "l")
-    lm = ("l", "m)")
-    op = ("o", "p")
 
     self.assertEqual(nick, source_nick)
 
-    self.assertEqual(len(starters), 6)
+    self.assertEqual(len(starters), 4)
     self.assertTrue(ab in starters)
     self.assertTrue(fg in starters)
 
-    self.assertEqual(len(generic_lookbacks), 12)
+    self.assertEqual(len(generic_lookbacks), 7)
     self.assertTrue(ab in generic_lookbacks)
     self.assertTrue(bc in generic_lookbacks)
     self.assertTrue(cd in generic_lookbacks)
@@ -268,7 +263,6 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(fg in generic_lookbacks)
     self.assertTrue(gh in generic_lookbacks)
     self.assertTrue(ij in generic_lookbacks)
-    self.assertTrue(lm in generic_lookbacks)
 
     self.assertEqual(len(generic_lookbacks[ab]), 2)
     self.assertTrue("c" in generic_lookbacks[ab])
@@ -287,26 +281,43 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[fg]), 1)
     self.assertTrue("h" in generic_lookbacks[fg])
 
-    self.assertEqual(len(generic_lookbacks[lm]), 1)
-    self.assertTrue("n" in generic_lookbacks[lm])
-
     self.assertEqual(len(generic_lookbacks[gh]), 1)
     self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[gh])
 
     self.assertEqual(len(generic_lookbacks[ij]), 1)
     self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[ij])
 
-    self.assertEqual(len(closing_lookbacks), 1)
-    self.assertTrue("(" in closing_lookbacks)
+    self.assertEqual(len(closing_lookbacks), 0)
+
+
+  def test_process_source_closer_nonsmileys(self):
+
+    source_data = ["a) b c d", "a b} c d", "a b c] d)", "a] b} c) d\""]
+
+    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+
+    self.assertEqual(len(generic_lookbacks), 11)
+    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(closing_lookbacks), 3)
     self.assertEqual(len(closing_lookbacks["("]), 2)
+    self.assertEqual(len(closing_lookbacks["["]), 1)
+    self.assertEqual(len(closing_lookbacks["\""]), 1)
+    self.assertEqual(closing_lookbacks["("], {('a]', 'b}'): ['c)'], ('b', 'c]'): ['d)']})
+    self.assertEqual(closing_lookbacks["["], {('a', 'b'): ['c]']})
+    self.assertEqual(closing_lookbacks["\""], {('b}', 'c)'): ['d"']})
 
-    self.assertTrue(kl in closing_lookbacks["("])
-    self.assertEqual(len(closing_lookbacks["("][kl]), 1)
-    self.assertTrue("m)" in closing_lookbacks["("][kl])
 
-    self.assertTrue(op in closing_lookbacks["("])
-    self.assertEqual(len(closing_lookbacks["("][op]), 1)
-    self.assertTrue("q)" in closing_lookbacks["("][op])
+  def test_process_source_closer_smileys(self):
+
+    source_data = [":) b c d", "a :) c d", "a b :) d", "a b c :)"]
+
+    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+
+    self.assertEqual(len(generic_lookbacks), 9)
+    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
+    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(closing_lookbacks), 0)
 
 
   def test_get_generic_statistics_empty(self):
