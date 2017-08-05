@@ -75,13 +75,14 @@ class TestGenerator(unittest.TestCase):
     }
 
     self.closing_lookbacks = {}
-    self.closing_lookbacks[self.saoi_nick] = {}
-    self.closing_lookbacks[self.file_nick] = {}
+    self.closing_lookbacks[self.saoi_nick] = {"(":{}, "{":{}, "[":{}, "\"":{}}
+    self.closing_lookbacks[self.file_nick] = {"(":{}, "{":{}, "[":{}, "\"":{}}
     self.closing_lookbacks[self.bard_nick] = {
       "(" : {
         ("(nach", "séideann") : ["maith)"],
         ("do", "dhuine") : ["éigin)"],
-      }
+      },
+      "{":{}, "[":{}, "\"":{},
     }
 
     self.generator = Generator()
@@ -289,7 +290,7 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[ij]), 1)
     self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[ij])
 
-    self.assertEqual(len(closing_lookbacks), 0)
+    self.assertEqual(len(closing_lookbacks), 4)
 
 
   def test_process_source_closer_nonsmileys(self):
@@ -300,7 +301,7 @@ class TestGenerator(unittest.TestCase):
 
     self.assertEqual(len(generic_lookbacks), 11)
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
-    self.assertEqual(len(closing_lookbacks), 3)
+    self.assertEqual(len(closing_lookbacks), 4)
     self.assertEqual(len(closing_lookbacks["("]), 2)
     self.assertEqual(len(closing_lookbacks["["]), 1)
     self.assertEqual(len(closing_lookbacks["\""]), 1)
@@ -319,7 +320,7 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
     self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
-    self.assertEqual(len(closing_lookbacks), 0)
+    self.assertEqual(len(closing_lookbacks), 4)
 
 
   def test_get_generic_statistics_empty(self):

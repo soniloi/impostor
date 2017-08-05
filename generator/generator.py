@@ -116,17 +116,6 @@ class GeneratorUtil:
       dictionary[key].append(GeneratorUtil.TERMINATE)
 
 
-  @staticmethod
-  def mapAndAppendWithCreate(outer_dictionary, outer_key, inner_key, append_func, *args):
-
-    if not outer_key in outer_dictionary:
-      outer_dictionary[outer_key] = {}
-
-    inner_dictionary = outer_dictionary[outer_key]
-
-    append_func(inner_dictionary, inner_key, *args)
-
-
 class Generator:
 
   SEP = "/"
@@ -163,7 +152,7 @@ class Generator:
         infile.close()
 
         # Only add new user to sources if any material actually found in file
-        if all_lookbacks or closing_lookbacks:
+        if all_lookbacks:
           users.addUser(nick, starters, all_lookbacks, closing_lookbacks)
 
 
@@ -173,6 +162,8 @@ class Generator:
     starters = []
     all_lookbacks = {}
     closing_lookbacks = {}
+    for opener in GeneratorUtil.OPENERS_TO_CLOSERS:
+      closing_lookbacks[opener] = {}
 
     for line in source_data:
       words = line.split()
@@ -198,9 +189,8 @@ class Generator:
 
       # Add some tuples to specific closing pools
       if follow not in GeneratorUtil.PARENTHESIS_EXCEPTIONS and last in GeneratorUtil.CLOSERS_TO_OPENERS:
-        GeneratorUtil.mapAndAppendWithCreate(closing_lookbacks, \
-          GeneratorUtil.CLOSERS_TO_OPENERS[last], lookback, \
-          GeneratorUtil.appendNonTerminalWithCreate, follow)
+        opener = GeneratorUtil.CLOSERS_TO_OPENERS[last]
+        GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
 
       # Add all tuples to the generic pool
       GeneratorUtil.appendNonTerminalWithCreate(all_lookbacks, lookback, follow)
@@ -291,8 +281,7 @@ class Generator:
     if openers:
       current_opener = openers[-1]
 
-    if current_opener and current_opener in closing_lookbacks:
-      if current_tuple in closing_lookbacks[current_opener]:
+    if current_opener and current_tuple in closing_lookbacks[current_opener]:
         lookbacks = closing_lookbacks[current_opener]
 
     next_follow = random.choice(lookbacks[current_tuple])
