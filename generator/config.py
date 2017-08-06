@@ -37,3 +37,12 @@ PARENTHESIS_EXCEPTIONS = {
   ">:)",
 }
 
+WORD_ENDING_PUNCTUATION = [
+  ".",
+  "?",
+  "!",
+  ",",
+  ":",
+  ";",
+]
+

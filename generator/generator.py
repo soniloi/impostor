@@ -165,7 +165,8 @@ class Generator:
       lookback = tuple(words[i:follow_index])
       follow = words[follow_index]
 
-      last = follow[-1]
+      last_index = Generator.getLastIndexBeforeEndingPunctuation(follow)
+      last = follow[last_index]
 
       # Add some tuples to specific closing pools
       if follow not in config.PARENTHESIS_EXCEPTIONS and last in config.CLOSERS_TO_OPENERS:
@@ -177,6 +178,16 @@ class Generator:
 
     last_lookback = tuple(words[bound:])
     GeneratorUtil.appendTerminalWithCreate(all_lookbacks, last_lookback)
+
+
+  @staticmethod
+  def getLastIndexBeforeEndingPunctuation(word):
+
+    i = len(word) - 1
+    while i >= 0 and word[i] in config.WORD_ENDING_PUNCTUATION:
+      i -= 1
+
+    return i
 
 
   @staticmethod
