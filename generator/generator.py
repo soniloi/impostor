@@ -300,15 +300,16 @@ class Generator:
       openers.pop()
       i += 1
 
-    return (len(word) - i - 1)
+    return (len(word) - i)
 
 
   @staticmethod
   def removeUnmatchedClosers(word, matched_end_index):
 
     core_end_index = matched_end_index - 1
-    while word[core_end_index] in config.CLOSERS_TO_OPENERS:
-      core_end_index -= 1
+    if not word[:matched_end_index] in config.PARENTHESIS_EXCEPTIONS:
+      while word[core_end_index] in config.CLOSERS_TO_OPENERS:
+        core_end_index -= 1
 
     return word[:core_end_index+1] + word[matched_end_index:]
 
