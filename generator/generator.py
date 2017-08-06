@@ -217,7 +217,7 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generateQuote(self, all_lookbacks, closing_lookbacks, initial):
+  def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial):
 
     openers = []
     line = Generator.getCleanedWord(initial[0], openers)
@@ -272,22 +272,35 @@ class Generator:
   @staticmethod
   def getCleanedWord(word, openers):
 
+    Generator.addNewOpeners(word, openers)
+    matched_end_index = Generator.removeMatchedOpeners(word, openers)
+    cleaned_word = Generator.removeUnmatchedClosers(word, matched_end_index)
+
+    return cleaned_word
+
+
+  @staticmethod
+  def addNewOpeners(word, openers):
+
     if not word in config.PARENTHESIS_EXCEPTIONS:
+
       i = 0
       while i < len(word) and word[i] in config.OPENERS_TO_CLOSERS:
+
         openers.append(word[i])
         i += 1
 
+
+  @staticmethod
+  def removeMatchedOpeners(word, openers):
+
     i = 0
     while i < len(word) and len(openers) > 0 and word[-i-1] == config.OPENERS_TO_CLOSERS[openers[-1]]:
+
       openers.pop()
       i += 1
 
-    # Remove any stray closing parentheses
-    matched_end_index = len(word) - i - 1
-    word = Generator.removeUnmatchedClosers(word, matched_end_index)
-
-    return word
+    return (len(word) - i - 1)
 
 
   @staticmethod
@@ -300,6 +313,26 @@ class Generator:
     return word[:core_end_index+1] + word[matched_end_index:]
 
 
+  def getTuples(self, nicks):
+
+    first_nick = nicks[0]
+    starting_pairs = self.users.getStarters(first_nick)
+    all_lookbacks = self.users.getGenericLookbacks(first_nick)
+    closing_lookbacks = self.users.getClosingLookbacks(first_nick)
+
+    # If we have more than one nick, we will be constructing a new lookback map
+    #  and starter list, so we will want copies
+    if len(nicks) > 1:
+      starting_pairs = list(starting_pairs)
+      all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
+
+    for other_nick in nicks[1:]:
+      starting_pairs += list(self.users.getStarters(other_nick))
+      GeneratorUtil.mergeIntoDictionary(all_lookbacks, self.users.getGenericLookbacks(other_nick))
+
+    return (all_lookbacks, closing_lookbacks, starting_pairs)
+
+
   # Return a line generated from the source of a nick or nicks
   #   if none of those nicks were present, return an empty list and an empty string
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
@@ -309,22 +342,9 @@ class Generator:
     if not real_nicks:
       return ([], "")
 
-    first_nick = real_nicks[0]
-    starting_pairs = self.users.getStarters(first_nick)
-    all_lookbacks = self.users.getGenericLookbacks(first_nick)
-    closing_lookbacks = self.users.getClosingLookbacks(first_nick)
-
-    # If we have more than one nick, we will be constructing a new lookback map
-    #  and starter list, so we will want copies
-    if len(real_nicks) > 1:
-      starting_pairs = list(starting_pairs)
-      all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
-
-    for other_nick in real_nicks[1:]:
-      starting_pairs += list(self.users.getStarters(other_nick))
-      GeneratorUtil.mergeIntoDictionary(all_lookbacks, self.users.getGenericLookbacks(other_nick))
+    (all_lookbacks, closing_lookbacks, starting_pairs) = self.getTuples(real_nicks)
 
     initial = random.choice(starting_pairs)
-    quote = self.generateQuote(all_lookbacks, closing_lookbacks, initial)
+    quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial)
     return (real_nicks, quote)
 
