@@ -314,22 +314,31 @@ class Generator:
     return word[:core_end_index+1] + word[matched_end_index:]
 
 
+  # Get lookback and starting tuples for users known to exist
   def getTuples(self, nicks):
 
+    # Take lookbacks from first user initially
     first_nick = nicks[0]
     starting_pairs = self.users.getStarters(first_nick)
     all_lookbacks = self.users.getGenericLookbacks(first_nick)
     closing_lookbacks = self.users.getClosingLookbacks(first_nick)
 
-    # If we have more than one nick, we will be constructing a new lookback map
+    # If we have more than one nick, we will be constructing new lookback maps
     #  and starter list, so we will want copies
     if len(nicks) > 1:
       starting_pairs = list(starting_pairs)
       all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
+      new_closing_lookbacks = {}
+      for opener in config.OPENERS_TO_CLOSERS:
+        new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(closing_lookbacks[opener])
+      closing_lookbacks = new_closing_lookbacks
 
+    # Fold in lookbacks from second and subsequent users
     for other_nick in nicks[1:]:
       starting_pairs += list(self.users.getStarters(other_nick))
       GeneratorUtil.mergeIntoDictionary(all_lookbacks, self.users.getGenericLookbacks(other_nick))
+      for opener in config.OPENERS_TO_CLOSERS:
+        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], self.users.getClosingLookbacks(other_nick)[opener])
 
     return (all_lookbacks, closing_lookbacks, starting_pairs)
 
@@ -347,5 +356,6 @@ class Generator:
 
     initial = random.choice(starting_pairs)
     quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial)
+
     return (real_nicks, quote)
 
