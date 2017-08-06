@@ -305,13 +305,13 @@ class Generator:
   @staticmethod
   def removeMatchedOpeners(word, openers):
 
-    i = 0
-    while i < len(word) and len(openers) > 0 and word[-i-1] == config.OPENERS_TO_CLOSERS[openers[-1]]:
+    i = Generator.getLastIndexBeforeEndingPunctuation(word)
+    while i >= 0 and len(openers) > 0 and word[i] == config.OPENERS_TO_CLOSERS[openers[-1]]:
 
       openers.pop()
-      i += 1
+      i -= 1
 
-    return (len(word) - i)
+    return i + 1
 
 
   @staticmethod
