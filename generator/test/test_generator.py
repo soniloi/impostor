@@ -324,6 +324,24 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(closing_lookbacks), 4)
 
 
+  def test_process_source_closer_urls(self):
+
+    source_data = [
+      "http://a.b.com(s) b c d",
+      "a http://a.b.com(s) c d",
+      "a b http://a.b.com(s) d",
+      "a b c http://a.b.com(s)"
+    ]
+
+    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+
+    self.assertEqual(len(generic_lookbacks), 9)
+    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
+    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(closing_lookbacks), 4)
+
+
   def test_get_generic_statistics_empty(self):
 
     time = 818

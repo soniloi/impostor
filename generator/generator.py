@@ -96,6 +96,18 @@ class GeneratorUtil:
       dictionary[key].append(GeneratorUtil.TERMINATE)
 
 
+  @staticmethod
+  def isLink(word):
+
+    # FIXME: get a proper regex
+    return word.startswith("http") or word.startswith("www")
+
+
+  @staticmethod
+  def isParenthesisException(word):
+    return word in config.PARENTHESIS_EXCEPTIONS or GeneratorUtil.isLink(word)
+
+
 class Generator:
 
   SEP = "/"
@@ -169,7 +181,7 @@ class Generator:
       last = follow[last_index]
 
       # Add some tuples to specific closing pools
-      if follow not in config.PARENTHESIS_EXCEPTIONS and last in config.CLOSERS_TO_OPENERS:
+      if not GeneratorUtil.isParenthesisException(follow) and last in config.CLOSERS_TO_OPENERS:
         opener = config.CLOSERS_TO_OPENERS[last]
         GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
 
