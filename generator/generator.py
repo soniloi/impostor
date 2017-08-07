@@ -104,8 +104,35 @@ class GeneratorUtil:
 
 
   @staticmethod
+  # Note: this is not a proper balance checker, since we are not interested in unmatched openers
+  def areParenthesesBalanced(word):
+
+    closers = []
+
+    for char in word:
+
+      if closers and char == closers[-1]:
+        closers.pop()
+
+      elif char in config.CLOSERS_TO_OPENERS:
+        return False
+
+      if char in config.OPENERS_TO_CLOSERS:
+        closers.append(config.OPENERS_TO_CLOSERS[char])
+
+    return True
+
+
+  @staticmethod
   def isParenthesisException(word):
-    return word in config.PARENTHESIS_EXCEPTIONS or GeneratorUtil.isLink(word)
+
+    if word in config.PARENTHESIS_EXCEPTIONS:
+      return True
+
+    if not GeneratorUtil.isLink(word):
+      return False
+
+    return GeneratorUtil.areParenthesesBalanced(word)
 
 
 class Generator:

@@ -333,7 +333,7 @@ class TestGenerator(unittest.TestCase):
     self.assertFalse(closing_lookbacks["{"])
 
 
-  def test_process_source_closer_urls(self):
+  def test_process_source_closer_urls_opened(self):
 
     source_data = [
       "http://a.b.com(s) b c d",
@@ -350,6 +350,30 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
     self.assertEqual(len(closing_lookbacks), 4)
     self.assertFalse(closing_lookbacks["("])
+    self.assertFalse(closing_lookbacks["["])
+    self.assertFalse(closing_lookbacks["\""])
+    self.assertFalse(closing_lookbacks["{"])
+
+
+  def test_process_source_closer_urls_unopened(self):
+
+    source_data = [
+      "http://a.b.com) b c d",
+      "a http://a.b.com) c d",
+      "a b http://a.b.com) d",
+      "a b c http://a.b.com)"
+    ]
+
+    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+
+    self.assertEqual(len(generic_lookbacks), 9)
+    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
+    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(closing_lookbacks), 4)
+    self.assertEqual(len(closing_lookbacks["("]), 2)
+    self.assertTrue(("a", "b") in closing_lookbacks["("])
+    self.assertTrue(("b", "c") in closing_lookbacks["("])
     self.assertFalse(closing_lookbacks["["])
     self.assertFalse(closing_lookbacks["\""])
     self.assertFalse(closing_lookbacks["{"])
