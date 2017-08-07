@@ -292,6 +292,10 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(GeneratorUtil.TERMINATE in generic_lookbacks[ij])
 
     self.assertEqual(len(closing_lookbacks), 4)
+    self.assertFalse(closing_lookbacks["("])
+    self.assertFalse(closing_lookbacks["["])
+    self.assertFalse(closing_lookbacks["\""])
+    self.assertFalse(closing_lookbacks["{"])
 
 
   def test_process_source_closer_nonsmileys(self):
@@ -309,6 +313,7 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(closing_lookbacks["("], {('a]', 'b}'): ['c)'], ('b', 'c]'): ['d)']})
     self.assertEqual(closing_lookbacks["["], {('a', 'b'): ['c]']})
     self.assertEqual(closing_lookbacks["\""], {('b}', 'c)'): ['d"']})
+    self.assertFalse(closing_lookbacks["{"])
 
 
   def test_process_source_closer_smileys(self):
@@ -322,6 +327,10 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
     self.assertEqual(len(closing_lookbacks), 4)
+    self.assertFalse(closing_lookbacks["("])
+    self.assertFalse(closing_lookbacks["["])
+    self.assertFalse(closing_lookbacks["\""])
+    self.assertFalse(closing_lookbacks["{"])
 
 
   def test_process_source_closer_urls(self):
@@ -340,6 +349,10 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
     self.assertEqual(len(closing_lookbacks), 4)
+    self.assertFalse(closing_lookbacks["("])
+    self.assertFalse(closing_lookbacks["["])
+    self.assertFalse(closing_lookbacks["\""])
+    self.assertFalse(closing_lookbacks["{"])
 
 
   def test_get_generic_statistics_empty(self):
