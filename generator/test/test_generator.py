@@ -339,15 +339,12 @@ class TestGenerator(unittest.TestCase):
       "http://a.b.com(s) b c d",
       "a http://a.b.com(s) c d",
       "a b http://a.b.com(s) d",
-      "a b c http://a.b.com(s)"
+      "a b c http://a.b.com(s)",
+      "d e f http://a.b.com(s))z",
     ]
 
     (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(generic_lookbacks), 9)
-    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
-    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
-    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
     self.assertEqual(len(closing_lookbacks), 4)
     self.assertFalse(closing_lookbacks["("])
     self.assertFalse(closing_lookbacks["["])
@@ -361,17 +358,14 @@ class TestGenerator(unittest.TestCase):
       "http://a.b.com) b c d",
       "a http://a.b.com) c d",
       "a b http://a.b.com) d",
-      "a b c http://a.b.com)"
+      "a b c http://a.b.com)",
+      "d e f http://a.b.com(s))",
     ]
 
     (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(generic_lookbacks), 9)
-    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
-    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
-    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
     self.assertEqual(len(closing_lookbacks), 4)
-    self.assertEqual(len(closing_lookbacks["("]), 2)
+    self.assertEqual(len(closing_lookbacks["("]), 3)
     self.assertTrue(("a", "b") in closing_lookbacks["("])
     self.assertTrue(("b", "c") in closing_lookbacks["("])
     self.assertFalse(closing_lookbacks["["])
@@ -512,6 +506,7 @@ class TestGenerator(unittest.TestCase):
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
 
+    self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.saoi_nick)
     self.assertEqual(quote, ' '.join(list(self.starters[self.saoi_nick][0])))
 
@@ -527,6 +522,7 @@ class TestGenerator(unittest.TestCase):
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
 
+    self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.saoi_nick)
     self.assertEqual(quote, self.quotes[self.saoi_nick])
 
@@ -546,9 +542,11 @@ class TestGenerator(unittest.TestCase):
     nicks, quote = self.generator.generate(nick_tuples)
 
     self.assertTrue(nicks)
+    self.assertEqual(len(nicks), 2)
     self.assertTrue(self.saoi_nick in nicks)
     self.assertTrue(self.file_nick in nicks)
-    self.assertTrue(quote in self.quotes.values())
+    possible_quotes = [self.quotes[self.saoi_nick], self.quotes[self.bard_nick]]
+    self.assertTrue(quote in possible_quotes)
 
 
   def test_generate_nonrandom_known_parentheses(self):
@@ -563,6 +561,7 @@ class TestGenerator(unittest.TestCase):
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
 
+    self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.bard_nick)
     self.assertEqual(quote, self.quotes[self.bard_nick])
 
