@@ -23,6 +23,7 @@ class GenericStatisticType:
 
 class SpecialToken:
   TERMINATE = 0
+  URL = 1
 
 
 class GeneratorUtil:
@@ -197,12 +198,16 @@ class Generator:
 
   def processLineWords(self, words, starters, all_lookbacks, closing_lookbacks, urls):
 
-    starter = tuple(words[0:self.lookback_count])
-    starters.append(starter)
-
-    for word in starter:
+    starter_words = []
+    for word in (words[0:self.lookback_count]):
       if GeneratorUtil.isUrl(word):
         urls.append(word)
+        starter_words.append(SpecialToken.URL)
+      else:
+        starter_words.append(word)
+
+    starter = tuple(starter_words)
+    starters.append(starter)
 
     bound = len(words) - self.lookback_count
     for i in range(0, bound):
@@ -214,13 +219,14 @@ class Generator:
       last_index = Generator.getLastIndexBeforeEndingPunctuation(follow)
       last = follow[last_index]
 
-      if GeneratorUtil.isUrl(follow):
-        urls.append(follow)
-
       # Add some tuples to specific closing pools
       if not GeneratorUtil.isParenthesisException(follow) and last in config.CLOSERS_TO_OPENERS:
         opener = config.CLOSERS_TO_OPENERS[last]
         GeneratorUtil.appendNonTerminalWithCreate(closing_lookbacks[opener], lookback, follow)
+
+      if GeneratorUtil.isUrl(follow):
+        urls.append(follow)
+        follow = SpecialToken.URL
 
       # Add all tuples to the generic pool
       GeneratorUtil.appendNonTerminalWithCreate(all_lookbacks, lookback, follow)
@@ -331,6 +337,10 @@ class Generator:
 
   @staticmethod
   def getCleanedWord(word, openers):
+
+    # FIXME:
+    if word == SpecialToken.URL:
+      return str(word)
 
     Generator.addNewOpeners(word, openers)
     matched_end_index = Generator.removeMatchedOpeners(word, openers)
