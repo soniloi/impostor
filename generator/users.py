@@ -68,6 +68,10 @@ class User:
     return self.closing_lookbacks
 
 
+  def getUrls(self):
+    return self.urls
+
+
   def incrementQuotesRequested(self):
     self.quotes_requested += 1
 
@@ -219,6 +223,11 @@ class UserCollection:
   # Get closing lookbacks for a nick we know to be in the map
   def getClosingLookbacks(self, nick):
     return self.usermap[nick].getClosingLookbacks()
+
+
+  # Get URL list for a nick we know to be in the map
+  def getUrls(self, nick):
+    return self.usermap[nick].getUrls()
 
 
   def countUsers(self):

@@ -283,12 +283,14 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial):
+  def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial, urls):
 
     openers = []
     line = Generator.getCleanedWord(initial[0], openers)
 
     for word in initial[1:]:
+      if word == SpecialToken.URL:
+        word = random.choice(urls)
       line += ' ' + Generator.getCleanedWord(word, openers)
 
     current = initial
@@ -301,13 +303,17 @@ class Generator:
     follow = ""
     while current in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
 
-      follow = Generator.getFollow(all_lookbacks, closing_lookbacks, current, openers)
+      follow_token = Generator.getFollow(all_lookbacks, closing_lookbacks, current, openers)
+
+      follow = follow_token
+      if follow_token == SpecialToken.URL:
+        follow = random.choice(urls)
 
       if follow != SpecialToken.TERMINATE:
         line += ' ' + Generator.getCleanedWord(follow, openers)
 
         current_list = list(current[1:self.lookback_count])
-        current_list.append(follow)
+        current_list.append(follow_token)
         current = tuple(current_list)
         i += 1
 
@@ -337,10 +343,6 @@ class Generator:
 
   @staticmethod
   def getCleanedWord(word, openers):
-
-    # FIXME:
-    if word == SpecialToken.URL:
-      return str(word)
 
     Generator.addNewOpeners(word, openers)
     matched_end_index = Generator.removeMatchedOpeners(word, openers)
@@ -392,6 +394,7 @@ class Generator:
     starting_pairs = self.users.getStarters(first_nick)
     all_lookbacks = self.users.getGenericLookbacks(first_nick)
     closing_lookbacks = self.users.getClosingLookbacks(first_nick)
+    urls = self.users.getUrls(first_nick)
 
     # If we have more than one nick, we will be constructing new lookback maps
     #  and starter list, so we will want copies
@@ -402,6 +405,7 @@ class Generator:
       for opener in config.OPENERS_TO_CLOSERS:
         new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(closing_lookbacks[opener])
       closing_lookbacks = new_closing_lookbacks
+      urls = list(urls)
 
     # Fold in lookbacks from second and subsequent users
     for other_nick in nicks[1:]:
@@ -409,8 +413,9 @@ class Generator:
       GeneratorUtil.mergeIntoDictionary(all_lookbacks, self.users.getGenericLookbacks(other_nick))
       for opener in config.OPENERS_TO_CLOSERS:
         GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], self.users.getClosingLookbacks(other_nick)[opener])
+      urls += list(self.users.getUrls(other_nick))
 
-    return (all_lookbacks, closing_lookbacks, starting_pairs)
+    return (all_lookbacks, closing_lookbacks, starting_pairs, urls)
 
 
   # Return a line generated from the source of a nick or nicks
@@ -422,10 +427,10 @@ class Generator:
     if not real_nicks:
       return ([], "")
 
-    (all_lookbacks, closing_lookbacks, starting_pairs) = self.getTuples(real_nicks)
+    (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
 
     initial = random.choice(starting_pairs)
-    quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial)
+    quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial, urls)
 
     return (real_nicks, quote)
 
