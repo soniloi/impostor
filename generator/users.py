@@ -25,12 +25,13 @@ class UserStatisticType:
 
 class User:
 
-  def __init__(self, nick, starters, generic_lookbacks, closing_lookbacks):
+  def __init__(self, nick, starters, generic_lookbacks, closing_lookbacks, urls):
 
     self.nick = nick
     self.starters = starters # List of all starting tuples from this user
     self.generic_lookbacks = generic_lookbacks # Map of generic tuples to follows
     self.closing_lookbacks = closing_lookbacks # Map of opening paired punctuation to map of tuples to follows
+    self.urls = urls
     self.production_count = self.countProductions() # This is not going to change after initialization
 
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
@@ -111,8 +112,8 @@ class UserCollection:
     self.readUserStats()
 
 
-  def addUser(self, nick, starters, generic_lookbacks, closing_lookbacks):
-    self.usermap[nick] = User(nick, starters, generic_lookbacks, closing_lookbacks)
+  def addUser(self, nick, starters, generic_lookbacks, closing_lookbacks, urls):
+    self.usermap[nick] = User(nick, starters, generic_lookbacks, closing_lookbacks, urls)
 
 
   def initUserset(self):

@@ -169,12 +169,12 @@ class Generator:
 
         source_filepath = source_dir + Generator.SEP + source_filename
         infile = open(source_filepath, 'r')
-        (nick, starters, all_lookbacks, closing_lookbacks) = self.processSource(source_filename, infile)
+        (nick, starters, all_lookbacks, closing_lookbacks, urls) = self.processSource(source_filename, infile)
         infile.close()
 
         # Only add new user to sources if any material actually found in file
         if all_lookbacks:
-          users.addUser(nick, starters, all_lookbacks, closing_lookbacks)
+          users.addUser(nick, starters, all_lookbacks, closing_lookbacks, urls)
 
 
   def processSource(self, source_filename, source_data):
@@ -183,21 +183,26 @@ class Generator:
     starters = []
     all_lookbacks = {}
     closing_lookbacks = {}
+    urls = []
     for opener in config.OPENERS_TO_CLOSERS:
       closing_lookbacks[opener] = {}
 
     for line in source_data:
       words = line.split()
       if len(words) >= self.lookback_count: # Not interested in lines too short to create productions
-        self.processLineWords(words, starters, all_lookbacks, closing_lookbacks)
+        self.processLineWords(words, starters, all_lookbacks, closing_lookbacks, urls)
 
-    return (nick, starters, all_lookbacks, closing_lookbacks)
+    return (nick, starters, all_lookbacks, closing_lookbacks, urls)
 
 
-  def processLineWords(self, words, starters, all_lookbacks, closing_lookbacks):
+  def processLineWords(self, words, starters, all_lookbacks, closing_lookbacks, urls):
 
     starter = tuple(words[0:self.lookback_count])
     starters.append(starter)
+
+    for word in starter:
+      if GeneratorUtil.isUrl(word):
+        urls.append(word)
 
     bound = len(words) - self.lookback_count
     for i in range(0, bound):
@@ -208,6 +213,9 @@ class Generator:
 
       last_index = Generator.getLastIndexBeforeEndingPunctuation(follow)
       last = follow[last_index]
+
+      if GeneratorUtil.isUrl(follow):
+        urls.append(follow)
 
       # Add some tuples to specific closing pools
       if not GeneratorUtil.isParenthesisException(follow) and last in config.CLOSERS_TO_OPENERS:

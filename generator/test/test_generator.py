@@ -244,7 +244,7 @@ class TestGenerator(unittest.TestCase):
       "k",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource(source_filename, source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource(source_filename, source_data)
 
     ab = ("a", "b")
     bc = ("b", "c")
@@ -303,7 +303,7 @@ class TestGenerator(unittest.TestCase):
 
     source_data = ["a) b c d", "a b} c d", "a b c] d)", "a] b} c) d\""]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
 
     self.assertEqual(len(generic_lookbacks), 11)
     self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
@@ -321,7 +321,7 @@ class TestGenerator(unittest.TestCase):
 
     source_data = [":) b c d", "a :) c d", "a b :) d", "a b c :)"]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
 
     self.assertEqual(len(generic_lookbacks), 9)
     self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
@@ -344,13 +344,14 @@ class TestGenerator(unittest.TestCase):
       "d e f http://a.b.com(s))z",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
 
     self.assertEqual(len(closing_lookbacks), 4)
     self.assertFalse(closing_lookbacks["("])
     self.assertFalse(closing_lookbacks["["])
     self.assertFalse(closing_lookbacks["\""])
     self.assertFalse(closing_lookbacks["{"])
+    self.assertEqual(len(urls), 5)
 
 
   def test_process_source_closer_urls_unopened(self):
@@ -363,7 +364,7 @@ class TestGenerator(unittest.TestCase):
       "d e f http://a.b.com(s))",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks) = self.generator.processSource("almond.src", source_data)
+    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
 
     self.assertEqual(len(closing_lookbacks), 4)
     self.assertEqual(len(closing_lookbacks["("]), 3)
@@ -372,6 +373,7 @@ class TestGenerator(unittest.TestCase):
     self.assertFalse(closing_lookbacks["["])
     self.assertFalse(closing_lookbacks["\""])
     self.assertFalse(closing_lookbacks["{"])
+    self.assertEqual(len(urls), 5)
 
 
   def test_get_generic_statistics_empty(self):
@@ -546,7 +548,7 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(nicks), 2)
     self.assertTrue(self.saoi_nick in nicks)
     self.assertTrue(self.file_nick in nicks)
-    possible_quotes = [self.quotes[self.saoi_nick], self.quotes[self.bard_nick]]
+    possible_quotes = [self.quotes[self.saoi_nick], self.quotes[self.file_nick]]
     self.assertTrue(quote in possible_quotes)
 
 

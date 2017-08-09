@@ -34,10 +34,10 @@ class TestUser(unittest.TestCase):
       tuple3 : follow3,
       tuple4 : follow4,
     }
-    closing_lookbacks = {
-    }
+    closing_lookbacks = {}
+    urls = []
 
-    self.user = User(nick, starters, generic_lookbacks, closing_lookbacks)
+    self.user = User(nick, starters, generic_lookbacks, closing_lookbacks,urls)
 
     self.user.initAliases(["squid", "limpet"])
 
@@ -56,7 +56,7 @@ class TestUser(unittest.TestCase):
     local_lookbacks = {}
     local_nick = "siucra"
 
-    local_user = User(local_nick, local_starters, local_lookbacks, {})
+    local_user = User(local_nick, local_starters, local_lookbacks, {}, [])
 
     self.assertEqual(local_user.nick, local_nick)
     self.assertEquals(local_user.production_count, 0)
@@ -143,8 +143,9 @@ class TestUser(unittest.TestCase):
         ("l", "m") : ["n)"]
       }
     }
+    urls = []
 
-    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks)
+    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks, urls)
 
     self.assertEqual(len(self.user_collection.usermap), 1)
     self.assertTrue(self.user_collection.containsByAlias(nick))
@@ -492,9 +493,10 @@ class TestUser(unittest.TestCase):
                                   ("b", "c") : ["d"],\
                                   ("c", "d") : ["e"],\
                         },
-                        closing_lookbacks={}):
+                        closing_lookbacks={},
+                        urls=[]):
 
-    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks)
+    self.user_collection.addUser(nick, starters, generic_lookbacks, closing_lookbacks, urls)
 
 
   @staticmethod
