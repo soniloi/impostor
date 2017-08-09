@@ -21,9 +21,11 @@ class GenericStatisticType:
   MOST_QUOTED_USERS = 5
 
 
-class GeneratorUtil:
+class SpecialToken:
+  TERMINATE = 0
 
-  TERMINATE = None
+
+class GeneratorUtil:
 
   @staticmethod
   def buildMeta(source_dir):
@@ -88,16 +90,16 @@ class GeneratorUtil:
   @staticmethod
   def appendTerminalWithCreate(dictionary, key):
 
-    if not GeneratorUtil.TERMINATE in dictionary:
+    if not SpecialToken.TERMINATE in dictionary:
 
       if not key in dictionary:
         dictionary[key] = []
 
-      dictionary[key].append(GeneratorUtil.TERMINATE)
+      dictionary[key].append(SpecialToken.TERMINATE)
 
 
   @staticmethod
-  def isLink(word):
+  def isUrl(word):
 
     # FIXME: get a proper regex
     return word.startswith("http") or word.startswith("www")
@@ -129,7 +131,7 @@ class GeneratorUtil:
     if word in config.PARENTHESIS_EXCEPTIONS:
       return True
 
-    if not GeneratorUtil.isLink(word):
+    if not GeneratorUtil.isUrl(word):
       return False
 
     return GeneratorUtil.areParenthesesBalanced(word)
@@ -283,11 +285,11 @@ class Generator:
 
     i = 0
     follow = ""
-    while current in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != GeneratorUtil.TERMINATE:
+    while current in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
 
       follow = Generator.getFollow(all_lookbacks, closing_lookbacks, current, openers)
 
-      if follow != GeneratorUtil.TERMINATE:
+      if follow != SpecialToken.TERMINATE:
         line += ' ' + Generator.getCleanedWord(follow, openers)
 
         current_list = list(current[1:self.lookback_count])
