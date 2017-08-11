@@ -380,7 +380,7 @@ class Generator:
 
     core_end_index = matched_end_index - 1
     if not word[:matched_end_index] in config.PARENTHESIS_EXCEPTIONS:
-      while word[core_end_index] in config.CLOSERS_TO_OPENERS:
+      while core_end_index in xrange(0, len(word)) and word[core_end_index] in config.CLOSERS_TO_OPENERS:
         core_end_index -= 1
 
     return word[:core_end_index+1] + word[matched_end_index:]
