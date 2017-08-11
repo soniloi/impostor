@@ -393,34 +393,50 @@ class Generator:
     return word[:core_end_index+1] + word[matched_end_index:]
 
 
+  def getTuplesForUser(self, nick):
+
+    starting_pairs = self.users.getStarters(nick)
+    all_lookbacks = self.users.getGenericLookbacks(nick)
+    closing_lookbacks = self.users.getClosingLookbacks(nick)
+    urls = self.users.getUrls(nick)
+
+    return (starting_pairs, all_lookbacks, closing_lookbacks, urls)
+
+
+  @staticmethod
+  def copyTuples(starting_pairs, all_lookbacks, closing_lookbacks, urls):
+
+    new_starting_pairs = list(starting_pairs)
+    new_all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
+    new_closing_lookbacks = {}
+    for opener in config.OPENERS_TO_CLOSERS:
+      new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(closing_lookbacks[opener])
+    new_urls = list(urls)
+
+    return (new_starting_pairs, new_all_lookbacks, new_closing_lookbacks, new_urls)
+
+
   # Get lookback and starting tuples for users known to exist
   def getTuples(self, nicks):
 
     # Take lookbacks from first user initially
     first_nick = nicks[0]
-    starting_pairs = self.users.getStarters(first_nick)
-    all_lookbacks = self.users.getGenericLookbacks(first_nick)
-    closing_lookbacks = self.users.getClosingLookbacks(first_nick)
-    urls = self.users.getUrls(first_nick)
+    (starting_pairs, all_lookbacks, closing_lookbacks, urls) = self.getTuplesForUser(first_nick)
 
     # If we have more than one nick, we will be constructing new lookback maps
     #  and starter list, so we will want copies
     if len(nicks) > 1:
-      starting_pairs = list(starting_pairs)
-      all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
-      new_closing_lookbacks = {}
-      for opener in config.OPENERS_TO_CLOSERS:
-        new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(closing_lookbacks[opener])
-      closing_lookbacks = new_closing_lookbacks
-      urls = list(urls)
+      (starting_pairs, all_lookbacks, closing_lookbacks, urls) = \
+        Generator.copyTuples(starting_pairs, all_lookbacks, closing_lookbacks, urls)
 
     # Fold in lookbacks from second and subsequent users
     for other_nick in nicks[1:]:
-      starting_pairs += list(self.users.getStarters(other_nick))
-      GeneratorUtil.mergeIntoDictionary(all_lookbacks, self.users.getGenericLookbacks(other_nick))
+      (other_starting_pairs, other_all_lookbacks, other_closing_lookbacks, other_urls) = self.getTuplesForUser(other_nick)
+      starting_pairs += list(other_starting_pairs)
+      GeneratorUtil.mergeIntoDictionary(all_lookbacks, other_all_lookbacks)
       for opener in config.OPENERS_TO_CLOSERS:
-        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], self.users.getClosingLookbacks(other_nick)[opener])
-      urls += list(self.users.getUrls(other_nick))
+        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], other_closing_lookbacks[opener])
+      urls += list(other_urls)
 
     return (all_lookbacks, closing_lookbacks, starting_pairs, urls)
 
