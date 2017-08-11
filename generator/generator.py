@@ -286,7 +286,11 @@ class Generator:
   def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial, urls):
 
     openers = []
-    line = Generator.getCleanedWord(initial[0], openers)
+
+    first_word = initial[0]
+    if first_word == SpecialToken.URL:
+      first_word = random.choice(urls)
+    line = Generator.getCleanedWord(first_word, openers)
 
     for word in initial[1:]:
       if word == SpecialToken.URL:
