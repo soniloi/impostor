@@ -282,19 +282,25 @@ class Generator:
     return self.users.getUserStatistics(nick)
 
 
+  @staticmethod
+  def substituteIfUrl(token, urls):
+
+    if token != SpecialToken.URL:
+      return token
+
+    return random.choice(urls)
+
+
   # Return a line generated from a given lookback collection and a given initial pair
   def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial, urls):
 
     openers = []
 
-    first_word = initial[0]
-    if first_word == SpecialToken.URL:
-      first_word = random.choice(urls)
+    first_word = Generator.substituteIfUrl(initial[0], urls)
     line = Generator.getCleanedWord(first_word, openers)
 
     for word in initial[1:]:
-      if word == SpecialToken.URL:
-        word = random.choice(urls)
+      word = Generator.substituteIfUrl(word, urls)
       line += ' ' + Generator.getCleanedWord(word, openers)
 
     current = initial
@@ -308,12 +314,9 @@ class Generator:
     while current in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
 
       follow_token = Generator.getFollow(all_lookbacks, closing_lookbacks, current, openers)
+      follow = Generator.substituteIfUrl(follow_token, urls)
 
-      follow = follow_token
-      if follow_token == SpecialToken.URL:
-        follow = random.choice(urls)
-
-      if follow != SpecialToken.TERMINATE:
+      if follow_token != SpecialToken.TERMINATE:
         line += ' ' + Generator.getCleanedWord(follow, openers)
 
         current_list = list(current[1:self.lookback_count])
