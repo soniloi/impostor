@@ -517,7 +517,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.return_value = []
+    self.users_instance.getAllLookbacks.return_value = []
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -533,7 +533,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -549,7 +549,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
     initial = ("is", "binn")
 
     self.generator.init(self.users_instance, {}, 0)
@@ -566,7 +566,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
     initial = ("is", "maith")
 
     self.generator.init(self.users_instance, {}, 0)
@@ -585,7 +585,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -604,7 +604,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.bard_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
     self.users_instance.getClosingLookbacks.side_effect = self.closing_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)

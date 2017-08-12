@@ -175,7 +175,13 @@ class Generator:
 
         # Only add new user to sources if any material actually found in file
         if all_lookbacks:
-          users.addUser(nick, starters, all_lookbacks, closing_lookbacks, urls)
+          users.addUser(
+            nick=nick,
+            starters=starters,
+            all_lookbacks=all_lookbacks,
+            closing_lookbacks=closing_lookbacks,
+            urls=urls
+          )
 
 
   def processSource(self, source_filename, source_data):
@@ -396,7 +402,7 @@ class Generator:
   def getTuplesForUser(self, nick):
 
     starting_pairs = self.users.getStarters(nick)
-    all_lookbacks = self.users.getGenericLookbacks(nick)
+    all_lookbacks = self.users.getAllLookbacks(nick)
     closing_lookbacks = self.users.getClosingLookbacks(nick)
     urls = self.users.getUrls(nick)
 

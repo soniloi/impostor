@@ -25,13 +25,19 @@ class UserStatisticType:
 
 class User:
 
-  def __init__(self, nick, starters, generic_lookbacks, closing_lookbacks, urls):
+  FIELD_KEYS = [
+    "nick",
+    "starters",
+    "all_lookbacks",
+    "closing_lookbacks",
+    "urls",
+  ]
 
-    self.nick = nick
-    self.starters = starters # List of all starting tuples from this user
-    self.generic_lookbacks = generic_lookbacks # Map of generic tuples to follows
-    self.closing_lookbacks = closing_lookbacks # Map of opening paired punctuation to map of tuples to follows
-    self.urls = urls
+  def __init__(self, **kwargs):
+
+    for key in User.FIELD_KEYS:
+      self.__dict__[key] = kwargs.get(key)
+
     self.production_count = self.countProductions() # This is not going to change after initialization
 
     self.quotes_requested = 0 # Number of times this user has been requested for a quote
@@ -42,7 +48,7 @@ class User:
 
     production_count = 0
 
-    for (_, generic_production_list) in self.generic_lookbacks.iteritems():
+    for (_, generic_production_list) in self.all_lookbacks.iteritems():
       production_count += len(generic_production_list)
 
     return production_count
@@ -60,8 +66,8 @@ class User:
     return tuple(self.starters)
 
 
-  def getGenericLookbacks(self):
-    return self.generic_lookbacks # FIXME: maybe return this immutable somehow
+  def getAllLookbacks(self):
+    return self.all_lookbacks # FIXME: maybe return this immutable somehow
 
 
   def getClosingLookbacks(self):
@@ -116,8 +122,8 @@ class UserCollection:
     self.readUserStats()
 
 
-  def addUser(self, nick, starters, generic_lookbacks, closing_lookbacks, urls):
-    self.usermap[nick] = User(nick, starters, generic_lookbacks, closing_lookbacks, urls)
+  def addUser(self, **kwargs):
+    self.usermap[kwargs.get("nick")] = User(**kwargs)
 
 
   def initUserset(self):
@@ -216,8 +222,8 @@ class UserCollection:
 
 
   # Get generic lookbacks for a nick we know to be in the map
-  def getGenericLookbacks(self, nick):
-    return self.usermap[nick].getGenericLookbacks()
+  def getAllLookbacks(self, nick):
+    return self.usermap[nick].getAllLookbacks()
 
 
   # Get closing lookbacks for a nick we know to be in the map
