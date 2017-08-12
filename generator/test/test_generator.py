@@ -28,17 +28,20 @@ class TestGenerator(unittest.TestCase):
     self.saoi_nick = "saoi"
     self.file_nick = "file"
     self.bard_nick = "bard"
+    self.poet_nick = "poet"
 
     self.quotes = {
       self.saoi_nick : ["is glas iad na cnoic i bhfad uainn",],
       self.file_nick : ["marbh le tae agus marbh gan é",],
       self.bard_nick : ["(: is olc (an ghaoth (nach séideann maith), do dhuine éigin >:)) {mar a :) deirtear}",],
+      self.poet_nick : ["aithníonn ciaróg ciaróg eile", "is binn béal ina thost"]
     }
 
     self.starters = {}
     self.starters[self.saoi_nick] = [("is", "glas")]
     self.starters[self.file_nick] = [("marbh", "le")]
     self.starters[self.bard_nick] = [("(:", "is")]
+    self.starters[self.poet_nick] = [("aithníonn", "ciaróg"), ("is", "binn")]
 
     self.generic_lookbacks = {}
     self.generic_lookbacks[self.saoi_nick] = {
@@ -75,6 +78,15 @@ class TestGenerator(unittest.TestCase):
       ("a", ":)") : ["deirtear"],
       ("a", "deirtear") : [SpecialToken.TERMINATE],
     }
+    self.generic_lookbacks[self.poet_nick] = {
+      ("aithníonn", "ciaróg") : ["ciaróg"],
+      ("ciaróg", "ciaróg") : ["eile"],
+      ("ciaróg", "eile") : [SpecialToken.TERMINATE],
+      ("is", "binn") : ["béal"],
+      ("binn", "béal") : ["ina"],
+      ("béal", "ina") : ["thost"],
+      ("ina", "thost") : [SpecialToken.TERMINATE],
+    }
 
     self.closing_lookbacks = {}
     self.closing_lookbacks[self.saoi_nick] = {"(":{}, "{":{}, "[":{}, "\"":{}}
@@ -86,6 +98,7 @@ class TestGenerator(unittest.TestCase):
       },
       "{":{}, "[":{}, "\"":{},
     }
+    self.closing_lookbacks[self.poet_nick] = {}
 
     self.generator = Generator()
 
@@ -530,20 +543,21 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(quote in self.quotes[self.saoi_nick])
 
 
-  def test_generate_nonrandom_known_single_with_initial(self):
+  def test_generate_nonrandom_known_single_initial(self):
 
-    nick_tuples = [(users.UserNickType.NONRANDOM, self.saoi_nick)]
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.poet_nick)]
 
-    self.users_instance.getRealNicks.return_value = [self.saoi_nick]
+    self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
     self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    initial = ("is", "binn")
 
     self.generator.init(self.users_instance, {}, 0)
-    nicks, quote = self.generator.generate(nick_tuples)
+    nicks, quote = self.generator.generate(nick_tuples, initial)
 
     self.assertEqual(len(nicks), 1)
-    self.assertEqual(nicks[0], self.saoi_nick)
-    self.assertTrue(quote in self.quotes[self.saoi_nick])
+    self.assertEqual(nicks[0], self.poet_nick)
+    self.assertEqual(quote, "is binn béal ina thost")
 
 
   def test_generate_nonrandom_known_multiple(self):

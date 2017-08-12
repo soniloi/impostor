@@ -444,7 +444,7 @@ class Generator:
   # Return a line generated from the source of a nick or nicks
   #   if none of those nicks were present, return an empty list and an empty string
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
-  def generate(self, nick_tuples, random_min_starters=0, increment_quote_count=True):
+  def generate(self, nick_tuples, initial=None, random_min_starters=0, increment_quote_count=True):
 
     real_nicks = self.users.getRealNicks(nick_tuples, random_min_starters, increment_quote_count)
     if not real_nicks:
@@ -452,7 +452,9 @@ class Generator:
 
     (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
 
-    initial = random.choice(starting_pairs)
+    if not initial:
+      initial = random.choice(starting_pairs)
+
     quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial, urls)
 
     return (real_nicks, quote)

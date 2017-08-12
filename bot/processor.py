@@ -241,7 +241,7 @@ class RequestProcessor():
 
     if not self.current_mystery:
       nick_tuple = (UserNickType.RANDOM, "")
-      output_nicks, output_quote = self.generator.generate([nick_tuple], config.MYSTERY_MIN_STARTERS, False)
+      output_nicks, output_quote = self.generator.generate([nick_tuple], None, config.MYSTERY_MIN_STARTERS, False)
 
       if output_nicks:
 
@@ -638,7 +638,7 @@ class RequestProcessor():
     # Create another quote by the mystery author as an additional hint
     if first_hint_len <= config.MYSTERY_WORDS_MAX_FOR_SECOND:
       nick_tuple = RequestProcessor.makeNickTuple(author)
-      (_, additional_quote) = self.generator.generate([nick_tuple], 0, False)
+      (_, additional_quote) = self.generator.generate([nick_tuple], None, 0, False)
       if additional_quote:
         additional_quote_hint = (HintType.ADDITIONAL_QUOTE, additional_quote)
         hints.append(additional_quote_hint)
