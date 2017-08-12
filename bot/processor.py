@@ -383,6 +383,7 @@ class RequestProcessor():
 
       if output_message:
         return [output_message]
+
       return []
 
 

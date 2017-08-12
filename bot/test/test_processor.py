@@ -94,8 +94,11 @@ class TestProcessor(unittest.TestCase):
     nick_tuples = args[0]
     seed_words = args[1]
 
-    if nick_tuples == [(0, "lemon")] and not seed_words:
-      return (["lemon"], "I am a fruit")
+    if nick_tuples == [(0, "lemon")]:
+      if seed_words:
+        return (["lemon"], "once upon a time")
+      else:
+        return (["lemon"], "I am a fruit")
 
 
     if nick_tuples == [(1, "")] and not seed_words:
@@ -104,13 +107,20 @@ class TestProcessor(unittest.TestCase):
     if nick_tuples == [(0, "rhubarb"), (0, "tomato")] and not seed_words:
       return (["rhubarb", "tomato"], "Am I a fruit?")
 
-    return None
+    return ([], "")
 
 
   def test_init(self):
 
     self.assertTrue("stats" in self.processor.commands)
     self.assertTrue("?" in self.processor.commands)
+
+
+  def test_trigger_meta_unknown(self):
+
+    response = self.processor.triggerMeta("mollusc", "@nothing")
+
+    self.assertFalse(response)
 
 
   def test_trigger_meta_help_generic(self):
@@ -372,7 +382,16 @@ class TestProcessor(unittest.TestCase):
     self.assertEquals(response[0], RequestProcessor.PLAYER_SCORE_MESSAGE_KNOWN % ("\x02" + "mollusc" + "\x0f", 83, 21, 17))
 
 
-  def test_trigger_generate_quote_single_known(self):
+  def test_trigger_generate_quote_single_unknown(self):
+
+    self.generator_instance.generate.side_effect = self.generate_side_effect
+
+    response = self.processor.triggerGenerateQuote("mollusc", "!nobody")
+
+    self.assertFalse(response)
+
+
+  def test_trigger_generate_quote_single_nonrandom(self):
 
     self.generator_instance.generate.side_effect = self.generate_side_effect
 
@@ -392,7 +411,7 @@ class TestProcessor(unittest.TestCase):
     self.assertEquals(response, ["[alien] I come in peace"])
 
 
-  def test_trigger_generate_quote_multiple_known(self):
+  def test_trigger_generate_quote_multiple_nonrandom(self):
 
     self.generator_instance.generate.side_effect = self.generate_side_effect
 
@@ -400,6 +419,16 @@ class TestProcessor(unittest.TestCase):
 
     self.assertTrue(response)
     self.assertEquals(response, ["[rhubarb:tomato] Am I a fruit?"])
+
+
+  def test_trigger_generate_quote_single_nonrandom_seed(self):
+
+    self.generator_instance.generate.side_effect = self.generate_side_effect
+
+    response = self.processor.triggerGenerateQuote("mollusc", "!lemon once upon")
+
+    self.assertTrue(response)
+    self.assertEquals(response, ["[lemon] once upon a time"])
 
 
 if __name__ == "__main__":
