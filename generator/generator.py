@@ -447,6 +447,19 @@ class Generator:
     return (all_lookbacks, closing_lookbacks, starting_pairs, urls)
 
 
+  # Return tuples whose first element matches a given one
+  @staticmethod
+  def findMatchingTuples(first, tuples):
+
+    matches = []
+
+    for tup in tuples:
+      if tup[0] == first:
+        matches.append(tup)
+
+    return matches
+
+
   # Return a line generated from the source of a nick or nicks
   #   if none of those nicks were present, return an empty list and an empty string
   #   if at least some of the nicks were present, return a list of the nicks found and a quote string
@@ -459,6 +472,11 @@ class Generator:
     (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
 
     if initial:
+
+      if len(initial) < self.lookback_count:
+        matching_tuples = Generator.findMatchingTuples(initial[0], all_lookbacks)
+        if matching_tuples:
+          initial = random.choice(matching_tuples)
 
       # If the given initial is not present, then a quote cannot be formed from it
       if not initial in all_lookbacks:
