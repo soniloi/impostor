@@ -366,7 +366,9 @@ class RequestProcessor():
         nick_tuple = RequestProcessor.makeNickTuple(raw_nick)
         nick_tuples.append(nick_tuple)
 
-      output_nicks, output_quote = self.generator.generate(nick_tuples)
+      seed_words = tuple(raw_tokens[1:])
+
+      output_nicks, output_quote = self.generator.generate(nick_tuples, seed_words)
 
       output_message = ""
 
