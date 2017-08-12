@@ -30,9 +30,9 @@ class TestGenerator(unittest.TestCase):
     self.bard_nick = "bard"
 
     self.quotes = {
-      self.saoi_nick : "is glas iad na cnoic i bhfad uainn",
-      self.file_nick : "marbh le tae agus marbh gan é",
-      self.bard_nick : "(: is olc (an ghaoth (nach séideann maith), do dhuine éigin >:)) {mar a :) deirtear}",
+      self.saoi_nick : ["is glas iad na cnoic i bhfad uainn",],
+      self.file_nick : ["marbh le tae agus marbh gan é",],
+      self.bard_nick : ["(: is olc (an ghaoth (nach séideann maith), do dhuine éigin >:)) {mar a :) deirtear}",],
     }
 
     self.starters = {}
@@ -527,7 +527,23 @@ class TestGenerator(unittest.TestCase):
 
     self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.saoi_nick)
-    self.assertEqual(quote, self.quotes[self.saoi_nick])
+    self.assertTrue(quote in self.quotes[self.saoi_nick])
+
+
+  def test_generate_nonrandom_known_single_with_initial(self):
+
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.saoi_nick)]
+
+    self.users_instance.getRealNicks.return_value = [self.saoi_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples)
+
+    self.assertEqual(len(nicks), 1)
+    self.assertEqual(nicks[0], self.saoi_nick)
+    self.assertTrue(quote in self.quotes[self.saoi_nick])
 
 
   def test_generate_nonrandom_known_multiple(self):
@@ -548,7 +564,7 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(nicks), 2)
     self.assertTrue(self.saoi_nick in nicks)
     self.assertTrue(self.file_nick in nicks)
-    possible_quotes = [self.quotes[self.saoi_nick], self.quotes[self.file_nick]]
+    possible_quotes = self.quotes[self.saoi_nick] + self.quotes[self.file_nick]
     self.assertTrue(quote in possible_quotes)
 
 
@@ -566,7 +582,7 @@ class TestGenerator(unittest.TestCase):
 
     self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.bard_nick)
-    self.assertEqual(quote, self.quotes[self.bard_nick])
+    self.assertTrue(quote in self.quotes[self.bard_nick])
 
 
 if __name__ == "__main__":
