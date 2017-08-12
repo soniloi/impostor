@@ -452,7 +452,13 @@ class Generator:
 
     (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
 
-    if not initial:
+    if initial:
+
+      # If the given initial is not present, then a quote cannot be formed from it
+      if not initial in all_lookbacks:
+        return([], "")
+
+    else:
       initial = random.choice(starting_pairs)
 
     quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial, urls)

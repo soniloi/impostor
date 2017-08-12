@@ -543,7 +543,7 @@ class TestGenerator(unittest.TestCase):
     self.assertTrue(quote in self.quotes[self.saoi_nick])
 
 
-  def test_generate_nonrandom_known_single_initial(self):
+  def test_generate_nonrandom_known_single_initial_known(self):
 
     nick_tuples = [(users.UserNickType.NONRANDOM, self.poet_nick)]
 
@@ -558,6 +558,22 @@ class TestGenerator(unittest.TestCase):
     self.assertEqual(len(nicks), 1)
     self.assertEqual(nicks[0], self.poet_nick)
     self.assertEqual(quote, "is binn béal ina thost")
+
+
+  def test_generate_nonrandom_known_single_initial_unknown(self):
+
+    nick_tuples = [(users.UserNickType.NONRANDOM, self.poet_nick)]
+
+    self.users_instance.getRealNicks.return_value = [self.poet_nick]
+    self.users_instance.getStarters.side_effect = self.starters_side_effect
+    self.users_instance.getGenericLookbacks.side_effect = self.generic_lookbacks_side_effect
+    initial = ("is", "maith")
+
+    self.generator.init(self.users_instance, {}, 0)
+    nicks, quote = self.generator.generate(nick_tuples, initial)
+
+    self.assertFalse(nicks)
+    self.assertFalse(quote)
 
 
   def test_generate_nonrandom_known_multiple(self):
