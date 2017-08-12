@@ -89,6 +89,24 @@ class TestProcessor(unittest.TestCase):
     return None
 
 
+  def generate_side_effect(self, *args):
+
+    nick_tuples = args[0]
+    seed_words = args[1]
+
+    if nick_tuples == [(0, "lemon")] and not seed_words:
+      return (["lemon"], "I am a fruit")
+
+
+    if nick_tuples == [(1, "")] and not seed_words:
+      return (["alien"], "I come in peace")
+
+    if nick_tuples == [(0, "rhubarb"), (0, "tomato")] and not seed_words:
+      return (["rhubarb", "tomato"], "Am I a fruit?")
+
+    return None
+
+
   def test_init(self):
 
     self.assertTrue("stats" in self.processor.commands)
@@ -352,6 +370,36 @@ class TestProcessor(unittest.TestCase):
 
     self.assertEquals(len(response), 1)
     self.assertEquals(response[0], RequestProcessor.PLAYER_SCORE_MESSAGE_KNOWN % ("\x02" + "mollusc" + "\x0f", 83, 21, 17))
+
+
+  def test_trigger_generate_quote_single_known(self):
+
+    self.generator_instance.generate.side_effect = self.generate_side_effect
+
+    response = self.processor.triggerGenerateQuote("mollusc", "!lemon")
+
+    self.assertTrue(response)
+    self.assertEquals(response, ["[lemon] I am a fruit"])
+
+
+  def test_trigger_generate_quote_single_random(self):
+
+    self.generator_instance.generate.side_effect = self.generate_side_effect
+
+    response = self.processor.triggerGenerateQuote("mollusc", "!random")
+
+    self.assertTrue(response)
+    self.assertEquals(response, ["[alien] I come in peace"])
+
+
+  def test_trigger_generate_quote_multiple_known(self):
+
+    self.generator_instance.generate.side_effect = self.generate_side_effect
+
+    response = self.processor.triggerGenerateQuote("mollusc", "!rhubarb:tomato")
+
+    self.assertTrue(response)
+    self.assertEquals(response, ["[rhubarb:tomato] Am I a fruit?"])
 
 
 if __name__ == "__main__":
