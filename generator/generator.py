@@ -309,30 +309,38 @@ class Generator:
       word = Generator.substituteIfUrl(word, urls)
       line += ' ' + Generator.getCleanedWord(word, openers)
 
-    current = initial
-
     # FIXME: this should not be possible; maybe do something else here?
-    if not current in all_lookbacks:
+    if not initial in all_lookbacks:
       return line
 
-    i = 0
-    follow = ""
-    while current in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
+    line += self.createLine(all_lookbacks, closing_lookbacks, initial, urls, openers)
 
-      follow_token = Generator.getFollow(all_lookbacks, closing_lookbacks, current, openers)
+    # Close any remaining open parentheses
+    while openers:
+      line += config.OPENERS_TO_CLOSERS[openers.pop()]
+
+    return line
+
+
+  def createLine(self, all_lookbacks, closing_lookbacks, initial, urls, openers):
+
+    line = ""
+    i = self.lookback_count
+    follow = ""
+    current_tuple = initial
+
+    while current_tuple in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
+
+      follow_token = Generator.getFollow(all_lookbacks, closing_lookbacks, current_tuple, openers)
       follow = Generator.substituteIfUrl(follow_token, urls)
 
       if follow_token != SpecialToken.TERMINATE:
         line += ' ' + Generator.getCleanedWord(follow, openers)
 
-        current_list = list(current[1:self.lookback_count])
+        current_list = list(current_tuple[1:self.lookback_count])
         current_list.append(follow_token)
-        current = tuple(current_list)
+        current_tuple = tuple(current_list)
         i += 1
-
-    # Close any remaining open parentheses
-    while openers:
-      line += config.OPENERS_TO_CLOSERS[openers.pop()]
 
     return line
 
@@ -422,6 +430,22 @@ class Generator:
     return (new_starting_pairs, new_all_lookbacks, new_closing_lookbacks, new_urls)
 
 
+  def mergeAdditionalUserData(self, further_nicks, all_lookbacks, closing_lookbacks, starting_pairs, urls):
+
+    for other_nick in further_nicks:
+
+      (other_starting_pairs, other_all_lookbacks, other_closing_lookbacks, other_urls) = self.getTuplesForUser(other_nick)
+
+      starting_pairs += list(other_starting_pairs)
+
+      GeneratorUtil.mergeIntoDictionary(all_lookbacks, other_all_lookbacks)
+
+      for opener in config.OPENERS_TO_CLOSERS:
+        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], other_closing_lookbacks[opener])
+
+      urls += list(other_urls)
+
+
   # Get lookback and starting tuples for users known to exist
   def getTuples(self, nicks):
 
@@ -434,15 +458,7 @@ class Generator:
     if len(nicks) > 1:
       (starting_pairs, all_lookbacks, closing_lookbacks, urls) = \
         Generator.copyTuples(starting_pairs, all_lookbacks, closing_lookbacks, urls)
-
-    # Fold in lookbacks from second and subsequent users
-    for other_nick in nicks[1:]:
-      (other_starting_pairs, other_all_lookbacks, other_closing_lookbacks, other_urls) = self.getTuplesForUser(other_nick)
-      starting_pairs += list(other_starting_pairs)
-      GeneratorUtil.mergeIntoDictionary(all_lookbacks, other_all_lookbacks)
-      for opener in config.OPENERS_TO_CLOSERS:
-        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], other_closing_lookbacks[opener])
-      urls += list(other_urls)
+      self.mergeAdditionalUserData(nicks[1:], all_lookbacks, closing_lookbacks, starting_pairs, urls)
 
     return (all_lookbacks, closing_lookbacks, starting_pairs, urls)
 
@@ -460,9 +476,25 @@ class Generator:
     return matches
 
 
-  # Return a line generated from the source of a nick or nicks
-  #   if none of those nicks were present, return an empty list and an empty string
-  #   if at least some of the nicks were present, return a list of the nicks found and a quote string
+  def makeInitial(self, lookbacks, starters, given_initial):
+
+    if given_initial:
+
+      if len(given_initial) < self.lookback_count:
+        matching_tuples = Generator.findMatchingTuples(given_initial[0], lookbacks)
+        if matching_tuples:
+          given_initial = random.choice(matching_tuples)
+
+      # If the given given_initial is not present, then a quote cannot be formed from it
+      if not given_initial in lookbacks:
+        return None
+
+    else:
+      given_initial = random.choice(starters)
+
+    return given_initial
+
+
   def generate(self, nick_tuples, initial=None, random_min_starters=0, increment_quote_count=True):
 
     real_nicks = self.users.getRealNicks(nick_tuples, random_min_starters, increment_quote_count)
@@ -471,19 +503,9 @@ class Generator:
 
     (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
 
-    if initial:
-
-      if len(initial) < self.lookback_count:
-        matching_tuples = Generator.findMatchingTuples(initial[0], all_lookbacks)
-        if matching_tuples:
-          initial = random.choice(matching_tuples)
-
-      # If the given initial is not present, then a quote cannot be formed from it
-      if not initial in all_lookbacks:
-        return([], "")
-
-    else:
-      initial = random.choice(starting_pairs)
+    initial = self.makeInitial(all_lookbacks, starting_pairs, initial)
+    if not initial:
+      return ([], "")
 
     quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial, urls)
 
