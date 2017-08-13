@@ -10,6 +10,7 @@ from users import User
 from users import UserCollection
 
 SourceChannelNames = namedtuple("SourceChannelNames", "primary, additionals")
+UserTuples = namedtuple("UserTuples", "all_lookbacks, closing_lookbacks, starters, urls")
 
 
 class GenericStatisticType:
@@ -298,22 +299,22 @@ class Generator:
 
 
   # Return a line generated from a given lookback collection and a given initial pair
-  def generateFromInitial(self, all_lookbacks, closing_lookbacks, initial, urls):
+  def generateFromInitial(self, user_tuples, initial):
 
     openers = []
 
-    first_word = Generator.substituteIfUrl(initial[0], urls)
+    first_word = Generator.substituteIfUrl(initial[0], user_tuples.urls)
     line = Generator.getCleanedWord(first_word, openers)
 
     for word in initial[1:]:
-      word = Generator.substituteIfUrl(word, urls)
+      word = Generator.substituteIfUrl(word, user_tuples.urls)
       line += ' ' + Generator.getCleanedWord(word, openers)
 
     # FIXME: this should not be possible; maybe do something else here?
-    if not initial in all_lookbacks:
+    if not initial in user_tuples.all_lookbacks:
       return line
 
-    line += self.createLine(all_lookbacks, closing_lookbacks, initial, urls, openers)
+    line += self.createLine(user_tuples, initial, openers)
 
     # Close any remaining open parentheses
     while openers:
@@ -322,17 +323,17 @@ class Generator:
     return line
 
 
-  def createLine(self, all_lookbacks, closing_lookbacks, initial, urls, openers):
+  def createLine(self, user_tuples, initial, openers):
 
     line = ""
     i = self.lookback_count
     follow = ""
     current_tuple = initial
 
-    while current_tuple in all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
+    while current_tuple in user_tuples.all_lookbacks and i < config.OUTPUT_WORDS_MAX and follow != SpecialToken.TERMINATE:
 
-      follow_token = Generator.getFollow(all_lookbacks, closing_lookbacks, current_tuple, openers)
-      follow = Generator.substituteIfUrl(follow_token, urls)
+      follow_token = Generator.getFollow(user_tuples, current_tuple, openers)
+      follow = Generator.substituteIfUrl(follow_token, user_tuples.urls)
 
       if follow_token != SpecialToken.TERMINATE:
         line += ' ' + Generator.getCleanedWord(follow, openers)
@@ -346,16 +347,17 @@ class Generator:
 
 
   @staticmethod
-  def getFollow(all_lookbacks, closing_lookbacks, current_tuple, openers):
+  def getFollow(user_tuples, current_tuple, openers):
 
-    lookbacks = all_lookbacks
+    lookbacks = user_tuples.all_lookbacks
+    closing_lookbacks = user_tuples.closing_lookbacks
 
     current_opener = None
     if openers:
       current_opener = openers[-1]
 
     if current_opener and current_tuple in closing_lookbacks[current_opener]:
-        lookbacks = closing_lookbacks[current_opener]
+      lookbacks = closing_lookbacks[current_opener]
 
     next_follow = random.choice(lookbacks[current_tuple])
 
@@ -409,41 +411,48 @@ class Generator:
 
   def getTuplesForUser(self, nick):
 
-    starting_pairs = self.users.getStarters(nick)
     all_lookbacks = self.users.getAllLookbacks(nick)
     closing_lookbacks = self.users.getClosingLookbacks(nick)
+    starters = self.users.getStarters(nick)
     urls = self.users.getUrls(nick)
 
-    return (starting_pairs, all_lookbacks, closing_lookbacks, urls)
+    return UserTuples(all_lookbacks, closing_lookbacks, starters, urls)
 
 
   @staticmethod
-  def copyTuples(starting_pairs, all_lookbacks, closing_lookbacks, urls):
+  def copyTuples(user_tuples):
 
-    new_starting_pairs = list(starting_pairs)
-    new_all_lookbacks = GeneratorUtil.copyListDict(all_lookbacks)
+    new_starters = list(user_tuples.starters)
+    new_all_lookbacks = GeneratorUtil.copyListDict(user_tuples.all_lookbacks)
     new_closing_lookbacks = {}
     for opener in config.OPENERS_TO_CLOSERS:
-      new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(closing_lookbacks[opener])
-    new_urls = list(urls)
+      new_closing_lookbacks[opener] = GeneratorUtil.copyListDict(user_tuples.closing_lookbacks[opener])
+    new_urls = list(user_tuples.urls)
 
-    return (new_starting_pairs, new_all_lookbacks, new_closing_lookbacks, new_urls)
+    return UserTuples(new_all_lookbacks, new_closing_lookbacks, new_starters, new_urls)
 
 
-  def mergeAdditionalUserData(self, further_nicks, all_lookbacks, closing_lookbacks, starting_pairs, urls):
+  def mergeAdditionalUserData(self, further_nicks, first_user_tuples):
+
+    all_lookbacks = first_user_tuples.all_lookbacks
+    closing_lookbacks = first_user_tuples.closing_lookbacks
+    starters = first_user_tuples.starters
+    urls = first_user_tuples.urls
 
     for other_nick in further_nicks:
 
-      (other_starting_pairs, other_all_lookbacks, other_closing_lookbacks, other_urls) = self.getTuplesForUser(other_nick)
+      other_user_tuples = self.getTuplesForUser(other_nick)
 
-      starting_pairs += list(other_starting_pairs)
-
-      GeneratorUtil.mergeIntoDictionary(all_lookbacks, other_all_lookbacks)
+      GeneratorUtil.mergeIntoDictionary(all_lookbacks, other_user_tuples.all_lookbacks)
 
       for opener in config.OPENERS_TO_CLOSERS:
-        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], other_closing_lookbacks[opener])
+        GeneratorUtil.mergeIntoDictionary(closing_lookbacks[opener], \
+          other_user_tuples.closing_lookbacks[opener])
 
-      urls += list(other_urls)
+      starters += list(other_user_tuples.starters)
+      urls += list(other_user_tuples.urls)
+
+    return UserTuples(all_lookbacks, closing_lookbacks, starters, urls)
 
 
   # Get lookback and starting tuples for users known to exist
@@ -451,16 +460,15 @@ class Generator:
 
     # Take lookbacks from first user initially
     first_nick = nicks[0]
-    (starting_pairs, all_lookbacks, closing_lookbacks, urls) = self.getTuplesForUser(first_nick)
+    user_tuples = self.getTuplesForUser(first_nick)
 
     # If we have more than one nick, we will be constructing new lookback maps
     #  and starter list, so we will want copies
     if len(nicks) > 1:
-      (starting_pairs, all_lookbacks, closing_lookbacks, urls) = \
-        Generator.copyTuples(starting_pairs, all_lookbacks, closing_lookbacks, urls)
-      self.mergeAdditionalUserData(nicks[1:], all_lookbacks, closing_lookbacks, starting_pairs, urls)
+      user_tuples = Generator.copyTuples(user_tuples)
+      user_tuples = self.mergeAdditionalUserData(nicks[1:], user_tuples)
 
-    return (all_lookbacks, closing_lookbacks, starting_pairs, urls)
+    return user_tuples
 
 
   # Return tuples whose first element matches a given one
@@ -478,21 +486,23 @@ class Generator:
 
   def makeInitial(self, lookbacks, starters, given_initial):
 
+    initial = given_initial
+
     if given_initial:
 
       if len(given_initial) < self.lookback_count:
         matching_tuples = Generator.findMatchingTuples(given_initial[0], lookbacks)
         if matching_tuples:
-          given_initial = random.choice(matching_tuples)
+          initial = random.choice(matching_tuples)
 
-      # If the given given_initial is not present, then a quote cannot be formed from it
-      if not given_initial in lookbacks:
-        return None
+      # If the initial is not present, then a quote cannot be formed from it
+      if not initial in lookbacks:
+        initial = None
 
     else:
-      given_initial = random.choice(starters)
+      initial = random.choice(starters)
 
-    return given_initial
+    return initial
 
 
   def generate(self, nick_tuples, initial=None, random_min_starters=0, increment_quote_count=True):
@@ -501,13 +511,13 @@ class Generator:
     if not real_nicks:
       return ([], "")
 
-    (all_lookbacks, closing_lookbacks, starting_pairs, urls) = self.getTuples(real_nicks)
+    user_tuples = self.getTuples(real_nicks)
 
-    initial = self.makeInitial(all_lookbacks, starting_pairs, initial)
+    initial = self.makeInitial(user_tuples.all_lookbacks, user_tuples.starters, initial)
     if not initial:
       return ([], "")
 
-    quote = self.generateFromInitial(all_lookbacks, closing_lookbacks, initial, urls)
+    quote = self.generateFromInitial(user_tuples, initial)
 
     return (real_nicks, quote)
 
