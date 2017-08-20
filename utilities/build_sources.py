@@ -1,13 +1,9 @@
 ### Read in a series of logs and output personalized source files
 
+import argparse
 import os
 import sys
 
-scan_existing = False
-if sys.argv[1] == "yes":
-    scan_existing = True
-
-infilenames = sys.argv[2:]
 
 srcdir = './sources/' # Where the personalized sources are to be written to
 srcext = '.src'
@@ -24,6 +20,14 @@ def determine_appropriate_case(word):
   else:
     return word.lower()
 
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('--only-existing', dest='only_existing', action='store_true')
+arg_parser.add_argument('--no-only-existing', dest='only_existing', action='store_false')
+arg_parser.add_argument('-f', dest='infilenames', nargs='+')
+args = arg_parser.parse_args()
+
+only_existing=args.only_existing
+infilenames = args.infilenames
 
 if not os.path.isdir(srcdir):
   if os.path.exists(srcdir):
@@ -35,7 +39,7 @@ if not os.path.isdir(srcdir):
 # Sometimes, we only want more material from users that already exist
 # In such a case, we only allow nicks we already have source files for
 allowed_nicks = []
-if scan_existing == True:
+if only_existing == True:
     srcdirfiles = os.listdir(srcdir)
     for srcdirfile in srcdirfiles:
         if srcdirfile.endswith(srcext):
@@ -66,7 +70,7 @@ for infilename in infilenames:
         if nick in aliases:
           nick = aliases[nick]
 
-        if scan_existing == True and nick not in allowed_nicks:
+        if only_existing == True and nick not in allowed_nicks:
             continue
 
         outfilename = srcdir + nick + srcext
