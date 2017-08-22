@@ -84,7 +84,7 @@ def main():
 
       if line[0].isdigit() and MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
 
-        words = line[closer_index:].split()
+        words = line[closer_index+1:].split()
 
         if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
 
