@@ -2,12 +2,17 @@
 
 import argparse
 import os
+import string
 import sys
 
 
 srcdir = './sources/' # Where the personalized sources are to be written to
 srcext = '.src'
 mergefilename = './merge.lst'
+
+NICK_OPEN = '['
+NICK_CLOSE = ']'
+MESSAGE_SIGN = '-!-'
 
 aliases = {}
 
@@ -59,14 +64,18 @@ for infilename in infilenames:
 
   for line in infile:
 
-    if line[0].isdigit() and line[9] == '[':
+    opener_index = line.find(NICK_OPEN)
+    closer_index = line.find(NICK_CLOSE)
 
-      words = line[22:].split()
+    if line[0].isdigit() and MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
+
+      words = line[closer_index:].split()
 
       if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
 
-        nick = line[11:20].split()[0].lower()
+        nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
 
+        print nick
         if nick in aliases:
           nick = aliases[nick]
 
