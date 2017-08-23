@@ -19,20 +19,26 @@ def determine_appropriate_case(word):
     return word.lower()
 
 
+def get_args():
+
+  arg_parser = argparse.ArgumentParser(description='A utility to convert IRC log files into source material for Impostor bot')
+  arg_parser.add_argument('--only-existing', dest='only_existing', action='store_true', help='only generate material for users that already exist')
+  arg_parser.add_argument('--no-only-existing', dest='only_existing', action='store_false', help='do not restrict which users material is generated for')
+  arg_parser.add_argument('output_dir', help='path to directory output is to be written to')
+  arg_parser.add_argument('input_filenames', nargs='+', help='paths to input log files')
+  arg_parser.add_argument('-m', dest='merge_filename', help='path to the tab-separated file of user aliases')
+  return arg_parser.parse_args()
+
+
 def main():
 
-  arg_parser = argparse.ArgumentParser()
-  arg_parser.add_argument('--only-existing', dest='only_existing', action='store_true')
-  arg_parser.add_argument('--no-only-existing', dest='only_existing', action='store_false')
-  arg_parser.add_argument('output_dir')
-  arg_parser.add_argument('input_filenames', nargs='+')
-  arg_parser.add_argument('-m', dest='merge_filename')
-  args = arg_parser.parse_args()
+  args = get_args()
 
   only_existing=args.only_existing
   input_filenames = args.input_filenames
   merge_filename = args.merge_filename
   output_dirpath = args.output_dir
+
   if output_dirpath[-1] != os.sep:
     output_dirpath += os.sep
 
