@@ -5,21 +5,14 @@ import os
 import string
 import sys
 
-
-OUTPUT_EXTENSION = '.src'
-
-NICK_OPEN = '['
-NICK_CLOSE = ']'
-MESSAGE_SIGN = '-!-'
+import config
 
 aliases = {}
-
-retain = ["I", "I'd", "I'm", "I've", ":D", ":O", ":P", ":S", ">:D", "D:", "T_T"] # Words not to be lower-cased
 
 # Return a case-normalized version of an input token, with exceptions as appropriate
 def determine_appropriate_case(word):
 
-  if word in retain or word.startswith('http') or word.startswith('www'):
+  if word in config.CASED_WORDS or word.startswith('http') or word.startswith('www'):
     return word
 
   else:
@@ -60,9 +53,9 @@ def main():
 
       for output_dirpathfile in output_dirpathfiles:
 
-          if output_dirpathfile.endswith(OUTPUT_EXTENSION):
+          if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
 
-              allowed_nick = output_dirpathfile[:-len(OUTPUT_EXTENSION)]
+              allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
               allowed_nicks.append(allowed_nick)
 
   if merge_filename:
@@ -84,10 +77,10 @@ def main():
 
     for line in input_file:
 
-      opener_index = line.find(NICK_OPEN)
-      closer_index = line.find(NICK_CLOSE)
+      opener_index = line.find(config.NICK_OPEN)
+      closer_index = line.find(config.NICK_CLOSE)
 
-      if line[0].isdigit() and MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
+      if line[0].isdigit() and config.MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
 
         words = line[closer_index+1:].split()
 
@@ -102,7 +95,7 @@ def main():
           if only_existing == True and nick not in allowed_nicks:
               continue
 
-          output_filepath = output_dirpath + nick + OUTPUT_EXTENSION
+          output_filepath = output_dirpath + nick + config.OUTPUT_EXTENSION
 
           # Write messages to file
           output_file = open(output_filepath, 'a')
