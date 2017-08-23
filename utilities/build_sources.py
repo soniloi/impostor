@@ -6,9 +6,7 @@ import string
 import sys
 
 
-OUTPUT_DIR = './sources/' # Where the personalized sources are to be written to
 OUTPUT_EXTENSION = '.src'
-MERGE_FILENAME = './merge.lst'
 
 NICK_OPEN = '['
 NICK_CLOSE = ']'
@@ -33,48 +31,53 @@ def main():
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('--only-existing', dest='only_existing', action='store_true')
   arg_parser.add_argument('--no-only-existing', dest='only_existing', action='store_false')
-  arg_parser.add_argument('-f', dest='infilenames', nargs='+')
+  arg_parser.add_argument('output_dir')
+  arg_parser.add_argument('input_filenames', nargs='+')
+  arg_parser.add_argument('-m', dest='merge_filename')
   args = arg_parser.parse_args()
 
   only_existing=args.only_existing
-  infilenames = args.infilenames
+  input_filenames = args.input_filenames
+  output_dir = args.output_dir
+  merge_filename = args.merge_filename
 
-  if not os.path.isdir(OUTPUT_DIR):
+  if not os.path.isdir(output_dir):
 
-    if os.path.exists(OUTPUT_DIR):
+    if os.path.exists(output_dir):
       print "Error: source path exists and is a regular file, exiting"
       sys.exit(1)
 
     else:
-      os.makedirs(OUTPUT_DIR)
+      os.makedirs(output_dir)
 
   # Sometimes, we only want more material from users that already exist
   # In such a case, we only allow nicks we already have source files for
   allowed_nicks = []
   if only_existing == True:
-      OUTPUT_DIRfiles = os.listdir(OUTPUT_DIR)
+      output_dirfiles = os.listdir(output_dir)
 
-      for OUTPUT_DIRfile in OUTPUT_DIRfiles:
+      for output_dirfile in output_dirfiles:
 
-          if OUTPUT_DIRfile.endswith(OUTPUT_EXTENSION):
+          if output_dirfile.endswith(OUTPUT_EXTENSION):
 
-              allowed_nick = OUTPUT_DIRfile[:-len(OUTPUT_EXTENSION)]
+              allowed_nick = output_dirfile[:-len(OUTPUT_EXTENSION)]
               allowed_nicks.append(allowed_nick)
 
-  mergefile = open(MERGE_FILENAME)
+  if merge_filename:
+    mergefile = open(merge_filename)
 
-  for line in mergefile:
+    for line in mergefile:
 
-    if line:
+      if line:
 
-      nicks = line.split()
+        nicks = line.split()
 
-      for nick in nicks:
-        aliases[nick] = nicks[0]
+        for nick in nicks:
+          aliases[nick] = nicks[0]
 
-  mergefile.close()
+    mergefile.close()
 
-  for infilename in infilenames:
+  for infilename in input_filenames:
     infile = open(infilename)
 
     for line in infile:
@@ -97,7 +100,7 @@ def main():
           if only_existing == True and nick not in allowed_nicks:
               continue
 
-          outfilename = OUTPUT_DIR + nick + OUTPUT_EXTENSION
+          outfilename = output_dir + nick + OUTPUT_EXTENSION
 
           # Write messages to file
           outfile = open(outfilename, 'a')
