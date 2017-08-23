@@ -38,29 +38,31 @@ def main():
 
   only_existing=args.only_existing
   input_filenames = args.input_filenames
-  output_dir = args.output_dir
   merge_filename = args.merge_filename
+  output_dirpath = args.output_dir
+  if output_dirpath[-1] != os.sep:
+    output_dirpath += os.sep
 
-  if not os.path.isdir(output_dir):
+  if not os.path.isdir(output_dirpath):
 
-    if os.path.exists(output_dir):
+    if os.path.exists(output_dirpath):
       print "Error: source path exists and is a regular file, exiting"
       sys.exit(1)
 
     else:
-      os.makedirs(output_dir)
+      os.makedirs(output_dirpath)
 
   # Sometimes, we only want more material from users that already exist
   # In such a case, we only allow nicks we already have source files for
   allowed_nicks = []
   if only_existing == True:
-      output_dirfiles = os.listdir(output_dir)
+      output_dirpathfiles = os.listdir(output_dirpath)
 
-      for output_dirfile in output_dirfiles:
+      for output_dirpathfile in output_dirpathfiles:
 
-          if output_dirfile.endswith(OUTPUT_EXTENSION):
+          if output_dirpathfile.endswith(OUTPUT_EXTENSION):
 
-              allowed_nick = output_dirfile[:-len(OUTPUT_EXTENSION)]
+              allowed_nick = output_dirpathfile[:-len(OUTPUT_EXTENSION)]
               allowed_nicks.append(allowed_nick)
 
   if merge_filename:
@@ -77,10 +79,10 @@ def main():
 
     mergefile.close()
 
-  for infilename in input_filenames:
-    infile = open(infilename)
+  for input_filename in input_filenames:
+    input_file = open(input_filename)
 
-    for line in infile:
+    for line in input_file:
 
       opener_index = line.find(NICK_OPEN)
       closer_index = line.find(NICK_CLOSE)
@@ -100,19 +102,19 @@ def main():
           if only_existing == True and nick not in allowed_nicks:
               continue
 
-          outfilename = output_dir + nick + OUTPUT_EXTENSION
+          output_filepath = output_dirpath + nick + OUTPUT_EXTENSION
 
           # Write messages to file
-          outfile = open(outfilename, 'a')
-          outline = determine_appropriate_case(words[0])
+          output_file = open(output_filepath, 'a')
+          output_line = determine_appropriate_case(words[0])
 
           for word in words[1:]:
-            outline += ' ' + determine_appropriate_case(word)
+            output_line += ' ' + determine_appropriate_case(word)
 
-          outfile.write(outline + '\n')
-          outfile.close()
+          output_file.write(output_line + '\n')
+          output_file.close()
 
-    infile.close()
+    input_file.close()
 
 if __name__ == "__main__":
 
