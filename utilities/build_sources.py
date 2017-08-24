@@ -22,11 +22,15 @@ def determine_appropriate_case(word):
 def get_args():
 
   arg_parser = argparse.ArgumentParser(description='A utility to convert IRC log files into source material for Impostor bot')
-  arg_parser.add_argument('--only-existing', dest='only_existing', action='store_true', help='only generate material for users that already exist')
-  arg_parser.add_argument('--no-only-existing', dest='only_existing', action='store_false', help='do not restrict which users material is generated for')
   arg_parser.add_argument('output_dir', help='path to directory output is to be written to')
   arg_parser.add_argument('input_filenames', nargs='+', help='paths to input log files')
   arg_parser.add_argument('-m', dest='merge_filename', help='path to the tab-separated file of user aliases')
+
+  only_existing_group = arg_parser.add_mutually_exclusive_group()
+  only_existing_group.add_argument('--only-existing', dest='only_existing', action='store_true', help='only generate material for users that already exist')
+  only_existing_group.add_argument('--no-only-existing', dest='only_existing', action='store_false', help='do not restrict which users material is generated for')
+  arg_parser.set_defaults(only_existing=False)
+
   return arg_parser.parse_args()
 
 
@@ -94,7 +98,7 @@ def main():
 
           nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
 
-          print nick
+          #print nick
           if nick in aliases:
             nick = aliases[nick]
 
