@@ -34,8 +34,8 @@ class SourceBuilder:
     self.create_output_directory()
 
     self.only_existing = only_existing
-    self.allowed_nicks = []
-    self.init_allowed_nicks(output_dirpath)
+    self.existing_nicks = set()
+    self.init_existing_nicks(output_dirpath)
 
     self.aliases = {}
     self.init_aliases(merge_filename)
@@ -53,19 +53,17 @@ class SourceBuilder:
         os.makedirs(self.output_dirpath)
 
 
-  # Create a list of nicks that we already have source for
-  # If only_existing has not been set, leave as an empty list
-  def init_allowed_nicks(self, output_dirpath):
+  # Create a set of nicks that we already have source for
+  def init_existing_nicks(self, output_dirpath):
 
-    if self.only_existing == True:
-      output_dirpathfiles = os.listdir(output_dirpath)
+    existing_files = os.listdir(output_dirpath)
 
-      for output_dirpathfile in output_dirpathfiles:
+    for existing_file in existing_files:
 
-        if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
+      if existing_file.endswith(config.OUTPUT_EXTENSION):
 
-          allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
-          self.allowed_nicks.append(allowed_nick)
+        existing_nick = existing_file[:-len(config.OUTPUT_EXTENSION)]
+        self.existing_nicks.add(existing_nick)
 
 
   def init_aliases(self, merge_filename):
@@ -117,7 +115,7 @@ class SourceBuilder:
             if nick in self.aliases:
               nick = self.aliases[nick]
 
-            if self.only_existing == True and nick not in self.allowed_nicks:
+            if self.only_existing == True and nick not in self.existing_nicks:
                 continue
 
             output_filepath = self.output_dirpath + nick + config.OUTPUT_EXTENSION
