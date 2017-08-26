@@ -31,46 +31,33 @@ class SourceBuilder:
     if output_dirpath[-1] != os.sep:
       self.output_dirpath += os.sep
 
-    SourceBuilder.create_output_directory(output_dirpath)
+    self.create_output_directory()
 
     self.only_existing = only_existing
-    self.allowed_nicks = SourceBuilder.get_allowed_nicks(only_existing, output_dirpath)
+    self.allowed_nicks = []
+    self.init_allowed_nicks(output_dirpath)
 
-    self.aliases = SourceBuilder.init_aliases(merge_filename)
-
-
-  # Return a case-normalized version of an input token, with exceptions as appropriate
-  @staticmethod
-  def determine_appropriate_case(word):
-
-    if word in config.CASED_WORDS or word.startswith('http') or word.startswith('www'):
-      return word
-
-    else:
-      return word.lower()
+    self.aliases = {}
+    self.init_aliases(merge_filename)
 
 
-  @staticmethod
-  def create_output_directory(output_dirpath):
+  def create_output_directory(self):
 
-    if not os.path.isdir(output_dirpath):
+    if not os.path.isdir(self.output_dirpath):
 
-      if os.path.exists(output_dirpath):
+      if os.path.exists(self.output_dirpath):
         print "Error: source path exists and is a regular file, exiting"
         sys.exit(1)
 
       else:
-        os.makedirs(output_dirpath)
+        os.makedirs(self.output_dirpath)
 
 
-  # Get a list of nicks that we already have source for
-  # If only_existing has not been set, return an empty list
-  @staticmethod
-  def get_allowed_nicks(only_existing, output_dirpath):
+  # Create a list of nicks that we already have source for
+  # If only_existing has not been set, leave as an empty list
+  def init_allowed_nicks(self, output_dirpath):
 
-    allowed_nicks = []
-
-    if only_existing == True:
+    if self.only_existing == True:
       output_dirpathfiles = os.listdir(output_dirpath)
 
       for output_dirpathfile in output_dirpathfiles:
@@ -78,15 +65,10 @@ class SourceBuilder:
         if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
 
           allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
-          allowed_nicks.append(allowed_nick)
-
-    return allowed_nicks
+          self.allowed_nicks.append(allowed_nick)
 
 
-  @staticmethod
-  def init_aliases(merge_filename):
-
-    aliases = {}
+  def init_aliases(self, merge_filename):
 
     if merge_filename:
       mergefile = open(merge_filename)
@@ -98,11 +80,20 @@ class SourceBuilder:
           nicks = line.split()
 
           for nick in nicks:
-            aliases[nick] = nicks[0]
+            self.aliases[nick] = nicks[0]
 
       mergefile.close()
 
-    return aliases
+
+  # Return a case-normalized version of an input token, with exceptions as appropriate
+  @staticmethod
+  def determine_appropriate_case(word):
+
+    if word in config.CASED_WORDS or word.startswith('http') or word.startswith('www'):
+      return word
+
+    else:
+      return word.lower()
 
 
   def process_log_file(self, input_filename):
