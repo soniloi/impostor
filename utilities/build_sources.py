@@ -25,19 +25,22 @@ def get_args():
 
 class SourceBuilder:
 
-  def __init__(self, output_dirpath, merge_filename, only_existing):
+  def __init__(self, output_dirpath, only_existing):
 
     self.output_dirpath = output_dirpath
     if output_dirpath[-1] != os.sep:
       self.output_dirpath += os.sep
 
-    self.create_output_directory()
-
     self.only_existing = only_existing
     self.existing_nicks = set()
-    self.init_existing_nicks(output_dirpath)
 
     self.aliases = {}
+
+
+  def configure(self, merge_filename):
+
+    self.create_output_directory()
+    self.init_existing_nicks()
     self.init_aliases(merge_filename)
 
 
@@ -54,9 +57,9 @@ class SourceBuilder:
 
 
   # Create a set of nicks that we already have source for
-  def init_existing_nicks(self, output_dirpath):
+  def init_existing_nicks(self):
 
-    existing_files = os.listdir(output_dirpath)
+    existing_files = os.listdir(self.output_dirpath)
 
     for existing_file in existing_files:
 
@@ -143,7 +146,8 @@ def main():
 
   args = get_args()
 
-  generator = SourceBuilder(args.output_dir, args.merge_filename, args.only_existing)
+  generator = SourceBuilder(args.output_dir, args.only_existing)
+  generator.configure(args.merge_filename)
   generator.generate(args.input_filenames)
 
 
