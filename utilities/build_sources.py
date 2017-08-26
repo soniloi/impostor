@@ -8,16 +8,6 @@ import sys
 import config
 
 
-# Return a case-normalized version of an input token, with exceptions as appropriate
-def determine_appropriate_case(word):
-
-  if word in config.CASED_WORDS or word.startswith('http') or word.startswith('www'):
-    return word
-
-  else:
-    return word.lower()
-
-
 def get_args():
 
   arg_parser = argparse.ArgumentParser(description='A utility to convert IRC log files into source material for Impostor bot')
@@ -33,117 +23,140 @@ def get_args():
   return arg_parser.parse_args()
 
 
-def create_output_directory(output_dirpath):
+class SourceBuilder:
 
-  if not os.path.isdir(output_dirpath):
+  def __init__(self, output_dirpath, merge_filename, only_existing):
 
-    if os.path.exists(output_dirpath):
-      print "Error: source path exists and is a regular file, exiting"
-      sys.exit(1)
+    self.output_dirpath = output_dirpath
+    if output_dirpath[-1] != os.sep:
+      self.output_dirpath += os.sep
+
+    SourceBuilder.create_output_directory(output_dirpath)
+
+    self.only_existing = only_existing
+    self.allowed_nicks = SourceBuilder.get_allowed_nicks(only_existing, output_dirpath)
+
+    self.aliases = SourceBuilder.init_aliases(merge_filename)
+
+
+  # Return a case-normalized version of an input token, with exceptions as appropriate
+  @staticmethod
+  def determine_appropriate_case(word):
+
+    if word in config.CASED_WORDS or word.startswith('http') or word.startswith('www'):
+      return word
 
     else:
-      os.makedirs(output_dirpath)
+      return word.lower()
 
 
-# Get a list of nicks that we already have source for
-# If only_existing has not been set, return an empty list
-def get_allowed_nicks(only_existing, output_dirpath):
+  @staticmethod
+  def create_output_directory(output_dirpath):
 
-  allowed_nicks = []
+    if not os.path.isdir(output_dirpath):
 
-  if only_existing == True:
-    output_dirpathfiles = os.listdir(output_dirpath)
+      if os.path.exists(output_dirpath):
+        print "Error: source path exists and is a regular file, exiting"
+        sys.exit(1)
 
-    for output_dirpathfile in output_dirpathfiles:
-
-      if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
-
-        allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
-        allowed_nicks.append(allowed_nick)
-
-  return allowed_nicks
+      else:
+        os.makedirs(output_dirpath)
 
 
-def init_aliases(merge_filename):
+  # Get a list of nicks that we already have source for
+  # If only_existing has not been set, return an empty list
+  @staticmethod
+  def get_allowed_nicks(only_existing, output_dirpath):
 
-  aliases = {}
+    allowed_nicks = []
 
-  if merge_filename:
-    mergefile = open(merge_filename)
+    if only_existing == True:
+      output_dirpathfiles = os.listdir(output_dirpath)
 
-    for line in mergefile:
+      for output_dirpathfile in output_dirpathfiles:
 
-      if line:
+        if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
 
-        nicks = line.split()
+          allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
+          allowed_nicks.append(allowed_nick)
 
-        for nick in nicks:
-          aliases[nick] = nicks[0]
-
-    mergefile.close()
-
-  return aliases
+    return allowed_nicks
 
 
-def process_log_file(output_dirpath, input_filename, aliases, only_existing, allowed_nicks):
+  @staticmethod
+  def init_aliases(merge_filename):
 
-    input_file = open(input_filename)
+    aliases = {}
 
-    for line in input_file:
+    if merge_filename:
+      mergefile = open(merge_filename)
 
-      opener_index = line.find(config.NICK_OPEN)
-      closer_index = line.find(config.NICK_CLOSE)
+      for line in mergefile:
 
-      if line[0].isdigit() and config.MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
+        if line:
 
-        words = line[closer_index+1:].split()
+          nicks = line.split()
 
-        if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
+          for nick in nicks:
+            aliases[nick] = nicks[0]
 
-          nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
+      mergefile.close()
 
-          #print nick
-          if nick in aliases:
-            nick = aliases[nick]
+    return aliases
 
-          if only_existing == True and nick not in allowed_nicks:
-              continue
 
-          output_filepath = output_dirpath + nick + config.OUTPUT_EXTENSION
+  def process_log_file(self, input_filename):
 
-          # Write messages to file
-          output_file = open(output_filepath, 'a')
-          output_line = determine_appropriate_case(words[0])
+      input_file = open(input_filename)
 
-          for word in words[1:]:
-            output_line += ' ' + determine_appropriate_case(word)
+      for line in input_file:
 
-          output_file.write(output_line + '\n')
-          output_file.close()
+        opener_index = line.find(config.NICK_OPEN)
+        closer_index = line.find(config.NICK_CLOSE)
 
-    input_file.close()
+        if line[0].isdigit() and config.MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
+
+          words = line[closer_index+1:].split()
+
+          if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
+
+            nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
+
+            #print nick
+            if nick in self.aliases:
+              nick = self.aliases[nick]
+
+            if self.only_existing == True and nick not in self.allowed_nicks:
+                continue
+
+            output_filepath = self.output_dirpath + nick + config.OUTPUT_EXTENSION
+
+            # Write messages to file
+            output_file = open(output_filepath, 'a')
+            output_line = SourceBuilder.determine_appropriate_case(words[0])
+
+            for word in words[1:]:
+              output_line += ' ' + SourceBuilder.determine_appropriate_case(word)
+
+            output_file.write(output_line + '\n')
+            output_file.close()
+
+      input_file.close()
+
+
+  def generate(self, input_filenames):
+
+    for input_filename in input_filenames:
+      self.process_log_file(input_filename)
 
 
 def main():
 
   args = get_args()
 
-  only_existing = args.only_existing
-  input_filenames = args.input_filenames
-  merge_filename = args.merge_filename
-  output_dirpath = args.output_dir
+  generator = SourceBuilder(args.output_dir, args.merge_filename, args.only_existing)
+  generator.generate(args.input_filenames)
 
-  if output_dirpath[-1] != os.sep:
-    output_dirpath += os.sep
-
-  create_output_directory(output_dirpath)
-
-  allowed_nicks = get_allowed_nicks(only_existing, output_dirpath)
-
-  aliases = init_aliases(merge_filename)
-
-  for input_filename in input_filenames:
-    process_log_file(output_dirpath, input_filename, aliases, only_existing, allowed_nicks)
 
 if __name__ == "__main__":
 
