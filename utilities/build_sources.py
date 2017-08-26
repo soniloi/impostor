@@ -7,7 +7,6 @@ import sys
 
 import config
 
-aliases = {}
 
 # Return a case-normalized version of an input token, with exceptions as appropriate
 def determine_appropriate_case(word):
@@ -34,17 +33,7 @@ def get_args():
   return arg_parser.parse_args()
 
 
-def main():
-
-  args = get_args()
-
-  only_existing=args.only_existing
-  input_filenames = args.input_filenames
-  merge_filename = args.merge_filename
-  output_dirpath = args.output_dir
-
-  if output_dirpath[-1] != os.sep:
-    output_dirpath += os.sep
+def create_output_directory(output_dirpath):
 
   if not os.path.isdir(output_dirpath):
 
@@ -55,18 +44,29 @@ def main():
     else:
       os.makedirs(output_dirpath)
 
-  # Sometimes, we only want more material from users that already exist
-  # In such a case, we only allow nicks we already have source files for
+
+# Get a list of nicks that we already have source for
+# If only_existing has not been set, return an empty list
+def get_allowed_nicks(only_existing, output_dirpath):
+
   allowed_nicks = []
+
   if only_existing == True:
-      output_dirpathfiles = os.listdir(output_dirpath)
+    output_dirpathfiles = os.listdir(output_dirpath)
 
-      for output_dirpathfile in output_dirpathfiles:
+    for output_dirpathfile in output_dirpathfiles:
 
-          if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
+      if output_dirpathfile.endswith(config.OUTPUT_EXTENSION):
 
-              allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
-              allowed_nicks.append(allowed_nick)
+        allowed_nick = output_dirpathfile[:-len(config.OUTPUT_EXTENSION)]
+        allowed_nicks.append(allowed_nick)
+
+  return allowed_nicks
+
+
+def init_aliases(merge_filename):
+
+  aliases = {}
 
   if merge_filename:
     mergefile = open(merge_filename)
@@ -82,7 +82,11 @@ def main():
 
     mergefile.close()
 
-  for input_filename in input_filenames:
+  return aliases
+
+
+def process_log_file(output_dirpath, input_filename, aliases, only_existing, allowed_nicks):
+
     input_file = open(input_filename)
 
     for line in input_file:
@@ -118,6 +122,28 @@ def main():
           output_file.close()
 
     input_file.close()
+
+
+def main():
+
+  args = get_args()
+
+  only_existing = args.only_existing
+  input_filenames = args.input_filenames
+  merge_filename = args.merge_filename
+  output_dirpath = args.output_dir
+
+  if output_dirpath[-1] != os.sep:
+    output_dirpath += os.sep
+
+  create_output_directory(output_dirpath)
+
+  allowed_nicks = get_allowed_nicks(only_existing, output_dirpath)
+
+  aliases = init_aliases(merge_filename)
+
+  for input_filename in input_filenames:
+    process_log_file(output_dirpath, input_filename, aliases, only_existing, allowed_nicks)
 
 if __name__ == "__main__":
 
