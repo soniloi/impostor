@@ -40,8 +40,19 @@ class SourceBuilder:
   def configure(self, merge_filename):
 
     self.create_output_directory()
-    self.init_existing_nicks()
-    self.init_aliases(merge_filename)
+
+    existing_filenames = os.listdir(self.output_dirpath)
+    merge_file = open(merge_filename)
+
+    self.configure_nicks(existing_filenames, merge_file)
+
+    merge_file.close()
+
+
+  def configure_nicks(self, existing_filenames, merge_file):
+
+    self.init_existing_nicks(existing_filenames)
+    self.init_aliases(merge_file)
 
 
   def create_output_directory(self):
@@ -57,33 +68,26 @@ class SourceBuilder:
 
 
   # Create a set of nicks that we already have source for
-  def init_existing_nicks(self):
+  def init_existing_nicks(self, existing_filenames):
 
-    existing_files = os.listdir(self.output_dirpath)
+    for existing_filename in existing_filenames:
 
-    for existing_file in existing_files:
+      if existing_filename.endswith(config.OUTPUT_EXTENSION):
 
-      if existing_file.endswith(config.OUTPUT_EXTENSION):
-
-        existing_nick = existing_file[:-len(config.OUTPUT_EXTENSION)]
+        existing_nick = existing_filename[:-len(config.OUTPUT_EXTENSION)]
         self.existing_nicks.add(existing_nick)
 
 
-  def init_aliases(self, merge_filename):
+  def init_aliases(self, merge_file):
 
-    if merge_filename:
-      mergefile = open(merge_filename)
+    for line in merge_file:
 
-      for line in mergefile:
+      if line:
 
-        if line:
+        nicks = line.split()
 
-          nicks = line.split()
-
-          for nick in nicks:
-            self.aliases[nick] = nicks[0]
-
-      mergefile.close()
+        for nick in nicks:
+          self.aliases[nick] = nicks[0]
 
 
   # Return a case-normalized version of an input token, with exceptions as appropriate
