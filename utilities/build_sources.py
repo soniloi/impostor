@@ -101,43 +101,58 @@ class SourceBuilder:
       return word.lower()
 
 
+  def generate_from_input(self, input_file):
+
+    for line in input_file:
+
+      output = self.process_line(line)
+
+      if output:
+        output_filepath, output_line = output
+
+        output_file = open(output_filepath, 'a')
+        output_file.write(output_line + '\n')
+        output_file.close()
+
+
+  def process_line(self, line):
+
+    opener_index = line.find(config.NICK_OPEN)
+    closer_index = line.find(config.NICK_CLOSE)
+
+    result = None
+
+    if line[0].isdigit() and config.MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
+
+      words = line[closer_index+1:].split()
+
+      if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
+
+        nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
+
+        #print nick
+        if nick in self.aliases:
+          nick = self.aliases[nick]
+
+        if self.only_existing == False or nick in self.existing_nicks:
+
+          output_filepath = self.output_dirpath + nick + config.OUTPUT_EXTENSION
+
+          output_line = SourceBuilder.determine_appropriate_case(words[0])
+
+          for word in words[1:]:
+            output_line += ' ' + SourceBuilder.determine_appropriate_case(word)
+
+          result = (output_filepath, output_line)
+
+    return result
+
+
   def process_log_file(self, input_filename):
 
-      input_file = open(input_filename)
-
-      for line in input_file:
-
-        opener_index = line.find(config.NICK_OPEN)
-        closer_index = line.find(config.NICK_CLOSE)
-
-        if line[0].isdigit() and config.MESSAGE_SIGN not in line and opener_index > -1 and closer_index > opener_index:
-
-          words = line[closer_index+1:].split()
-
-          if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
-
-            nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
-
-            #print nick
-            if nick in self.aliases:
-              nick = self.aliases[nick]
-
-            if self.only_existing == True and nick not in self.existing_nicks:
-                continue
-
-            output_filepath = self.output_dirpath + nick + config.OUTPUT_EXTENSION
-
-            # Write messages to file
-            output_file = open(output_filepath, 'a')
-            output_line = SourceBuilder.determine_appropriate_case(words[0])
-
-            for word in words[1:]:
-              output_line += ' ' + SourceBuilder.determine_appropriate_case(word)
-
-            output_file.write(output_line + '\n')
-            output_file.close()
-
-      input_file.close()
+    input_file = open(input_filename)
+    self.generate_from_input(input_file)
+    input_file.close()
 
 
   def generate(self, input_filenames):
