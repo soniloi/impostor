@@ -12,6 +12,15 @@ class TestSourceBuilder(unittest.TestCase):
     self.output_dir_base = "output/"
     self.builder = SourceBuilder(self.output_dir_base, False)
 
+    existing_filenames = ["mollusc.src", "lemon.src", "quercus.src", "nobody.txt"]
+    merge_content = [
+      "mollusc\tmollusc_\tsnail",
+      "quercus\toak",
+    ]
+
+    self.builder.configure_nicks(existing_filenames, merge_content)
+
+
 
   def test_init_empty(self):
 
@@ -23,14 +32,6 @@ class TestSourceBuilder(unittest.TestCase):
 
 
   def test_init_configured(self):
-
-    existing_filenames = ["mollusc.src", "lemon.src", "quercus.src", "nobody.txt"]
-    merge_content = [
-      "mollusc\tmollusc_\tsnail",
-      "quercus\toak",
-    ]
-
-    self.builder.configure_nicks(existing_filenames, merge_content)
 
     self.assertFalse(self.builder.only_existing)
     self.assertEquals(len(self.builder.existing_nicks), 3)
@@ -44,7 +45,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_empty(self):
 
-    line = "12.34.56 [mollusc]"
+    line = "12.34.56 [lemon]"
     output = self.builder.process_line(line)
 
     self.assertFalse(output)
@@ -52,7 +53,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_only_whitespace(self):
 
-    line = "12.34.56 [mollusc]        "
+    line = "12.34.56 [lemon]        "
     output = self.builder.process_line(line)
 
     self.assertFalse(output)
@@ -60,7 +61,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_short(self):
 
-    line = "12.34.56 [mollusc] hello"
+    line = "12.34.56 [lemon] hello"
     output = self.builder.process_line(line)
 
     self.assertFalse(output)
@@ -68,7 +69,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_no_timestamp(self):
 
-    line = "[mollusc] hello there"
+    line = "[lemon] hello there"
     output = self.builder.process_line(line)
 
     self.assertFalse(output)
@@ -76,16 +77,16 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_lookback_length(self):
 
-    line = "12.34.56 [mollusc] hello there"
+    line = "12.34.56 [lemon] hello there"
     (output_filepath, output_line) = self.builder.process_line(line)
 
-    self.assertEquals(output_filepath, self.output_dir_base + "mollusc.src")
+    self.assertEquals(output_filepath, self.output_dir_base + "lemon.src")
     self.assertEquals(output_line, "hello there")
 
 
   def test_process_line_long(self):
 
-    line = "12.34.56 [mollusc] hello there, from inside my shell"
+    line = "12.34.56 [lemon] hello there, from inside my shell"
     (output_filepath, output_line) = self.builder.process_line(line)
 
     self.assertEquals(output_line, "hello there, from inside my shell")
@@ -93,7 +94,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_normalizing_whitespace(self):
 
-    line = "12.34.56 [mollusc]  hello\t  there      "
+    line = "12.34.56 [lemon]  hello\t  there      "
     (output_filepath, output_line) = self.builder.process_line(line)
 
     self.assertEquals(output_line, "hello there")
@@ -101,7 +102,7 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_normalizing_case(self):
 
-    line = "12.34.56 [mollusc] Hello ThErE"
+    line = "12.34.56 [lemon] Hello ThErE"
     (output_filepath, output_line) = self.builder.process_line(line)
 
     self.assertEquals(output_line, "hello there")
@@ -109,10 +110,44 @@ class TestSourceBuilder(unittest.TestCase):
 
   def test_process_line_normalizing_smiley(self):
 
-    line = "12.34.56 [mollusc] hello there :D"
+    line = "12.34.56 [lemon] hello there :D"
     (output_filepath, output_line) = self.builder.process_line(line)
 
     self.assertEquals(output_line, "hello there :D")
+
+
+  def test_process_line_alias(self):
+
+    line = "12.34.56 [mollusc_] hello there"
+    (output_filepath, output_line) = self.builder.process_line(line)
+
+    self.assertEquals(output_filepath, self.output_dir_base + "mollusc.src")
+    self.assertEquals(output_line, "hello there")
+
+
+  def test_process_line_only_existing_known(self):
+
+    builder = SourceBuilder(self.output_dir_base, True)
+    existing_filenames = ["lemon.src"]
+    builder.configure_nicks(existing_filenames, [])
+
+    line = "12.34.56 [lemon] hello there"
+    (output_filepath, output_line) = builder.process_line(line)
+
+    self.assertEquals(output_filepath, self.output_dir_base + "lemon.src")
+    self.assertEquals(output_line, "hello there")
+
+
+  def test_process_line_only_existing_unknown(self):
+
+    builder = SourceBuilder(self.output_dir_base, True)
+    existing_filenames = ["lemon.src"]
+    builder.configure_nicks(existing_filenames, [])
+
+    line = "12.34.56 [mollusc] hello there"
+    output = builder.process_line(line)
+
+    self.assertFalse(output)
 
 
 if __name__ == "__main__":
