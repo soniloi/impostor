@@ -101,9 +101,9 @@ class SourceBuilder:
       return word.lower()
 
 
-  def generate_from_input(self, input_file):
+  def process_log_input(self, log_input):
 
-    for line in input_file:
+    for line in log_input:
 
       output = self.process_line(line)
 
@@ -113,6 +113,11 @@ class SourceBuilder:
         output_file = open(output_filepath, 'a')
         output_file.write(output_line + '\n')
         output_file.close()
+
+
+  @staticmethod
+  def normalize_nick(raw_nick):
+    return raw_nick.translate(None, string.punctuation).split()[0].lower()
 
 
   def process_line(self, line):
@@ -128,7 +133,8 @@ class SourceBuilder:
 
       if len(words) >= 2: # Messages with fewer than two words cannot be used to generate anything useful
 
-        nick = line[opener_index+1:closer_index].translate(None, string.punctuation).split()[0].lower()
+        raw_nick = line[opener_index+1:closer_index]
+        nick = SourceBuilder.normalize_nick(raw_nick)
 
         #print nick
         if nick in self.aliases:
@@ -151,7 +157,7 @@ class SourceBuilder:
   def process_log_file(self, input_filename):
 
     input_file = open(input_filename)
-    self.generate_from_input(input_file)
+    self.process_log_input(input_file)
     input_file.close()
 
 

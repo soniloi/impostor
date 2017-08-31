@@ -92,7 +92,7 @@ class TestSourceBuilder(unittest.TestCase):
     self.assertEquals(output_line, "hello there, from inside my shell")
 
 
-  def test_process_line_normalizing_whitespace(self):
+  def test_process_line_normalizing_content_whitespace(self):
 
     line = "12.34.56 [lemon]  hello\t  there      "
     (output_filepath, output_line) = self.builder.process_line(line)
@@ -100,7 +100,7 @@ class TestSourceBuilder(unittest.TestCase):
     self.assertEquals(output_line, "hello there")
 
 
-  def test_process_line_normalizing_case(self):
+  def test_process_line_normalizing_content_case(self):
 
     line = "12.34.56 [lemon] Hello ThErE"
     (output_filepath, output_line) = self.builder.process_line(line)
@@ -108,7 +108,7 @@ class TestSourceBuilder(unittest.TestCase):
     self.assertEquals(output_line, "hello there")
 
 
-  def test_process_line_normalizing_smiley(self):
+  def test_process_line_normalizing_content_smiley(self):
 
     line = "12.34.56 [lemon] hello there :D"
     (output_filepath, output_line) = self.builder.process_line(line)
@@ -148,6 +148,33 @@ class TestSourceBuilder(unittest.TestCase):
     output = builder.process_line(line)
 
     self.assertFalse(output)
+
+
+  def test_process_line_normalize_nick_whitespace(self):
+
+    line = "12.34.56 [  lemon ] hello there"
+    (output_filepath, output_line) = self.builder.process_line(line)
+
+    self.assertEquals(output_filepath, self.output_dir_base + "lemon.src")
+    self.assertEquals(output_line, "hello there")
+
+
+  def test_process_line_normalize_nick_case(self):
+
+    line = "12.34.56 [LemOn] hello there"
+    (output_filepath, output_line) = self.builder.process_line(line)
+
+    self.assertEquals(output_filepath, self.output_dir_base + "lemon.src")
+    self.assertEquals(output_line, "hello there")
+
+
+  def test_process_line_normalize_nick_punctuation(self):
+
+    line = "12.34.56 [@lemon] hello there"
+    (output_filepath, output_line) = self.builder.process_line(line)
+
+    self.assertEquals(output_filepath, self.output_dir_base + "lemon.src")
+    self.assertEquals(output_line, "hello there")
 
 
 if __name__ == "__main__":
