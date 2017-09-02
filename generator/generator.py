@@ -216,11 +216,12 @@ class Generator:
     starter = tuple(starter_words)
     starters.append(starter)
 
+    lookback = starter
+
     bound = len(words) - self.lookback_count
     for i in range(0, bound):
 
       follow_index = i + self.lookback_count
-      lookback = tuple(words[i:follow_index])
       follow = words[follow_index]
 
       last_index = Generator.getLastIndexBeforeEndingPunctuation(follow)
@@ -237,6 +238,10 @@ class Generator:
 
       # Add all tuples to the generic pool
       GeneratorUtil.appendNonTerminalWithCreate(all_lookbacks, lookback, follow)
+
+      list_lookback = list(lookback[1:self.lookback_count])
+      list_lookback.append(follow)
+      lookback = tuple(list_lookback)
 
     last_lookback = tuple(words[bound:])
     GeneratorUtil.appendTerminalWithCreate(all_lookbacks, last_lookback)
