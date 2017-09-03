@@ -476,6 +476,16 @@ class Generator:
     return user_tuples
 
 
+  @staticmethod
+  def partialTupleMatches(partial, tup):
+
+    for i in range(0, len(partial)):
+      if partial[i] != tup[i]:
+        return False
+
+    return True
+
+
   # Return tuples whose first element matches a given one
   @staticmethod
   def findMatchingTuples(first, tuples):
@@ -483,7 +493,7 @@ class Generator:
     matches = []
 
     for tup in tuples:
-      if tup[0] == first:
+      if Generator.partialTupleMatches(first, tup):
         matches.append(tup)
 
     return matches
@@ -496,7 +506,7 @@ class Generator:
     if given_initial:
 
       if len(given_initial) < self.lookback_count:
-        matching_tuples = Generator.findMatchingTuples(given_initial[0], lookbacks)
+        matching_tuples = Generator.findMatchingTuples(given_initial, lookbacks)
         if matching_tuples:
           initial = random.choice(matching_tuples)
 
