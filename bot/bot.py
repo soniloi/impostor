@@ -58,7 +58,13 @@ class ImpostorBot(irc.IRCClient):
     user = user.split('!', 1)[0]
     logging.info("Message received from %s: [%s] %s" % (channel, user, input_message_raw))
 
-    input_message = input_message_raw.strip().lower()
+    input_message_words = input_message_raw.strip().split(" ", 1)
+    non_cased_part = input_message_words[0].lower()
+    cased_part = ""
+    if len(input_message_words) > 1:
+      cased_part = " " + input_message_words[1]
+
+    input_message = non_cased_part + cased_part
     output_messages = []
 
     if channel == self.nickname:
