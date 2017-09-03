@@ -58,26 +58,7 @@ class ImpostorBot(irc.IRCClient):
     user = user.split('!', 1)[0]
     logging.info("Message received from %s: [%s] %s" % (channel, user, input_message_raw))
 
-    input_message_words = input_message_raw.strip().split(" ", 1)
-    non_cased_part = input_message_words[0].lower()
-    cased_part = ""
-    if len(input_message_words) > 1:
-      cased_part = " " + input_message_words[1]
-
-    input_message = non_cased_part + cased_part
-    output_messages = []
-
-    if channel == self.nickname:
-      output_messages = self.processor.pmdToMe(user, input_message)
-
-    elif input_message.startswith(self.nickname + ":"):
-      output_messages = self.processor.directedAtMe(user, input_message)
-
-    elif input_message.startswith(config.GENERATE_TRIGGER):
-      output_messages = self.processor.triggerGenerateQuote(user, input_message)
-
-    elif input_message.startswith(config.META_TRIGGER):
-      output_messages = self.processor.triggerMeta(user, input_message)
+    output_messages = self.processor.process(channel, self.nickname, user, input_message_raw)
 
     for output_message in output_messages:
       self.msg(channel, output_message)

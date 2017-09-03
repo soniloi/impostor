@@ -213,6 +213,40 @@ class RequestProcessor():
     return RequestProcessor.HELP_SPECIFIC.get(query)
 
 
+  @staticmethod
+  def mkCasedMessage(message_raw):
+
+    message_words = message_raw.strip().split(" ", 1)
+
+    non_cased_part = message_words[0].lower()
+
+    cased_part = ""
+    if len(message_words) > 1:
+      cased_part = " " + message_words[1]
+
+    return non_cased_part + cased_part
+
+
+  def process(self, channel, bot_nickname, user, input_message_raw):
+
+    input_message = RequestProcessor.mkCasedMessage(input_message_raw)
+    output_messages = []
+
+    if channel == bot_nickname:
+      output_messages = self.pmdToMe(user, input_message)
+
+    elif input_message.startswith(bot_nickname + ":"):
+      output_messages = self.directedAtMe(user, input_message)
+
+    elif input_message.startswith(config.GENERATE_TRIGGER):
+      output_messages = self.triggerGenerateQuote(user, input_message)
+
+    elif input_message.startswith(config.META_TRIGGER):
+      output_messages = self.triggerMeta(user, input_message)
+
+    return output_messages
+
+
   def pmdToMe(self, user, input_message):
     logging.warning("Message received by PM: [%s] %s", user, input_message)
     return []
