@@ -1,6 +1,12 @@
 # impostor
 
-This is an IRC bot that generates individualized Markov chains based on given source material. It can be used, for example, to generate 'new' phrases from a user based on things they have said before. It is written in python, using the Twisted framework.
+This is an IRC bot that generates text using individualized Markov chains based on given source material. It can be used to generate "new" phrases from a user based on things they have said before. It is written in python, using the Twisted framework.
+
+## Terminology
+
+The term "lookback tuple" refers to current state in the Markov chain. The length of the lookback tuple determines the quality of quote generated. In general, a lower tuple length will lead to longer, more rambling, and less coherent phrases. Conversely, a higher length will generate shorter, less varied, and more syntactically correct quotes, which are more likely to be exact matches to underlying source material.
+
+The tuple length is configurable for Impostor, and is set to 2 by default.
 
 ## Example
 
@@ -10,14 +16,13 @@ she sells sea-shells by the sea-shore
 the dog was eating sausages by the dozen
 ```
 
-The following are the possible outputs:
+The following are the possible outputs, where the lookback tuple length is 2:
 ```
 she sells sea-shells by the sea-shore
 she sells sea-shells by the dozen
 the dog was eating sausages by the dozen
 the dog was eating sausages by the sea-shore
 ```
-
 # Dependencies
 
 * Python: tested with version 2.7.9, other versions of Python 2.x may also work
@@ -31,12 +36,12 @@ There must be a single input directory, containing the items listed below. The l
 
 These are plain text files, each with the extension ```.src```. The filename minus the extension is the username. The following format must apply.
 * Each line of input is to be on its own line in the file.
-* Each line is to have at least two words.
+* Each line is to have at least the same number of words as the lookback tuple length.
 * If there is a source file that is an amalgamation of all source files, call it ```all.src```
 
-How the source material is generated is up to you. Typically, it will involve parsing IRC log files, stripping out very short lines, and maybe some normalization.
+How the source material is generated is up to you. Typically, it will involve parsing IRC log files, stripping out very short lines, and maybe some normalization. A source building script has been included as an example of how this may be done.
 
-Note that the more input (both number of lines and number of words per line) we have for a user, the better the output will be. The generator works best when there are many possible successors to each pair of words; the more possible successors, the more varied the generated lines.
+Note that the more input (both number of lines and number of words per line) we have for a user, the better the output will be. The generator works best when there are many possible successors to each tuple of words; the more possible successors, the more varied the generated lines.
 
 ### Sample source material file
 
