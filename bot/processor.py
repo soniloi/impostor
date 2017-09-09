@@ -50,6 +50,10 @@ class RequestProcessor():
   UNKNOWN_START = "[Unknown"
   UNKNOWN_STR = UNKNOWN_START + "]"
   UNKNOWN_OR_NONE_STR = UNKNOWN_START + " or none]"
+  NICK_STR = "<nick>"
+  NICK_1_STR = "<nick1>"
+  NICK_2_STR = "<nick2>"
+  SEED_STR = " [seed-words]"
 
   BOLD_DEFAULT = Style.BOLD + "%s" + Style.CLEAR
 
@@ -58,13 +62,14 @@ class RequestProcessor():
   MYSTERY_TRIGGER = Style.BOLD + Style.COLOUR + Colour.RED + config.META_TRIGGER
 
   BOT_NICK = BOLD_DEFAULT % config.BOT_NICK
-  GENERATE_SINGLE = GENERATE_TRIGGER + "<nick>" + Style.CLEAR
+  GENERATE_SINGLE = GENERATE_TRIGGER + NICK_STR + Style.CLEAR
   GENERATE_RANDOM = GENERATE_TRIGGER + config.RANDOM_NICK + Style.CLEAR
-  GENERATE_MERGED = GENERATE_TRIGGER + "<nick1>" + config.INPUT_NICKS_SEP + "<nick2>" + Style.CLEAR
+  GENERATE_MERGED = GENERATE_TRIGGER + NICK_1_STR + config.INPUT_NICKS_SEP + NICK_2_STR + Style.CLEAR
   GENERATE_ALL = GENERATE_TRIGGER + config.ALL_NICK + Style.CLEAR
+  GENERATE_SEEDED = GENERATE_TRIGGER + NICK_STR + SEED_STR + Style.CLEAR
 
   META_STATS = STATS_TRIGGER + config.META_STATS + Style.CLEAR
-  META_STATS_USER = STATS_TRIGGER + config.META_STATS + " <nick>" + Style.CLEAR
+  META_STATS_USER = STATS_TRIGGER + config.META_STATS + " " + NICK_STR + Style.CLEAR
 
   HELP_ABBR_GENERATOR = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.META_HELP_GENERATOR + Style.CLEAR
   HELP_ABBR_MYSTERY = MYSTERY_TRIGGER + config.META_HELP_PRIMARY + " " + config.MYSTERY_START + Style.CLEAR
@@ -73,7 +78,7 @@ class RequestProcessor():
   HELP_ABBRS = [HELP_ABBR_GENERATOR, HELP_ABBR_MYSTERY, HELP_ABBR_STATS, HELP_ABBR_SCORE]
 
   MYSTERY_START = MYSTERY_TRIGGER + config.MYSTERY_START + Style.CLEAR
-  MYSTERY_GUESS = MYSTERY_TRIGGER + config.MYSTERY_GUESS + " <nick>" + Style.CLEAR
+  MYSTERY_GUESS = MYSTERY_TRIGGER + config.MYSTERY_GUESS + " " + NICK_STR + Style.CLEAR
   MYSTERY_HINT = MYSTERY_TRIGGER + config.MYSTERY_HINT + Style.CLEAR
   MYSTERY_SOLVE = MYSTERY_TRIGGER + config.MYSTERY_SOLVE + Style.CLEAR
   MYSTERY_SCORE = MYSTERY_TRIGGER + config.MYSTERY_SCORE + Style.CLEAR
@@ -88,7 +93,8 @@ class RequestProcessor():
   HELP_GENERATOR = "Type " \
     + GENERATE_SINGLE + " to see a line generated for a single user, " \
     + GENERATE_RANDOM + " for a line generated for a random user, or " \
-    + GENERATE_MERGED + " to see a line generated from two users merged. "
+    + GENERATE_MERGED + " to see a line generated from two users merged. " \
+    + "Optionally, the quote may be seeded, using " + GENERATE_SEEDED + ". "
 
   HELP_MYSTERY = "Type " \
     + MYSTERY_START + " to generate a line from a mystery author. Then type " \

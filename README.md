@@ -127,6 +127,43 @@ A multi-user comment is one generated from the source material of multiple users
 
 The ordering does not matter; reversing it to ```!daffodil:mollusc``` will produce exactly the same results.
 
+#### Seed words
+
+Optionally, the bot may be seeded, meaning it is possible to give the starting words of a quote. This is the syntax for achieving this:
+```
+!<nick> <seed words>
+```
+A few notes on this:
+* Seed words must be space-separated.
+* While nicks and special-feature triggers are case-insensitive, seed words are case-sensitive.
+* Seed words will match from anywhere within a user's material, i.e. not just on their starting tuples.
+* The number of seed words given must be less than or equal to the lookback tuple length.
+* If the number of seed words given is less than the tuple length, then the match will run from the start of each tuple.
+* If no matching tuples or partial tuples are found, the bot will not output anything.
+
+As an example, imagine a user ```mollusc``` with the following source material, and where the tuple length is 3:
+```
+I am not a fish
+```
+
+The following will be the result of various interactions:
+```
+| Input             | Output                    |
+|-------------------|---------------------------|
+| !mollusc I        | [mollusc] I am not a fish |
+| !mollusc I am     | [mollusc] I am not a fish |
+| !mollusc I am not | [mollusc] I am not a fish |
+| !mollusc not      | [mollusc] not a fish      |
+| !mollusc am not   | [mollusc] am not a fish   |
+```
+
+The following will not produce any output:
+```
+!mollusc I am not a
+!mollusc a
+!mollusc i
+```
+
 #### Random-user comment
 
 A random-user comment is one generated from a random user in the set. To generate such a comment, type:
