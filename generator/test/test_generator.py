@@ -43,8 +43,8 @@ class TestGenerator(unittest.TestCase):
     self.starters[self.bard_nick] = [("(:", "is")]
     self.starters[self.poet_nick] = [("aithníonn", "ciaróg"), ("is", "binn")]
 
-    self.generic_lookbacks = {}
-    self.generic_lookbacks[self.saoi_nick] = {
+    self.all_lookbacks = {}
+    self.all_lookbacks[self.saoi_nick] = {
       ("is", "glas") : ["iad"],
       ("glas", "iad") : ["na"],
       ("iad", "na") : ["cnoic"],
@@ -53,7 +53,7 @@ class TestGenerator(unittest.TestCase):
       ("i", "bhfad") : ["uainn"],
       ("bhfad", "uainn") : [SpecialToken.TERMINATE],
     }
-    self.generic_lookbacks[self.file_nick] = {
+    self.all_lookbacks[self.file_nick] = {
       ("marbh", "le") : ["tae"],
       ("le", "tae") : ["agus"],
       ("tae", "agus") : ["marbh"],
@@ -61,7 +61,7 @@ class TestGenerator(unittest.TestCase):
       ("marbh", "gan") : ["é"],
       ("gan", "é") : [SpecialToken.TERMINATE],
     }
-    self.generic_lookbacks[self.bard_nick] = {
+    self.all_lookbacks[self.bard_nick] = {
       ("(:", "is") : ["olc"],
       ("is", "olc") : ["(an"],
       ("olc", "(an") : ["ghaoth]"],
@@ -78,7 +78,7 @@ class TestGenerator(unittest.TestCase):
       ("a", ":)") : ["deirtear"],
       ("a", "deirtear") : [SpecialToken.TERMINATE],
     }
-    self.generic_lookbacks[self.poet_nick] = {
+    self.all_lookbacks[self.poet_nick] = {
       ("aithníonn", "ciaróg") : ["ciaróg"],
       ("ciaróg", "ciaróg") : ["eile"],
       ("ciaróg", "eile") : [SpecialToken.TERMINATE],
@@ -131,9 +131,9 @@ class TestGenerator(unittest.TestCase):
     return TestGenerator.retrieve_value_or_default(self.starters, args[0], [])
 
 
-  def generic_lookbacks_side_effect(self, *args):
+  def all_lookbacks_side_effect(self, *args):
 
-    return TestGenerator.retrieve_value_or_default(self.generic_lookbacks, args[0], {})
+    return TestGenerator.retrieve_value_or_default(self.all_lookbacks, args[0], {})
 
 
   def closing_lookbacks_side_effect(self, *args):
@@ -257,7 +257,7 @@ class TestGenerator(unittest.TestCase):
       "k",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource(source_filename, source_data)
+    (nick, user_tuples) = self.generator.processSource(source_filename, source_data)
 
     ab = ("a", "b")
     bc = ("b", "c")
@@ -269,82 +269,82 @@ class TestGenerator(unittest.TestCase):
 
     self.assertEqual(nick, source_nick)
 
-    self.assertEqual(len(starters), 4)
-    self.assertTrue(ab in starters)
-    self.assertTrue(fg in starters)
+    self.assertEqual(len(user_tuples.starters), 4)
+    self.assertTrue(ab in user_tuples.starters)
+    self.assertTrue(fg in user_tuples.starters)
 
-    self.assertEqual(len(generic_lookbacks), 7)
-    self.assertTrue(ab in generic_lookbacks)
-    self.assertTrue(bc in generic_lookbacks)
-    self.assertTrue(cd in generic_lookbacks)
-    self.assertTrue(ce in generic_lookbacks)
-    self.assertTrue(fg in generic_lookbacks)
-    self.assertTrue(gh in generic_lookbacks)
-    self.assertTrue(ij in generic_lookbacks)
+    self.assertEqual(len(user_tuples.all_lookbacks), 7)
+    self.assertTrue(ab in user_tuples.all_lookbacks)
+    self.assertTrue(bc in user_tuples.all_lookbacks)
+    self.assertTrue(cd in user_tuples.all_lookbacks)
+    self.assertTrue(ce in user_tuples.all_lookbacks)
+    self.assertTrue(fg in user_tuples.all_lookbacks)
+    self.assertTrue(gh in user_tuples.all_lookbacks)
+    self.assertTrue(ij in user_tuples.all_lookbacks)
 
-    self.assertEqual(len(generic_lookbacks[ab]), 2)
-    self.assertTrue("c" in generic_lookbacks[ab])
-    self.assertEqual(generic_lookbacks[ab][0], generic_lookbacks[ab][1])
+    self.assertEqual(len(user_tuples.all_lookbacks[ab]), 2)
+    self.assertTrue("c" in user_tuples.all_lookbacks[ab])
+    self.assertEqual(user_tuples.all_lookbacks[ab][0], user_tuples.all_lookbacks[ab][1])
 
-    self.assertEqual(len(generic_lookbacks[bc]), 2)
-    self.assertTrue("d" in generic_lookbacks[bc])
-    self.assertTrue("e" in generic_lookbacks[bc])
+    self.assertEqual(len(user_tuples.all_lookbacks[bc]), 2)
+    self.assertTrue("d" in user_tuples.all_lookbacks[bc])
+    self.assertTrue("e" in user_tuples.all_lookbacks[bc])
 
-    self.assertEqual(len(generic_lookbacks[cd]), 1)
-    self.assertTrue(SpecialToken.TERMINATE in generic_lookbacks[cd])
+    self.assertEqual(len(user_tuples.all_lookbacks[cd]), 1)
+    self.assertTrue(SpecialToken.TERMINATE in user_tuples.all_lookbacks[cd])
 
-    self.assertEqual(len(generic_lookbacks[ce]), 1)
-    self.assertTrue(SpecialToken.TERMINATE in generic_lookbacks[ce])
+    self.assertEqual(len(user_tuples.all_lookbacks[ce]), 1)
+    self.assertTrue(SpecialToken.TERMINATE in user_tuples.all_lookbacks[ce])
 
-    self.assertEqual(len(generic_lookbacks[fg]), 1)
-    self.assertTrue("h" in generic_lookbacks[fg])
+    self.assertEqual(len(user_tuples.all_lookbacks[fg]), 1)
+    self.assertTrue("h" in user_tuples.all_lookbacks[fg])
 
-    self.assertEqual(len(generic_lookbacks[gh]), 1)
-    self.assertTrue(SpecialToken.TERMINATE in generic_lookbacks[gh])
+    self.assertEqual(len(user_tuples.all_lookbacks[gh]), 1)
+    self.assertTrue(SpecialToken.TERMINATE in user_tuples.all_lookbacks[gh])
 
-    self.assertEqual(len(generic_lookbacks[ij]), 1)
-    self.assertTrue(SpecialToken.TERMINATE in generic_lookbacks[ij])
+    self.assertEqual(len(user_tuples.all_lookbacks[ij]), 1)
+    self.assertTrue(SpecialToken.TERMINATE in user_tuples.all_lookbacks[ij])
 
-    self.assertEqual(len(closing_lookbacks), 4)
-    self.assertFalse(closing_lookbacks["("])
-    self.assertFalse(closing_lookbacks["["])
-    self.assertFalse(closing_lookbacks["\""])
-    self.assertFalse(closing_lookbacks["{"])
+    self.assertEqual(len(user_tuples.closing_lookbacks), 4)
+    self.assertFalse(user_tuples.closing_lookbacks["("])
+    self.assertFalse(user_tuples.closing_lookbacks["["])
+    self.assertFalse(user_tuples.closing_lookbacks["\""])
+    self.assertFalse(user_tuples.closing_lookbacks["{"])
 
 
   def test_process_source_closer_nonsmileys(self):
 
     source_data = ["a) b c d", "a b} c d", "a b c] d)", "a] b} c) d\""]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
+    (nick, user_tuples) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(generic_lookbacks), 11)
-    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
-    self.assertEqual(len(closing_lookbacks), 4)
-    self.assertEqual(len(closing_lookbacks["("]), 2)
-    self.assertEqual(len(closing_lookbacks["["]), 1)
-    self.assertEqual(len(closing_lookbacks["\""]), 1)
-    self.assertEqual(closing_lookbacks["("], {('a]', 'b}'): ['c)'], ('b', 'c]'): ['d)']})
-    self.assertEqual(closing_lookbacks["["], {('a', 'b'): ['c]']})
-    self.assertEqual(closing_lookbacks["\""], {('b}', 'c)'): ['d"']})
-    self.assertFalse(closing_lookbacks["{"])
+    self.assertEqual(len(user_tuples.all_lookbacks), 11)
+    self.assertEqual(len(user_tuples.all_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(user_tuples.closing_lookbacks), 4)
+    self.assertEqual(len(user_tuples.closing_lookbacks["("]), 2)
+    self.assertEqual(len(user_tuples.closing_lookbacks["["]), 1)
+    self.assertEqual(len(user_tuples.closing_lookbacks["\""]), 1)
+    self.assertEqual(user_tuples.closing_lookbacks["("], {('a]', 'b}'): ['c)'], ('b', 'c]'): ['d)']})
+    self.assertEqual(user_tuples.closing_lookbacks["["], {('a', 'b'): ['c]']})
+    self.assertEqual(user_tuples.closing_lookbacks["\""], {('b}', 'c)'): ['d"']})
+    self.assertFalse(user_tuples.closing_lookbacks["{"])
 
 
   def test_process_source_closer_smileys(self):
 
     source_data = [":) b c d", "a :) c d", "a b :) d", "a b c :)"]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
+    (nick, user_tuples) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(generic_lookbacks), 9)
-    self.assertEqual(len(generic_lookbacks[("a", "b")]), 2)
-    self.assertEqual(len(generic_lookbacks[("b", "c")]), 2)
-    self.assertEqual(len(generic_lookbacks[("c", "d")]), 2)
-    self.assertEqual(len(closing_lookbacks), 4)
-    self.assertFalse(closing_lookbacks["("])
-    self.assertFalse(closing_lookbacks["["])
-    self.assertFalse(closing_lookbacks["\""])
-    self.assertFalse(closing_lookbacks["{"])
+    self.assertEqual(len(user_tuples.all_lookbacks), 9)
+    self.assertEqual(len(user_tuples.all_lookbacks[("a", "b")]), 2)
+    self.assertEqual(len(user_tuples.all_lookbacks[("b", "c")]), 2)
+    self.assertEqual(len(user_tuples.all_lookbacks[("c", "d")]), 2)
+    self.assertEqual(len(user_tuples.closing_lookbacks), 4)
+    self.assertFalse(user_tuples.closing_lookbacks["("])
+    self.assertFalse(user_tuples.closing_lookbacks["["])
+    self.assertFalse(user_tuples.closing_lookbacks["\""])
+    self.assertFalse(user_tuples.closing_lookbacks["{"])
 
 
   def test_process_source_closer_urls_opened(self):
@@ -357,14 +357,14 @@ class TestGenerator(unittest.TestCase):
       "d e f http://a.b.com(s))z",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
+    (nick, user_tuples) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(closing_lookbacks), 4)
-    self.assertFalse(closing_lookbacks["("])
-    self.assertFalse(closing_lookbacks["["])
-    self.assertFalse(closing_lookbacks["\""])
-    self.assertFalse(closing_lookbacks["{"])
-    self.assertEqual(len(urls), 5)
+    self.assertEqual(len(user_tuples.closing_lookbacks), 4)
+    self.assertFalse(user_tuples.closing_lookbacks["("])
+    self.assertFalse(user_tuples.closing_lookbacks["["])
+    self.assertFalse(user_tuples.closing_lookbacks["\""])
+    self.assertFalse(user_tuples.closing_lookbacks["{"])
+    self.assertEqual(len(user_tuples.urls), 5)
 
 
   def test_process_source_closer_urls_unopened(self):
@@ -377,16 +377,16 @@ class TestGenerator(unittest.TestCase):
       "d e f http://a.b.com(s))",
     ]
 
-    (nick, starters, generic_lookbacks, closing_lookbacks, urls) = self.generator.processSource("almond.src", source_data)
+    (nick, user_tuples) = self.generator.processSource("almond.src", source_data)
 
-    self.assertEqual(len(closing_lookbacks), 4)
-    self.assertEqual(len(closing_lookbacks["("]), 3)
-    self.assertTrue(("a", "b") in closing_lookbacks["("])
-    self.assertTrue(("b", "c") in closing_lookbacks["("])
-    self.assertFalse(closing_lookbacks["["])
-    self.assertFalse(closing_lookbacks["\""])
-    self.assertFalse(closing_lookbacks["{"])
-    self.assertEqual(len(urls), 5)
+    self.assertEqual(len(user_tuples.closing_lookbacks), 4)
+    self.assertEqual(len(user_tuples.closing_lookbacks["("]), 3)
+    self.assertTrue(("a", "b") in user_tuples.closing_lookbacks["("])
+    self.assertTrue(("b", "c") in user_tuples.closing_lookbacks["("])
+    self.assertFalse(user_tuples.closing_lookbacks["["])
+    self.assertFalse(user_tuples.closing_lookbacks["\""])
+    self.assertFalse(user_tuples.closing_lookbacks["{"])
+    self.assertEqual(len(user_tuples.urls), 5)
 
 
   def test_get_generic_statistics_empty(self):
@@ -533,7 +533,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -549,7 +549,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
     initial = ("is", "binn")
 
     self.generator.init(self.users_instance, {}, 0)
@@ -566,7 +566,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
     initial = ("is",)
 
     self.generator.init(self.users_instance, {}, 0)
@@ -583,7 +583,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
     initial = ("is", "maith")
 
     self.generator.init(self.users_instance, {}, 0)
@@ -599,7 +599,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.poet_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
     initial = ("ní",)
 
     self.generator.init(self.users_instance, {}, 0)
@@ -618,7 +618,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.saoi_nick, self.file_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)
     nicks, quote = self.generator.generate(nick_tuples)
@@ -637,7 +637,7 @@ class TestGenerator(unittest.TestCase):
 
     self.users_instance.getRealNicks.return_value = [self.bard_nick]
     self.users_instance.getStarters.side_effect = self.starters_side_effect
-    self.users_instance.getAllLookbacks.side_effect = self.generic_lookbacks_side_effect
+    self.users_instance.getAllLookbacks.side_effect = self.all_lookbacks_side_effect
     self.users_instance.getClosingLookbacks.side_effect = self.closing_lookbacks_side_effect
 
     self.generator.init(self.users_instance, {}, 0)

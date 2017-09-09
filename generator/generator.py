@@ -171,17 +171,17 @@ class Generator:
 
         source_filepath = source_dir + Generator.SEP + source_filename
         infile = open(source_filepath, 'r')
-        (nick, starters, all_lookbacks, closing_lookbacks, urls) = self.processSource(source_filename, infile)
+        (nick, user_tuples) = self.processSource(source_filename, infile)
         infile.close()
 
         # Only add new user to sources if any material actually found in file
-        if all_lookbacks:
+        if user_tuples.all_lookbacks:
           users.addUser(
             nick=nick,
-            starters=starters,
-            all_lookbacks=all_lookbacks,
-            closing_lookbacks=closing_lookbacks,
-            urls=urls
+            starters=user_tuples.starters,
+            all_lookbacks=user_tuples.all_lookbacks,
+            closing_lookbacks=user_tuples.closing_lookbacks,
+            urls=user_tuples.urls
           )
 
 
@@ -192,18 +192,25 @@ class Generator:
     all_lookbacks = {}
     closing_lookbacks = {}
     urls = []
+
     for opener in config.OPENERS_TO_CLOSERS:
       closing_lookbacks[opener] = {}
+    user_tuples = UserTuples(all_lookbacks, closing_lookbacks, starters, urls)
 
     for line in source_data:
       words = line.split()
       if len(words) >= self.lookback_count: # Not interested in lines too short to create productions
-        self.processLineWords(words, starters, all_lookbacks, closing_lookbacks, urls)
+        user_tuples = self.processLineWords(words, user_tuples)
 
-    return (nick, starters, all_lookbacks, closing_lookbacks, urls)
+    return (nick, user_tuples)
 
 
-  def processLineWords(self, words, starters, all_lookbacks, closing_lookbacks, urls):
+  def processLineWords(self, words, user_tuples):
+
+    all_lookbacks = user_tuples.all_lookbacks
+    closing_lookbacks = user_tuples.closing_lookbacks
+    starters = user_tuples.starters
+    urls = user_tuples.urls
 
     starter_words = []
     for word in (words[0:self.lookback_count]):
@@ -245,6 +252,8 @@ class Generator:
 
     last_lookback = tuple(words[bound:])
     GeneratorUtil.appendTerminalWithCreate(all_lookbacks, last_lookback)
+
+    return UserTuples(all_lookbacks, closing_lookbacks, starters, urls)
 
 
   @staticmethod
